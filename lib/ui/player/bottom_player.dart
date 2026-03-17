@@ -13,46 +13,71 @@ class BottomPlayer extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadiusGeometry.circular(16),
         ),
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: Theme.of(context).colorScheme.secondaryContainer,
         child: ClipRRect(
           borderRadius: BorderRadiusGeometry.circular(16),
           child: BlocBuilder<PlayerBloc, PlayerState>(
             builder: (context, state) {
-              return Row(
-                children: [
-                  if (state.selectedTrack?.image is HttpFile)
-                    SizedBox.square(
-                      dimension: 48,
-                      child: Image.network(
-                        (state.selectedTrack!.image as HttpFile).uri.toString(),
+              return Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Row(
+                  children: [
+                    if (state.selectedTrack?.image is HttpFile)
+                      SizedBox.square(
+                        dimension: 48,
+                        child: ClipRRect(
+                          borderRadius: BorderRadiusGeometry.circular(12),
+                          child: Image.network(
+                            (state.selectedTrack!.image as HttpFile).uri
+                                .toString(),
+                          ),
+                        ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // TODO: translate error messages.
+                          Text(
+                            state.selectedTrack?.name ?? 'error',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSecondaryContainer,
+                                ),
+                          ),
+                          Text(
+                            state.selectedTrack?.authors
+                                    .map((author) => author.currentName)
+                                    .join(', ') ??
+                                'error',
+
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSecondaryContainer,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // TODO: translate error messages.
-                        Text(state.selectedTrack?.name ?? 'error'),
-                        Text(
-                          state.selectedTrack?.authors
-                                  .map((author) => author.currentName)
-                                  .join(', ') ??
-                              'error',
-                        ),
-                      ],
+                    IconButton(
+                      onPressed: () {
+                        context.read<PlayerBloc>().add(TogglePlay());
+                      },
+                      icon: Icon(
+                        state.isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      context.read<PlayerBloc>().add(TogglePlay());
-                    },
-                    icon: Icon(
-                      state.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
