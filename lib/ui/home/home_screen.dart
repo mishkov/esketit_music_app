@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/ui/bottom_navigation_bar/esketit_bottom_navigation_bar.dart';
 import 'package:esketit_music_app/ui/drawer/esketit_drawer.dart';
 import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -24,13 +25,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, state) {
-        return Stack(
-          children: [
-            Scaffold(
-              // TODO; localize the title
-              appBar: AppBar(title: Text('Tracks')),
-              drawer: EsketitDrawer(),
-              body: BlocBuilder<TracksListBloc, TracksListState>(
+        return Scaffold(
+          // TODO; localize the title
+          appBar: AppBar(title: Text('Tracks')),
+          drawer: EsketitDrawer(),
+          bottomNavigationBar: EsketitBottomNavigationBar(),
+          body: Stack(
+            children: [
+              BlocBuilder<TracksListBloc, TracksListState>(
                 builder: (context, state) {
                   return ListView.separated(
                     itemCount: state.tracks.length,
@@ -54,10 +56,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            ),
-            if (state.selectedTrack != null)
-              Positioned(bottom: 0, right: 0, left: 0, child: BottomPlayer()),
-          ],
+              if (state.selectedTrack != null)
+                Positioned(bottom: 0, right: 0, left: 0, child: BottomPlayer()),
+            ],
+          ),
         );
       },
     );
