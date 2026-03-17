@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
@@ -20,43 +22,56 @@ class TogglePlay extends PlayerEvent {
   List<Object?> get props => [];
 }
 
+class _PlaybackStateChanged extends PlayerEvent {
+  final bool isPlaying;
+
+  _PlaybackStateChanged(this.isPlaying);
+
+  @override
+  List<Object?> get props => [isPlaying];
+}
+
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final AudioPlayer _player;
+
+  StreamSubscription<bool>? _isPlayingSubscription;
 
   PlayerBloc({required PlayerState initialState, required AudioPlayer player})
     : _player = player,
       super(initialState) {
+    _isPlayingSubscription = _player.isPlayingStream.listen((isPlaying) {
+      add(_PlaybackStateChanged(isPlaying));
+    });
+
     on<PlayTrack>((event, emit) async {
       try {
-        emit(
-          state.copyWith(
-            selectedTrack: NullableOption.value(event.track),
-            isPlaying: true,
-          ),
-        );
+        emit(state.copyWith(selectedTrack: NullableOption.value(event.track)));
 
         await _player.beginPlaying(event.track);
-
-        emit(
-          state.copyWith(
-            selectedTrack: NullableOption.value(event.track),
-            isPlaying: false,
-          ),
-        );
-      } catch (error, stackTrace) {
+      } catch (error) {
+        emit(state.copyWith(isPlaying: false));
         // TODO: reporter error.
       }
     });
 
     on<TogglePlay>((event, emit) async {
       try {
-        emit(state.copyWith(isPlaying: !state.isPlaying));
-
         await _player.togglePlay();
       } catch (error, stackTrace) {
         // TODO: reporter error.
       }
     });
+
+    on<_PlaybackStateChanged>((event, emit) {
+      emit(state.copyWith(isPlaying: event.isPlaying));
+    });
+  }
+
+  @override
+  Future<void> close() async {
+    await _isPlayingSubscription?.cancel();
+
+    return super.close();
   }
 }
 

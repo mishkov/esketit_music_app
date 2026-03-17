@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:just_audio/just_audio.dart' as just_audio;
+import 'package:just_audio_background/just_audio_background.dart';
 
 class JustAudioAudioPlayer implements AudioPlayer {
   final just_audio.AudioPlayer _audioPlayer;
@@ -12,14 +13,30 @@ class JustAudioAudioPlayer implements AudioPlayer {
       _baseUri = baseUri;
 
   @override
+  Stream<bool> get isPlayingStream => _audioPlayer.playingStream;
+
+  @override
   Future<void> beginPlaying(Track track) async {
     final path = _extractTrackPath(track);
     final uri = _resolveTrackUri(path);
+    final imageUri = _extractImageUri(track);
 
-    await _audioPlayer.setUrl(uri.toString());
+    await _audioPlayer.setAudioSource(
+      just_audio.AudioSource.uri(
+        uri,
+        tag: MediaItem(
+          id: uri.toString(),
+          album: 'Esketit Music',
+          title: track.name,
+          artist: track.authors.map((author) => author.currentName).join(', '),
+          artUri: imageUri,
+        ),
+      ),
+    );
     await _audioPlayer.play();
   }
 
+  @override
   Future<void> dispose() async {
     await _audioPlayer.dispose();
   }
@@ -49,7 +66,21 @@ class JustAudioAudioPlayer implements AudioPlayer {
 
     return _baseUri.resolve(path);
   }
-  
+
+  Uri? _extractImageUri(Track track) {
+    final image = track.image;
+    if (image is! HttpFile) {
+      return null;
+    }
+
+    final imagePath = image.uri.toString();
+    if (imagePath.isEmpty) {
+      return null;
+    }
+
+    return _resolveTrackUri(imagePath);
+  }
+
   @override
   Future<void> togglePlay() async {
     if (_audioPlayer.playing) {

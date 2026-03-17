@@ -11,6 +11,7 @@ import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/tracks/tracks_list/bloc/tracks_list_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 
 Future<void> main() async {
   final errorReporter = SentryErrorReporter(encrypter: EncrypterStub());
@@ -25,12 +26,19 @@ Future<void> main() async {
 }
 
 Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.example.esketit_music_app.channel.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
+
   Bloc.observer = AppErrorsBlocObserver(reporter: errorReporter);
 
   final baseUri =
       // This is comment just for formatting.
       // Uri.parse('http://10.0.2.2:8080');
-      Uri.parse('http://192.168.1.5:8080');
+      Uri.parse('http://192.168.1.6:8080');
   //  Uri.parse('http://localhost:8080');
 
   final httpClient = HttpPackageHttpClient(baseUri: baseUri);
