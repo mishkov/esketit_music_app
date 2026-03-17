@@ -7,6 +7,7 @@ class Track extends Equatable {
   final String name;
   final List<Author> authors;
   final AbstractFile file;
+  final AbstractFile image;
 
   /// Any related info like history of track, who inspired, how it was written,
   /// link to videos, link to tik toks, link to covers etc.
@@ -17,8 +18,9 @@ class Track extends Equatable {
     required this.authors,
     required this.addionalInfo,
     required this.file,
+    required this.image,
   });
 
   @override
-  List<Object> get props => [name, authors, file, addionalInfo];
+  List<Object> get props => [name, authors, file, addionalInfo, image];
 }

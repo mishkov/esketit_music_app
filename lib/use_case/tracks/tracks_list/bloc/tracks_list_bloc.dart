@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
+import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/use_case/shared/snapshot.dart';
 import 'package:esketit_music_app/use_case/tracks/tracks_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,11 +15,14 @@ class LoadMoreTracks extends TracksListEvent {
 
 class TracksListBloc extends Bloc<TracksListEvent, TracksListState> {
   final TracksStorage _tracksStorage;
+  final ErrorReporter _errorReporter;
 
   TracksListBloc({
     required TracksListState initialState,
     required TracksStorage tracksStorage,
+    required ErrorReporter errorReporter,
   }) : _tracksStorage = tracksStorage,
+       _errorReporter = errorReporter,
        super(initialState) {
     on<LoadMoreTracks>((event, emit) async {
       try {
@@ -36,7 +41,13 @@ class TracksListBloc extends Bloc<TracksListEvent, TracksListState> {
       } catch (error, stackTrace) {
         // TODO: emit error tracks.
 
-        // TODO: report error to [ErrorReporter]
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to load tracks list',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
       }
     });
   }

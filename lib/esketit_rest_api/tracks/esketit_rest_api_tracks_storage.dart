@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:esketit_music_app/domain/author.dart';
-import 'package:esketit_music_app/domain/file/abstract_file.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
+import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/tracks/tracks_storage.dart';
 
 class EsketitRestApiTracksStorage implements TracksStorage {
@@ -96,6 +96,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
 
       final name = (item['name'] as String?) ?? '';
       final audioFilePath = (item['audioFilePath'] as String?) ?? '';
+      final albumImagePath = (item['albumImagePath'] as String?) ?? '';
       final authorIds = item['authorIds'];
 
       final authors = <Author>[];
@@ -121,7 +122,8 @@ class EsketitRestApiTracksStorage implements TracksStorage {
           name: name,
           authors: authors,
           addionalInfo: const [],
-          file: _RemoteTrackFile(path: audioFilePath),
+          file: HttpFile(uri: Uri.parse(audioFilePath)),
+          image: HttpFile(uri: Uri.parse(albumImagePath)),
         ),
       );
     }
@@ -148,13 +150,4 @@ class EsketitRestApiTracksStorage implements TracksStorage {
     }
     return null;
   }
-}
-
-class _RemoteTrackFile extends AbstractFile {
-  final String path;
-
-  _RemoteTrackFile({required this.path});
-
-  @override
-  List<Object?> get props => [path];
 }
