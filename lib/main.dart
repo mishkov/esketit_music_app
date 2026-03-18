@@ -3,10 +3,14 @@ import 'package:esketit_music_app/errors/error_reporter/encrypter_stub.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter_console_logger_proxy.dart';
 import 'package:esketit_music_app/errors/error_reporter/sentry_error_reporter.dart';
+import 'package:esketit_music_app/esketit_rest_api/auth/authenticated_http_client_proxy.dart';
+import 'package:esketit_music_app/esketit_rest_api/auth/esketit_rest_api_auth_repository.dart';
 import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_tracks_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
+import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
+import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/tracks/tracks_list/bloc/tracks_list_bloc.dart';
 import 'package:flutter/material.dart';
@@ -41,12 +45,32 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       Uri.parse('http://192.168.1.6:8080');
   //  Uri.parse('http://localhost:8080');
 
-  final httpClient = HttpPackageHttpClient(baseUri: baseUri);
-  final tracksStorage = EsketitRestApiTracksStorage(httpClient: httpClient);
+  final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
+  // TODO: refactor dependencies to remove the usage of `late`.
+  late final EsketitRestApiAuthRepository authRepository;
+  final authenticatedHttpClient = AuthenticatedHttpClientProxy(
+    httpClient: unauthenticatedHttpClient,
+    refreshSession: ({forceRefresh = false}) =>
+        authRepository.refreshSession(forceRefresh: forceRefresh),
+  );
+  authRepository = EsketitRestApiAuthRepository(
+    unauthenticatedHttpClient: unauthenticatedHttpClient,
+    authenticatedHttpClient: authenticatedHttpClient,
+    sessionStorage: FlutterSecureAuthSessionStorage(),
+  );
+  final tracksStorage = EsketitRestApiTracksStorage(
+    httpClient: unauthenticatedHttpClient,
+  );
 
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (context) => AuthBloc(
+            authRepository: authRepository,
+            errorReporter: errorReporter,
+          )..add(const AuthSessionRestoreRequested()),
+        ),
         BlocProvider(
           create: (context) => TracksListBloc(
             initialState: TracksListState(tracks: [], tracksPerPage: 10),
@@ -58,13 +82,6 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           create: (context) => PlayerBloc(
             initialState: PlayerState(selectedTrack: null, isPlaying: false),
             player: JustAudioAudioPlayer(baseUri: baseUri),
-          ),
-        ),
-        BlocProvider(
-          create: (context) => TracksListBloc(
-            initialState: TracksListState(tracks: [], tracksPerPage: 10),
-            errorReporter: errorReporter,
-            tracksStorage: tracksStorage,
           ),
         ),
       ],

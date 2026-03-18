@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 
 class EsketitBottomNavigationBar extends StatelessWidget {
-  const EsketitBottomNavigationBar({super.key});
+  const EsketitBottomNavigationBar({
+    required this.currentIndex,
+    required this.onTap,
+    super.key,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: onTap,
       items: [
         BottomNavigationBarItem(
           // TODO: translate the text.

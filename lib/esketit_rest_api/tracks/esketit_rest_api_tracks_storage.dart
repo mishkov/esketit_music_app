@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -29,7 +30,9 @@ class EsketitRestApiTracksStorage implements TracksStorage {
 
     final startIndex = _resolveStartIndex(tracks, lastFetchedTrack);
     final safePageSize = tracksPerPage < 0 ? 0 : tracksPerPage;
-    final endIndex = (startIndex + safePageSize).clamp(0, tracks.length).toInt();
+    final endIndex = (startIndex + safePageSize)
+        .clamp(0, tracks.length)
+        .toInt();
     return tracks.sublist(startIndex, endIndex);
   }
 
@@ -51,9 +54,18 @@ class EsketitRestApiTracksStorage implements TracksStorage {
       return;
     }
 
-    // TODO: throw AppError or it's custom subclass
-    throw StateError(
-      'Request failed for $path with status ${response.statusCode}',
+    if (response.statusCode == 401) {
+      throw UnauthorizedAppError(path: path, responseBody: response.response);
+    }
+    if (response.statusCode == 403) {
+      throw ForbiddenAppError(path: path, responseBody: response.response);
+    }
+
+    throw HttpAppError(
+      message: 'Request failed',
+      path: path,
+      statusCode: response.statusCode,
+      responseBody: response.response,
     );
   }
 
@@ -61,7 +73,9 @@ class EsketitRestApiTracksStorage implements TracksStorage {
     final body = _coerceJson(responseBody);
     if (body is! List) {
       // TODO: throw AppError or it's custom subclass
-      throw const FormatException('Expected /authors response to be a JSON list');
+      throw const FormatException(
+        'Expected /authors response to be a JSON list',
+      );
     }
 
     final result = <int, Author>{};
@@ -85,7 +99,9 @@ class EsketitRestApiTracksStorage implements TracksStorage {
     final body = _coerceJson(responseBody);
     if (body is! List) {
       // TODO: throw AppError or it's custom subclass
-      throw const FormatException('Expected /tracks response to be a JSON list');
+      throw const FormatException(
+        'Expected /tracks response to be a JSON list',
+      );
     }
 
     final tracks = <Track>[];
