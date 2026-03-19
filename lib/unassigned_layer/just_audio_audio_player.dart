@@ -7,6 +7,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 class JustAudioAudioPlayer implements AudioPlayer {
   final just_audio.AudioPlayer _audioPlayer;
   final Uri? _baseUri;
+  List<Track> _queue = const [];
 
   JustAudioAudioPlayer({just_audio.AudioPlayer? audioPlayer, Uri? baseUri})
     : _audioPlayer = audioPlayer ?? just_audio.AudioPlayer(),
@@ -16,23 +17,31 @@ class JustAudioAudioPlayer implements AudioPlayer {
   Stream<bool> get isPlayingStream => _audioPlayer.playingStream;
 
   @override
-  Future<void> beginPlaying(Track track) async {
-    final path = _extractTrackPath(track);
-    final uri = _resolveTrackUri(path);
-    final imageUri = _extractImageUri(track);
+  Stream<Track?> get currentTrackStream =>
+      _audioPlayer.currentIndexStream.map((index) {
+        if (index == null || index < 0 || index >= _queue.length) {
+          return null;
+        }
+        return _queue[index];
+      });
 
-    await _audioPlayer.setAudioSource(
-      just_audio.AudioSource.uri(
-        uri,
-        tag: MediaItem(
-          id: uri.toString(),
-          // TODO: looks like this should be replaced with real value.
-          album: 'Esketit Music',
-          title: track.name,
-          artist: track.authors.map((author) => author.currentName).join(', '),
-          artUri: imageUri,
-        ),
-      ),
+  @override
+  Future<void> beginPlayingQueue(
+    List<Track> tracks, {
+    required int initialIndex,
+  }) async {
+    if (tracks.isEmpty) {
+      throw StateError('Playback queue must not be empty');
+    }
+    if (initialIndex < 0 || initialIndex >= tracks.length) {
+      throw RangeError.index(initialIndex, tracks, 'initialIndex');
+    }
+
+    _queue = List<Track>.unmodifiable(tracks);
+
+    await _audioPlayer.setAudioSources(
+      _queue.map(_buildAudioSource).toList(growable: false),
+      initialIndex: initialIndex,
     );
     await _audioPlayer.play();
   }
@@ -89,5 +98,22 @@ class JustAudioAudioPlayer implements AudioPlayer {
       return;
     }
     await _audioPlayer.play();
+  }
+
+  just_audio.AudioSource _buildAudioSource(Track track) {
+    final path = _extractTrackPath(track);
+    final uri = _resolveTrackUri(path);
+    final imageUri = _extractImageUri(track);
+
+    return just_audio.AudioSource.uri(
+      uri,
+      tag: MediaItem(
+        id: uri.toString(),
+        album: 'Esketit Music',
+        title: track.name,
+        artist: track.authors.map((author) => author.currentName).join(', '),
+        artUri: imageUri,
+      ),
+    );
   }
 }

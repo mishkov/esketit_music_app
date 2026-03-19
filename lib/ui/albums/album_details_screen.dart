@@ -83,7 +83,11 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
                       if (safeTracks.isEmpty)
                         const Text('No tracks in this album yet.'),
                       ...safeTracks.asMap().entries.map((entry) {
-                        return _TrackTile(index: entry.key, track: entry.value);
+                        return _TrackTile(
+                          index: entry.key,
+                          track: entry.value,
+                          albumTracks: safeTracks,
+                        );
                       }),
                     ],
                   );
@@ -105,10 +109,15 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
 }
 
 class _TrackTile extends StatelessWidget {
-  const _TrackTile({required this.index, required this.track});
+  const _TrackTile({
+    required this.index,
+    required this.track,
+    required this.albumTracks,
+  });
 
   final int index;
   final Track track;
+  final List<Track> albumTracks;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +131,7 @@ class _TrackTile extends StatelessWidget {
         ),
         trailing: const Icon(Icons.play_arrow_rounded),
         onTap: () {
-          context.read<PlayerBloc>().add(PlayTrack(track));
+          context.read<PlayerBloc>().add(PlayTrack(track, queue: albumTracks));
         },
       ),
     );

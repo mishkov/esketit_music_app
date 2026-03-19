@@ -12,11 +12,12 @@ sealed class PlayerEvent extends Equatable {}
 
 class PlayTrack extends PlayerEvent {
   final Track track;
+  final List<Track> queue;
 
-  PlayTrack(this.track);
+  PlayTrack(this.track, {List<Track>? queue}) : queue = queue ?? [track];
 
   @override
-  List<Object?> get props => [track];
+  List<Object?> get props => [track, queue];
 }
 
 class TogglePlay extends PlayerEvent {
@@ -33,11 +34,21 @@ class _PlaybackStateChanged extends PlayerEvent {
   List<Object?> get props => [isPlaying];
 }
 
+class _SelectedTrackChanged extends PlayerEvent {
+  final Track? track;
+
+  _SelectedTrackChanged(this.track);
+
+  @override
+  List<Object?> get props => [track];
+}
+
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final AudioPlayer _player;
   final ErrorReporter _errorReporter;
 
   StreamSubscription<bool>? _isPlayingSubscription;
+  StreamSubscription<Track?>? _selectedTrackSubscription;
 
   PlayerBloc({
     required PlayerState initialState,
@@ -45,16 +56,22 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required ErrorReporter errorReporter,
   }) : _player = player,
        _errorReporter = errorReporter,
-      super(initialState) {
+       super(initialState) {
     _isPlayingSubscription = _player.isPlayingStream.listen((isPlaying) {
       add(_PlaybackStateChanged(isPlaying));
+    });
+    _selectedTrackSubscription = _player.currentTrackStream.listen((track) {
+      add(_SelectedTrackChanged(track));
     });
 
     on<PlayTrack>((event, emit) async {
       try {
         emit(state.copyWith(selectedTrack: NullableOption.value(event.track)));
 
-        await _player.beginPlaying(event.track);
+        await _player.beginPlayingQueue(
+          event.queue,
+          initialIndex: event.queue.indexOf(event.track),
+        );
       } catch (error, stackTrace) {
         emit(state.copyWith(isPlaying: false));
         await _errorReporter.reportError(
@@ -84,11 +101,22 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<_PlaybackStateChanged>((event, emit) {
       emit(state.copyWith(isPlaying: event.isPlaying));
     });
+
+    on<_SelectedTrackChanged>((event, emit) {
+      emit(
+        state.copyWith(
+          selectedTrack: event.track == null
+              ? NullableOption.nullable()
+              : NullableOption.value(event.track!),
+        ),
+      );
+    });
   }
 
   @override
   Future<void> close() async {
     await _isPlayingSubscription?.cancel();
+    await _selectedTrackSubscription?.cancel();
 
     return super.close();
   }
