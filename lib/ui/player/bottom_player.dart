@@ -22,17 +22,23 @@ class BottomPlayer extends StatelessWidget {
                 padding: const EdgeInsets.all(4.0),
                 child: Row(
                   children: [
-                    if (state.selectedTrack?.image is HttpFile)
-                      SizedBox.square(
-                        dimension: 48,
-                        child: ClipRRect(
-                          borderRadius: BorderRadiusGeometry.circular(12),
-                          child: Image.network(
-                            (state.selectedTrack!.image as HttpFile).uri
-                                .toString(),
-                          ),
-                        ),
-                      ),
+                    SizedBox.square(
+                      dimension: 48,
+                      child:
+                          // TODO: refactor this spagetti.
+                          (state.selectedTrack?.image is HttpFile &&
+                              ((state.selectedTrack!.image as HttpFile).uri
+                                      .toString())
+                                  .isNotEmpty)
+                          ? ClipRRect(
+                              borderRadius: BorderRadiusGeometry.circular(12),
+                              child: Image.network(
+                                (state.selectedTrack!.image as HttpFile).uri
+                                    .toString(),
+                              ),
+                            )
+                          : SizedBox.shrink(),
+                    ),
                     Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
