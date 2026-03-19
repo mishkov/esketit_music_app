@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
+import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,11 +35,16 @@ class _PlaybackStateChanged extends PlayerEvent {
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final AudioPlayer _player;
+  final ErrorReporter _errorReporter;
 
   StreamSubscription<bool>? _isPlayingSubscription;
 
-  PlayerBloc({required PlayerState initialState, required AudioPlayer player})
-    : _player = player,
+  PlayerBloc({
+    required PlayerState initialState,
+    required AudioPlayer player,
+    required ErrorReporter errorReporter,
+  }) : _player = player,
+       _errorReporter = errorReporter,
       super(initialState) {
     _isPlayingSubscription = _player.isPlayingStream.listen((isPlaying) {
       add(_PlaybackStateChanged(isPlaying));
@@ -48,9 +55,15 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         emit(state.copyWith(selectedTrack: NullableOption.value(event.track)));
 
         await _player.beginPlaying(event.track);
-      } catch (error) {
+      } catch (error, stackTrace) {
         emit(state.copyWith(isPlaying: false));
-        // TODO: reporter error.
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to play track ${event.track.id}',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
       }
     });
 
@@ -58,7 +71,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       try {
         await _player.togglePlay();
       } catch (error, stackTrace) {
-        // TODO: reporter error.
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to toggle player state',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
       }
     });
 

@@ -19,7 +19,10 @@ class LoginRequiredPromptScope
   static LoginRequiredPromptController of(BuildContext context) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<LoginRequiredPromptScope>();
-    assert(scope != null, 'LoginRequiredPromptScope is missing in the widget tree.');
+    assert(
+      scope != null,
+      'LoginRequiredPromptScope is missing in the widget tree.',
+    );
     return scope!.notifier!;
   }
 }
@@ -30,7 +33,8 @@ class LoginRequiredPromptHost extends StatefulWidget {
   final Widget child;
 
   @override
-  State<LoginRequiredPromptHost> createState() => _LoginRequiredPromptHostState();
+  State<LoginRequiredPromptHost> createState() =>
+      _LoginRequiredPromptHostState();
 }
 
 class _LoginRequiredPromptHostState extends State<LoginRequiredPromptHost> {

@@ -26,6 +26,7 @@ class JustAudioAudioPlayer implements AudioPlayer {
         uri,
         tag: MediaItem(
           id: uri.toString(),
+          // TODO: looks like this should be replaced with real value.
           album: 'Esketit Music',
           title: track.name,
           artist: track.authors.map((author) => author.currentName).join(', '),

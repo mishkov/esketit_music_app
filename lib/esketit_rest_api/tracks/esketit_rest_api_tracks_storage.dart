@@ -87,7 +87,13 @@ class EsketitRestApiTracksStorage implements TracksStorage {
       if (id == null) {
         continue;
       }
-      result[id] = Author(currentName: (item['currentName'] as String?) ?? '');
+      result[id] = Author(
+        id: id,
+        currentName: (item['currentName'] as String?) ?? '',
+        photos: ((item['photos'] as List?) ?? const [])
+            .whereType<String>()
+            .toList(growable: false),
+      );
     }
     return result;
   }
@@ -129,12 +135,19 @@ class EsketitRestApiTracksStorage implements TracksStorage {
             continue;
           }
 
-          authors.add(Author(currentName: 'Author #$authorId'));
+          authors.add(
+            Author(
+              id: authorId,
+              currentName: 'Author #$authorId',
+              photos: const [],
+            ),
+          );
         }
       }
 
       tracks.add(
         Track(
+          id: _asInt(item['id']) ?? 0,
           name: name,
           authors: authors,
           addionalInfo: const [],

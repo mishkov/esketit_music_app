@@ -25,7 +25,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       try {
         await _settingsStorage.setServerUri(event.uri);
         emit(state.copyWith(serverUri: event.uri));
-      } catch (error, stackTrace) {
+      } catch (error) {
         // TODO: report error.
       }
     });

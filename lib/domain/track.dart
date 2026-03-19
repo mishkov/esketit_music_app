@@ -4,6 +4,7 @@ import 'package:esketit_music_app/domain/file/abstract_file.dart';
 import 'package:esketit_music_app/domain/track_info/track_info.dart';
 
 class Track extends Equatable {
+  final int id;
   final String name;
   final List<Author> authors;
   final AbstractFile file;
@@ -14,6 +15,7 @@ class Track extends Equatable {
   final List<TrackInfo> addionalInfo;
 
   const Track({
+    required this.id,
     required this.name,
     required this.authors,
     required this.addionalInfo,
@@ -22,5 +24,5 @@ class Track extends Equatable {
   });
 
   @override
-  List<Object> get props => [name, authors, file, addionalInfo, image];
+  List<Object> get props => [id, name, authors, file, addionalInfo, image];
 }

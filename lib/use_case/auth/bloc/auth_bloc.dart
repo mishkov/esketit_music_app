@@ -109,10 +109,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(
-      state.copyWith(
-        isSubmitting: true,
-        failure: NullableOption.nullable(),
-      ),
+      state.copyWith(isSubmitting: true, failure: NullableOption.nullable()),
     );
 
     try {
@@ -144,10 +141,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(
-      state.copyWith(
-        isSubmitting: true,
-        failure: NullableOption.nullable(),
-      ),
+      state.copyWith(isSubmitting: true, failure: NullableOption.nullable()),
     );
 
     try {
@@ -179,10 +173,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(
-      state.copyWith(
-        isSubmitting: true,
-        failure: NullableOption.nullable(),
-      ),
+      state.copyWith(isSubmitting: true, failure: NullableOption.nullable()),
     );
 
     try {
@@ -250,10 +241,7 @@ class AuthState extends Equatable {
   });
 
   const AuthState.initial()
-    : this(
-        status: AuthStatus.restoring,
-        isSubmitting: false,
-      );
+    : this(status: AuthStatus.restoring, isSubmitting: false);
 
   bool get isAuthenticated => status == AuthStatus.authenticated;
 
@@ -272,10 +260,5 @@ class AuthState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-    status,
-    session,
-    isSubmitting,
-    failure,
-  ];
+  List<Object?> get props => [status, session, isSubmitting, failure];
 }

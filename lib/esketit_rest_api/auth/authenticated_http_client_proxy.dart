@@ -63,10 +63,7 @@ class AuthenticatedHttpClientProxy implements HttpClient {
     AuthSession session,
     Map<String, String>? headers,
   ) {
-    return {
-      ...?headers,
-      'Authorization': 'Bearer ${session.accessToken}',
-    };
+    return {...?headers, 'Authorization': 'Bearer ${session.accessToken}'};
   }
 
   static void _throwIfUnauthorizedOrForbidden(

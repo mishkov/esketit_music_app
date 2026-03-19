@@ -5,14 +5,14 @@ import 'package:esketit_music_app/errors/error_reporter/error_reporter_console_l
 import 'package:esketit_music_app/errors/error_reporter/sentry_error_reporter.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/authenticated_http_client_proxy.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/esketit_rest_api_auth_repository.dart';
-import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_tracks_storage.dart';
+import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_catalog_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
-import 'package:esketit_music_app/use_case/tracks/tracks_list/bloc/tracks_list_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -58,8 +58,9 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     authenticatedHttpClient: authenticatedHttpClient,
     sessionStorage: FlutterSecureAuthSessionStorage(),
   );
-  final tracksStorage = EsketitRestApiTracksStorage(
+  final catalogStorage = EsketitRestApiCatalogStorage(
     httpClient: unauthenticatedHttpClient,
+    baseUri: baseUri,
   );
 
   runApp(
@@ -72,16 +73,27 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           )..add(const AuthSessionRestoreRequested()),
         ),
         BlocProvider(
-          create: (context) => TracksListBloc(
-            initialState: TracksListState(tracks: [], tracksPerPage: 10),
+          create: (context) => CatalogBloc(
+            initialState: const CatalogState(
+              authors: [],
+              isLoadingAuthors: false,
+              authorsErrorMessage: null,
+              albumsByAuthorId: {},
+              loadingAuthorIds: {},
+              authorAlbumsErrorMessages: {},
+              tracksByAlbumId: {},
+              loadingAlbumIds: {},
+              albumTracksErrorMessages: {},
+            ),
             errorReporter: errorReporter,
-            tracksStorage: tracksStorage,
+            catalogStorage: catalogStorage,
           ),
         ),
         BlocProvider(
           create: (context) => PlayerBloc(
             initialState: PlayerState(selectedTrack: null, isPlaying: false),
             player: JustAudioAudioPlayer(baseUri: baseUri),
+            errorReporter: errorReporter,
           ),
         ),
       ],

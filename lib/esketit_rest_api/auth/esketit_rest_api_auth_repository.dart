@@ -40,9 +40,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
       return null;
     }
 
-    final meResponse = await _authenticatedHttpClient.get(
-      '/auth/me',
-    );
+    final meResponse = await _authenticatedHttpClient.get('/auth/me');
     final meBody = _decodeJsonMap(meResponse.response, path: '/auth/me');
     final user = _parseUser(meBody);
     final restoredSession = refreshedSession.copyWith(user: user);
