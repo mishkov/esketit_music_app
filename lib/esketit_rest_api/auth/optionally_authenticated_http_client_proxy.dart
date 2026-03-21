@@ -1,10 +1,9 @@
 import 'package:esketit_music_app/domain/auth/auth_session.dart';
-import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 
-class AuthenticatedHttpClientProxy implements HttpClient {
-  const AuthenticatedHttpClientProxy({
+class OptionallyAuthenticatedHttpClientProxy implements HttpClient {
+  const OptionallyAuthenticatedHttpClientProxy({
     required HttpClient httpClient,
     required this.refreshSession,
   }) : _httpClient = httpClient;
@@ -14,7 +13,7 @@ class AuthenticatedHttpClientProxy implements HttpClient {
 
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) {
-    return _sendAuthenticated(
+    return _sendOptionallyAuthenticated(
       path: path,
       headers: headers,
       send: (mergedHeaders) => _httpClient.get(path, headers: mergedHeaders),
@@ -27,7 +26,7 @@ class AuthenticatedHttpClientProxy implements HttpClient {
     Map<String, String>? headers,
     Object? body,
   }) {
-    return _sendAuthenticated(
+    return _sendOptionallyAuthenticated(
       path: path,
       headers: headers,
       send: (mergedHeaders) =>
@@ -41,7 +40,7 @@ class AuthenticatedHttpClientProxy implements HttpClient {
     Map<String, String>? headers,
     Object? body,
   }) {
-    return _sendAuthenticated(
+    return _sendOptionallyAuthenticated(
       path: path,
       headers: headers,
       send: (mergedHeaders) =>
@@ -51,34 +50,38 @@ class AuthenticatedHttpClientProxy implements HttpClient {
 
   @override
   Future<HttpResponse> delete(String path, {Map<String, String>? headers}) {
-    return _sendAuthenticated(
+    return _sendOptionallyAuthenticated(
       path: path,
       headers: headers,
       send: (mergedHeaders) => _httpClient.delete(path, headers: mergedHeaders),
     );
   }
 
-  Future<HttpResponse> _sendAuthenticated({
+  Future<HttpResponse> _sendOptionallyAuthenticated({
     required String path,
     required Map<String, String>? headers,
-    required Future<HttpResponse> Function(Map<String, String> headers) send,
+    required Future<HttpResponse> Function(Map<String, String>? headers) send,
   }) async {
     final session = await refreshSession();
     if (session == null) {
-      throw UnauthorizedAppError(path: path);
+      return send(headers);
     }
 
     var response = await send(_authorizationHeaders(session, headers));
-    if (response.statusCode == 401) {
-      final refreshedSession = await refreshSession(forceRefresh: true);
-      if (refreshedSession == null) {
-        throw UnauthorizedAppError(path: path, responseBody: response.response);
-      }
-
-      response = await send(_authorizationHeaders(refreshedSession, headers));
+    if (response.statusCode != 401) {
+      return response;
     }
 
-    _throwIfUnauthorizedOrForbidden(response, path: path);
+    final refreshedSession = await refreshSession(forceRefresh: true);
+    if (refreshedSession == null) {
+      return send(headers);
+    }
+
+    response = await send(_authorizationHeaders(refreshedSession, headers));
+    if (response.statusCode == 401) {
+      return send(headers);
+    }
+
     return response;
   }
 
@@ -87,17 +90,5 @@ class AuthenticatedHttpClientProxy implements HttpClient {
     Map<String, String>? headers,
   ) {
     return {...?headers, 'Authorization': 'Bearer ${session.accessToken}'};
-  }
-
-  static void _throwIfUnauthorizedOrForbidden(
-    HttpResponse response, {
-    required String path,
-  }) {
-    if (response.statusCode == 401) {
-      throw UnauthorizedAppError(path: path, responseBody: response.response);
-    }
-    if (response.statusCode == 403) {
-      throw ForbiddenAppError(path: path, responseBody: response.response);
-    }
   }
 }

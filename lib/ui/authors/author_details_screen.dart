@@ -3,6 +3,7 @@ import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/ui/albums/album_details_screen.dart';
 import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -30,7 +31,7 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
-        return Scaffold(
+        return ScreenSkeleton(
           appBar: AppBar(title: Text(widget.author.currentName)),
           body: Stack(
             children: [

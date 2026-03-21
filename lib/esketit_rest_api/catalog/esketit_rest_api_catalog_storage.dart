@@ -194,6 +194,8 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
               uri: _resolveSongUri((item['audioFilePath'] as String?) ?? ''),
             ),
             image: album.coverImage,
+            isFavorite: (item['isFavorite'] as bool?) ?? false,
+            isAvailable: (item['isAvailable'] as bool?) ?? true,
           );
         })
         .where((track) => track.id > 0)

@@ -5,7 +5,9 @@ import 'package:esketit_music_app/errors/error_reporter/error_reporter_console_l
 import 'package:esketit_music_app/errors/error_reporter/sentry_error_reporter.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/authenticated_http_client_proxy.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/esketit_rest_api_auth_repository.dart';
+import 'package:esketit_music_app/esketit_rest_api/auth/optionally_authenticated_http_client_proxy.dart';
 import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_catalog_storage.dart';
+import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
@@ -13,6 +15,7 @@ import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart'
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -40,10 +43,11 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   Bloc.observer = AppErrorsBlocObserver(reporter: errorReporter);
 
   final baseUri =
-      // This is comment just for formatting.
+      // This is comment just for formatting.99182
       // Uri.parse('http://10.0.2.2:8080');
       Uri.parse('http://192.168.1.6:8080');
-  //  Uri.parse('http://localhost:8080');
+      //  Uri.parse('http://localhost:8080');
+      // Uri.parse('http://46.101.162.92:8080');
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
   // TODO: refactor dependencies to remove the usage of `late`.
@@ -58,8 +62,18 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     authenticatedHttpClient: authenticatedHttpClient,
     sessionStorage: FlutterSecureAuthSessionStorage(),
   );
+  final optionallyAuthenticatedHttpClient =
+      OptionallyAuthenticatedHttpClientProxy(
+        httpClient: unauthenticatedHttpClient,
+        refreshSession: ({forceRefresh = false}) =>
+            authRepository.refreshSession(forceRefresh: forceRefresh),
+      );
   final catalogStorage = EsketitRestApiCatalogStorage(
-    httpClient: unauthenticatedHttpClient,
+    httpClient: optionallyAuthenticatedHttpClient,
+    baseUri: baseUri,
+  );
+  final playlistsStorage = EsketitRestApiPlaylistsStorage(
+    httpClient: authenticatedHttpClient,
     baseUri: baseUri,
   );
 
@@ -93,6 +107,12 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           create: (context) => PlayerBloc(
             initialState: PlayerState(selectedTrack: null, isPlaying: false),
             player: JustAudioAudioPlayer(baseUri: baseUri),
+            errorReporter: errorReporter,
+          ),
+        ),
+        BlocProvider(
+          create: (context) => PlaylistsBloc(
+            playlistsStorage: playlistsStorage,
             errorReporter: errorReporter,
           ),
         ),

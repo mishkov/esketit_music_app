@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,7 +45,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ).showSnackBar(SnackBar(content: Text(failureMessage)));
         }
       },
-      child: Scaffold(
+      child: ScreenSkeleton(
         // TODO: translate all the strings.
         appBar: AppBar(title: const Text('Sign up')),
         body: SafeArea(

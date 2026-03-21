@@ -6,9 +6,11 @@ import 'package:esketit_music_app/ui/drawer/esketit_drawer.dart';
 import 'package:esketit_music_app/ui/library/my_library_screen.dart';
 import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,16 +33,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (previous, current) =>
-          previous.status != current.status && !current.isAuthenticated,
-      listener: (context, state) {
-        if (_currentTabIndex != 0) {
-          setState(() {
-            _currentTabIndex = 0;
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (!state.isAuthenticated) {
+              context.read<PlaylistsBloc>().add(const ClearPlaylists());
+              if (_currentTabIndex != 0) {
+                setState(() {
+                  _currentTabIndex = 0;
+                });
+              }
+              return;
+            }
+
+            if (_currentTabIndex == 1) {
+              context.read<PlaylistsBloc>().add(const LoadPlaylists());
+            }
+          },
+        ),
+        BlocListener<PlaylistsBloc, PlaylistsState>(
+          listenWhen: (previous, current) =>
+              previous.feedbackSerial != current.feedbackSerial &&
+              current.feedbackMessage != null,
+          listener: (context, state) {
+            final message = state.feedbackMessage;
+            if (message == null) {
+              return;
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: state.isFeedbackError
+                    ? Theme.of(context).colorScheme.error
+                    : null,
+              ),
+            );
+          },
+        ),
+      ],
       child: BlocBuilder<PlayerBloc, PlayerState>(
         builder: (context, state) {
           final pages = [
@@ -48,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const MyLibraryScreen(),
           ];
 
-          return Scaffold(
+          return ScreenSkeleton(
             appBar: AppBar(
               title: Text(_currentTabIndex == 0 ? 'Authors' : 'My Library'),
             ),
@@ -73,6 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentTabIndex = index;
     });
+
+    if (index == 1) {
+      context.read<PlaylistsBloc>().add(const LoadPlaylists());
+    }
   }
 }
 

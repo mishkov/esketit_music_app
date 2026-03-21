@@ -9,6 +9,8 @@ class Track extends Equatable {
   final List<Author> authors;
   final AbstractFile file;
   final AbstractFile image;
+  final bool isFavorite;
+  final bool isAvailable;
 
   /// Any related info like history of track, who inspired, how it was written,
   /// link to videos, link to tik toks, link to covers etc.
@@ -21,8 +23,41 @@ class Track extends Equatable {
     required this.addionalInfo,
     required this.file,
     required this.image,
+    required this.isFavorite,
+    required this.isAvailable,
   });
 
+  Track copyWith({
+    int? id,
+    String? name,
+    List<Author>? authors,
+    AbstractFile? file,
+    AbstractFile? image,
+    List<TrackInfo>? addionalInfo,
+    bool? isFavorite,
+    bool? isAvailable,
+  }) {
+    return Track(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      authors: authors ?? this.authors,
+      addionalInfo: addionalInfo ?? this.addionalInfo,
+      file: file ?? this.file,
+      image: image ?? this.image,
+      isFavorite: isFavorite ?? this.isFavorite,
+      isAvailable: isAvailable ?? this.isAvailable,
+    );
+  }
+
   @override
-  List<Object> get props => [id, name, authors, file, addionalInfo, image];
+  List<Object> get props => [
+    id,
+    name,
+    authors,
+    file,
+    addionalInfo,
+    image,
+    isFavorite,
+    isAvailable,
+  ];
 }

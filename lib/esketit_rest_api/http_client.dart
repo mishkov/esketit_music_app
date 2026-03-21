@@ -8,4 +8,12 @@ abstract class HttpClient {
     Map<String, String>? headers,
     Object? body,
   });
+
+  Future<HttpResponse> put(
+    String path, {
+    Map<String, String>? headers,
+    Object? body,
+  });
+
+  Future<HttpResponse> delete(String path, {Map<String, String>? headers});
 }

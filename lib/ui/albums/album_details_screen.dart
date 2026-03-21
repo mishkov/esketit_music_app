@@ -2,6 +2,8 @@ import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
+import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -29,7 +31,7 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
-        return Scaffold(
+        return ScreenSkeleton(
           appBar: AppBar(title: Text(widget.album.title)),
           body: Stack(
             children: [
@@ -83,10 +85,14 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
                       if (safeTracks.isEmpty)
                         const Text('No tracks in this album yet.'),
                       ...safeTracks.asMap().entries.map((entry) {
-                        return _TrackTile(
-                          index: entry.key,
+                        return TrackListCard(
                           track: entry.value,
-                          albumTracks: safeTracks,
+                          queue: safeTracks
+                              .where((track) => track.isAvailable)
+                              .toList(growable: false),
+                          indexLabel: CircleAvatar(
+                            child: Text('${entry.key + 1}'),
+                          ),
                         );
                       }),
                     ],
@@ -104,36 +110,6 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _TrackTile extends StatelessWidget {
-  const _TrackTile({
-    required this.index,
-    required this.track,
-    required this.albumTracks,
-  });
-
-  final int index;
-  final Track track;
-  final List<Track> albumTracks;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card.outlined(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(child: Text('${index + 1}')),
-        title: Text(track.name),
-        subtitle: Text(
-          track.authors.map((author) => author.currentName).join(', '),
-        ),
-        trailing: const Icon(Icons.play_arrow_rounded),
-        onTap: () {
-          context.read<PlayerBloc>().add(PlayTrack(track, queue: albumTracks));
-        },
-      ),
     );
   }
 }
