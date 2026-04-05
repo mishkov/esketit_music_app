@@ -1,1 +1,27 @@
 include: package:flutter_lints/flutter.yaml
+
+dcm:
+  rules:
+    - newline-before-return
+    - avoid-assignments-as-conditions
+    - avoid-dynamic
+    - avoid-global-state
+    - avoid-late-keyword
+    - avoid-missed-calls
+    - avoid-misused-set-literals
+    - avoid-self-assignment
+    - avoid-self-compare
+    - avoid-substring
+    - no-equal-then-else
+    - prefer-first
+    - prefer-iterable-of
+    - prefer-last
+    - always-remove-listener
+    - avoid-unnecessary-setstate
+    - avoid-unnecessary-stateful-widgets
+    - prefer-extracting-callbacks
+    - avoid-duplicate-bloc-event-handlers
+    - avoid-passing-bloc-to-bloc
+    - handle-bloc-event-subclasses
+    - prefer-sealed-bloc-events
+    - prefer-single-widget-per-file
