@@ -22,6 +22,10 @@ class EsketitBottomNavigationBar extends StatelessWidget {
           icon: Icon(Icons.home_rounded),
         ),
         BottomNavigationBarItem(
+          label: 'Search',
+          icon: Icon(Icons.search_rounded),
+        ),
+        BottomNavigationBarItem(
           // TODO: translate the text.
           label: 'My Library',
           icon: Icon(Icons.library_music_rounded),

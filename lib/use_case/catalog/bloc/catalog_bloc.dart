@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
@@ -8,6 +9,24 @@ import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 sealed class CatalogEvent extends Equatable {}
+
+class CatalogSearchQueryChanged extends CatalogEvent {
+  final String query;
+
+  CatalogSearchQueryChanged(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
+class LoadCatalogSearchResults extends CatalogEvent {
+  final int? page;
+
+  LoadCatalogSearchResults({this.page});
+
+  @override
+  List<Object?> get props => [page];
+}
 
 class LoadPublishedAuthors extends CatalogEvent {
   @override
@@ -43,9 +62,122 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   }) : _catalogStorage = catalogStorage,
        _errorReporter = errorReporter,
        super(initialState) {
+    on<CatalogSearchQueryChanged>(_onCatalogSearchQueryChanged);
+    on<LoadCatalogSearchResults>(_onLoadCatalogSearchResults);
     on<LoadPublishedAuthors>(_onLoadPublishedAuthors);
     on<LoadPublishedAlbumsByAuthor>(_onLoadPublishedAlbumsByAuthor);
     on<LoadAlbumTracks>(_onLoadAlbumTracks);
+  }
+
+  static const int searchPageSize = 20;
+
+  static PaginatedCatalogSearchResults _mergeSearchResults(
+    PaginatedCatalogSearchResults previous,
+    PaginatedCatalogSearchResults next,
+  ) {
+    return PaginatedCatalogSearchResults(
+      items: [...previous.items, ...next.items],
+      page: next.page,
+      pageSize: next.pageSize,
+      totalItems: next.totalItems,
+      totalPages: next.totalPages,
+    );
+  }
+
+  void _onCatalogSearchQueryChanged(
+    CatalogSearchQueryChanged event,
+    Emitter<CatalogState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        searchQuery: event.query,
+        searchPage: 1,
+        isLoadingSearch: false,
+        clearSearchError: true,
+        clearSearchResults: event.query.trim().isEmpty,
+      ),
+    );
+  }
+
+  Future<void> _onLoadCatalogSearchResults(
+    LoadCatalogSearchResults event,
+    Emitter<CatalogState> emit,
+  ) async {
+    final query = state.searchQuery.trim();
+    if (query.isEmpty) {
+      emit(
+        state.copyWith(
+          isLoadingSearch: false,
+          clearSearchError: true,
+          clearSearchResults: true,
+          searchPage: 1,
+        ),
+      );
+      return;
+    }
+
+    final requestedPage = event.page ?? state.searchPage;
+    if (state.isLoadingSearch) {
+      return;
+    }
+    if (requestedPage > 1) {
+      final currentResults = state.searchResults;
+      if (currentResults == null || requestedPage > currentResults.totalPages) {
+        return;
+      }
+    }
+
+    emit(
+      state.copyWith(
+        searchPage: requestedPage,
+        isLoadingSearch: true,
+        clearSearchError: true,
+      ),
+    );
+
+    try {
+      final results = await _catalogStorage.search(
+        query: query,
+        page: requestedPage,
+        pageSize: state.searchPageSize,
+      );
+
+      if (state.searchQuery.trim() != query ||
+          state.searchPage != requestedPage) {
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          searchResults: requestedPage > 1 && state.searchResults != null
+              ? _mergeSearchResults(state.searchResults!, results)
+              : results,
+          searchPage: results.page,
+          searchPageSize: results.pageSize,
+          isLoadingSearch: false,
+          clearSearchError: true,
+        ),
+      );
+    } catch (error, stackTrace) {
+      if (state.searchQuery.trim() != query ||
+          state.searchPage != requestedPage) {
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          isLoadingSearch: false,
+          searchErrorMessage: 'Failed to search catalog.',
+        ),
+      );
+      await _errorReporter.reportError(
+        AppError(
+          'Failed to search catalog for "$query" on page $requestedPage',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
   }
 
   Future<void> _onLoadPublishedAuthors(
@@ -203,6 +335,12 @@ class CatalogState extends Equatable {
   final Map<int, List<Track>> tracksByAlbumId;
   final Set<int> loadingAlbumIds;
   final Map<int, String> albumTracksErrorMessages;
+  final String searchQuery;
+  final int searchPage;
+  final int searchPageSize;
+  final PaginatedCatalogSearchResults? searchResults;
+  final bool isLoadingSearch;
+  final String? searchErrorMessage;
 
   const CatalogState({
     required this.authors,
@@ -214,6 +352,12 @@ class CatalogState extends Equatable {
     required this.tracksByAlbumId,
     required this.loadingAlbumIds,
     required this.albumTracksErrorMessages,
+    required this.searchQuery,
+    required this.searchPage,
+    required this.searchPageSize,
+    required this.searchResults,
+    required this.isLoadingSearch,
+    required this.searchErrorMessage,
   });
 
   CatalogState copyWith({
@@ -229,6 +373,14 @@ class CatalogState extends Equatable {
     Set<int>? loadingAlbumIds,
     Map<int, String>? albumTracksErrorMessages,
     int? clearAlbumTracksErrorId,
+    String? searchQuery,
+    int? searchPage,
+    int? searchPageSize,
+    PaginatedCatalogSearchResults? searchResults,
+    bool clearSearchResults = false,
+    bool? isLoadingSearch,
+    String? searchErrorMessage,
+    bool clearSearchError = false,
   }) {
     final nextAuthorAlbumsErrorMessages = Map<int, String>.from(
       authorAlbumsErrorMessages ?? this.authorAlbumsErrorMessages,
@@ -256,6 +408,16 @@ class CatalogState extends Equatable {
       tracksByAlbumId: tracksByAlbumId ?? this.tracksByAlbumId,
       loadingAlbumIds: loadingAlbumIds ?? this.loadingAlbumIds,
       albumTracksErrorMessages: nextAlbumTracksErrorMessages,
+      searchQuery: searchQuery ?? this.searchQuery,
+      searchPage: searchPage ?? this.searchPage,
+      searchPageSize: searchPageSize ?? this.searchPageSize,
+      searchResults: clearSearchResults
+          ? null
+          : (searchResults ?? this.searchResults),
+      isLoadingSearch: isLoadingSearch ?? this.isLoadingSearch,
+      searchErrorMessage: clearSearchError
+          ? null
+          : (searchErrorMessage ?? this.searchErrorMessage),
     );
   }
 
@@ -270,5 +432,21 @@ class CatalogState extends Equatable {
     tracksByAlbumId,
     loadingAlbumIds,
     albumTracksErrorMessages,
+    searchQuery,
+    searchPage,
+    searchPageSize,
+    searchResults,
+    isLoadingSearch,
+    searchErrorMessage,
   ];
+
+  bool get hasActiveSearch => searchQuery.trim().isNotEmpty;
+
+  bool get hasMoreSearchResults {
+    final results = searchResults;
+    if (results == null) {
+      return false;
+    }
+    return results.page < results.totalPages;
+  }
 }

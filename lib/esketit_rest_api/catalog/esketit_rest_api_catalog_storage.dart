@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
 import 'package:esketit_music_app/domain/track_info/track_info.dart';
@@ -62,6 +63,26 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       authorsById: authorsById,
       album: album,
     );
+  }
+
+  @override
+  Future<PaginatedCatalogSearchResults> search({
+    required String query,
+    required int page,
+    required int pageSize,
+  }) async {
+    final path = Uri(
+      path: '/search',
+      queryParameters: {
+        'query': query,
+        'page': '$page',
+        'pageSize': '$pageSize',
+      },
+    ).toString();
+    final response = await _httpClient.get(path);
+    _throwIfNotSuccess(response, '/search');
+
+    return _parseSearchResultsPage(response.response);
   }
 
   Future<List<Album>> _getPublishedAlbumsPage({int? authorId}) async {
@@ -202,6 +223,109 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
         .toList(growable: false);
   }
 
+  PaginatedCatalogSearchResults _parseSearchResultsPage(Object? responseBody) {
+    final body = _coerceJson(responseBody);
+    if (body is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Expected /search response to be a JSON object',
+      );
+    }
+
+    final items = ((body['items'] as List?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(_parseSearchResultItem)
+        .whereType<CatalogSearchResultItem>()
+        .toList(growable: false);
+
+    return PaginatedCatalogSearchResults(
+      items: items,
+      page: _asInt(body['page']) ?? 1,
+      pageSize: _asInt(body['pageSize']) ?? items.length,
+      totalItems: _asInt(body['totalItems']) ?? items.length,
+      totalPages: _asInt(body['totalPages']) ?? 1,
+    );
+  }
+
+  CatalogSearchResultItem? _parseSearchResultItem(Map<String, dynamic> item) {
+    final type = item['type'] as String?;
+    return switch (type) {
+      'author' => _parseAuthorSearchResult(item['author']),
+      'album' => _parseAlbumSearchResult(item['album']),
+      'track' => _parseTrackSearchResult(item['track']),
+      _ => null,
+    };
+  }
+
+  CatalogSearchResultItem? _parseAuthorSearchResult(Object? value) {
+    if (value is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final author = _parseAuthor(value);
+    return author.id > 0 ? CatalogSearchResultItem.author(author) : null;
+  }
+
+  CatalogSearchResultItem? _parseAlbumSearchResult(Object? value) {
+    if (value is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final album = _parseAlbum(value);
+    return album.id > 0 ? CatalogSearchResultItem.album(album) : null;
+  }
+
+  CatalogSearchResultItem? _parseTrackSearchResult(Object? value) {
+    if (value is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final track = _parseTrack(value);
+    return track.id > 0 ? CatalogSearchResultItem.track(track) : null;
+  }
+
+  Author _parseAuthor(Map<String, dynamic> item) {
+    return Author(
+      id: _asInt(item['id']) ?? 0,
+      currentName: (item['currentName'] as String?) ?? '',
+      photos: ((item['photos'] as List?) ?? const [])
+          .whereType<String>()
+          .toList(growable: false),
+    );
+  }
+
+  Track _parseTrack(Map<String, dynamic> item) {
+    final authorItems = ((item['authors'] as List?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(_parseAuthor)
+        .where((author) => author.id > 0)
+        .toList(growable: false);
+
+    final fallbackAuthorIds = ((item['authorIds'] as List?) ?? const [])
+        .map(_asInt)
+        .whereType<int>()
+        .map(
+          (authorId) => Author(
+            id: authorId,
+            currentName: 'Author #$authorId',
+            photos: const [],
+          ),
+        )
+        .toList(growable: false);
+
+    return Track(
+      id: _asInt(item['id']) ?? 0,
+      name: (item['name'] as String?) ?? '',
+      authors: authorItems.isNotEmpty ? authorItems : fallbackAuthorIds,
+      addionalInfo: _parseAdditionalInfo(item['additionalInfo']),
+      file: HttpFile(
+        uri: _resolveSongUri((item['audioFilePath'] as String?) ?? ''),
+      ),
+      image: HttpFile(uri: _resolveTrackImageUri(item)),
+      isFavorite: (item['isFavorite'] as bool?) ?? false,
+      isAvailable: (item['isAvailable'] as bool?) ?? true,
+    );
+  }
+
   List<TrackInfo> _parseAdditionalInfo(Object? value) {
     final items = value is List ? value : const [];
     final parsed = <TrackInfo>[];
@@ -237,6 +361,14 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     return _baseUri.resolve(
       'album-covers/${Uri.encodeComponent(coverImagePath)}',
     );
+  }
+
+  Uri _resolveTrackImageUri(Map<String, dynamic> item) {
+    final rawPath =
+        (item['imagePath'] as String?) ??
+        (item['coverImagePath'] as String?) ??
+        '';
+    return _resolveAlbumCoverUri(rawPath);
   }
 
   Uri _resolveSongUri(String audioFilePath) {
