@@ -72,6 +72,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                   if (trimmed.isEmpty) {
                     return 'Name is required.';
                   }
+
                   return null;
                 },
               ),
@@ -87,6 +88,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                   if (trimmed.isEmpty) {
                     return 'Description is required.';
                   }
+
                   return null;
                 },
               ),

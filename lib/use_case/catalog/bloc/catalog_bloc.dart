@@ -113,6 +113,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           searchPage: 1,
         ),
       );
+
       return;
     }
 
@@ -447,6 +448,7 @@ class CatalogState extends Equatable {
     if (results == null) {
       return false;
     }
+
     return results.page < results.totalPages;
   }
 }

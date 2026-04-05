@@ -424,6 +424,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
                 if (!event.playlistIds.contains(playlist.id)) {
                   return playlist;
                 }
+
                 return playlist.copyWith(trackCount: playlist.trackCount + 1);
               })
               .toList(growable: false),
@@ -473,6 +474,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
               if (playlist.id != event.playlistId) {
                 return playlist;
               }
+
               return playlist.copyWith(
                 trackCount: (playlist.trackCount - 1).clamp(0, 1 << 31),
               );
@@ -507,6 +509,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
                 if (playlist.id != event.playlistId) {
                   return playlist;
                 }
+
                 return playlist.copyWith(trackCount: playlist.trackCount + 1);
               })
               .toList(growable: false),
@@ -615,6 +618,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
   List<Playlist> _upsertPlaylist(List<Playlist> playlists, Playlist playlist) {
     final updated = playlists.where((item) => item.id != playlist.id).toList();
     updated.add(playlist);
+
     return _sortPlaylists(updated);
   }
 
@@ -624,8 +628,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       if (left.isFavorites != right.isFavorites) {
         return left.isFavorites ? -1 : 1;
       }
+
       return left.name.toLowerCase().compareTo(right.name.toLowerCase());
     });
+
     return sorted;
   }
 

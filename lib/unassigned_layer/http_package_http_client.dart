@@ -14,6 +14,7 @@ class HttpPackageHttpClient implements HttpClient {
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) async {
     final response = await _client.get(_resolve(path), headers: headers);
+
     return HttpResponse(
       statusCode: response.statusCode,
       response: response.body,
@@ -35,6 +36,7 @@ class HttpPackageHttpClient implements HttpClient {
       },
       body: preparedBody,
     );
+
     return HttpResponse(
       statusCode: response.statusCode,
       response: response.body,
@@ -56,6 +58,7 @@ class HttpPackageHttpClient implements HttpClient {
       },
       body: preparedBody,
     );
+
     return HttpResponse(
       statusCode: response.statusCode,
       response: response.body,
@@ -68,6 +71,7 @@ class HttpPackageHttpClient implements HttpClient {
     Map<String, String>? headers,
   }) async {
     final response = await _client.delete(_resolve(path), headers: headers);
+
     return HttpResponse(
       statusCode: response.statusCode,
       response: response.body,
@@ -76,6 +80,7 @@ class HttpPackageHttpClient implements HttpClient {
 
   Uri _resolve(String path) {
     final sanitizedPath = path.startsWith('/') ? path.substring(1) : path;
+
     return baseUri.resolve(sanitizedPath);
   }
 

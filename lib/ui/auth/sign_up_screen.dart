@@ -35,6 +35,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (state.isAuthenticated) {
           // TODO: again, consider more universal navigation to successfull screen.
           Navigator.of(context).popUntil((route) => route.isFirst);
+
           return;
         }
 
@@ -120,6 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!text.contains('@')) {
       return 'Enter a valid email';
     }
+
     return null;
   }
 
@@ -129,6 +131,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (text.length < 8) {
       return 'Password must be at least 8 characters';
     }
+
     return null;
   }
 
@@ -145,6 +148,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (error is HttpAppError) {
       return 'Request failed. Please try again.';
     }
+
     return 'Something went wrong. Please try again.';
   }
 

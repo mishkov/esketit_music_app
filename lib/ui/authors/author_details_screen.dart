@@ -31,6 +31,7 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
+
         return ScreenSkeleton(
           appBar: AppBar(title: Text(widget.author.currentName)),
           body: Stack(
@@ -53,6 +54,7 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
                   }
 
                   final safeAlbums = albums ?? const <Album>[];
+
                   return ListView(
                     padding: EdgeInsets.only(
                       left: 16,
@@ -150,6 +152,7 @@ String? _albumCoverUrl(Album album) {
     return null;
   }
   final value = cover.uri.toString();
+
   return value.isEmpty ? null : value;
 }
 
@@ -169,5 +172,6 @@ String _formatReleaseDate(DateTime releaseDate) {
     12 => 'Dec',
     _ => '',
   };
+
   return '$month ${releaseDate.day}, ${releaseDate.year}';
 }

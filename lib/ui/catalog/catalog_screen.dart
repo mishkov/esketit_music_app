@@ -55,11 +55,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
+
         return Stack(
           children: [
             BlocBuilder<CatalogBloc, CatalogState>(
               builder: (context, state) {
                 final activeQuery = state.searchQuery.trim();
+
                 return Column(
                   children: [
                     Padding(
@@ -198,6 +200,7 @@ class _BrowseCatalogView extends StatelessWidget {
                 separatorBuilder: (context, index) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final author = state.authors[index];
+
                   return SizedBox(
                     width: 180,
                     child: _AuthorBrowseCard(author: author),
@@ -415,6 +418,7 @@ String? _albumCoverUrl(Album album) {
     return null;
   }
   final value = cover.uri.toString();
+
   return value.isEmpty ? null : value;
 }
 
@@ -434,5 +438,6 @@ String _formatReleaseDate(DateTime releaseDate) {
     12 => 'Dec',
     _ => '',
   };
+
   return '$month ${releaseDate.day}, ${releaseDate.year}';
 }

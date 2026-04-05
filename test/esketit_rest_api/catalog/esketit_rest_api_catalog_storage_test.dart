@@ -41,6 +41,7 @@ class _FakeHttpClient implements HttpClient {
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) async {
     requestedPaths.add(path);
+
     return responses[path] ??
         const HttpResponse(statusCode: 404, response: 'not found');
   }

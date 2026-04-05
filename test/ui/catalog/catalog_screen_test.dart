@@ -221,6 +221,7 @@ class _FakeCatalogStorage implements CatalogStorage {
     required int pageSize,
   }) async {
     searchCalls.add((query, page, pageSize));
+
     return searchResponses[query]![page]!;
   }
 }

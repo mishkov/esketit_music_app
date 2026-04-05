@@ -31,6 +31,7 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
+
         return ScreenSkeleton(
           appBar: AppBar(title: Text(widget.album.title)),
           body: Stack(
@@ -53,6 +54,7 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
                   }
 
                   final safeTracks = tracks ?? const <Track>[];
+
                   return ListView(
                     padding: EdgeInsets.only(
                       left: 16,
@@ -120,5 +122,6 @@ String? _albumCoverUrl(Album album) {
     return null;
   }
   final value = cover.uri.toString();
+
   return value.isEmpty ? null : value;
 }

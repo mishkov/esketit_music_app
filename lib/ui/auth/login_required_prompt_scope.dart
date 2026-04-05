@@ -23,6 +23,7 @@ class LoginRequiredPromptScope
       scope != null,
       'LoginRequiredPromptScope is missing in the widget tree.',
     );
+
     return scope!.notifier!;
   }
 }

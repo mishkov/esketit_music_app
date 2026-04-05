@@ -52,6 +52,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
     final path = '/playlists/$playlistId';
     final response = await _httpClient.get(path);
     _throwIfNotSuccess(response, path);
+
     return _parsePlaylist(_decodeJsonMap(response.response, path: path));
   }
 
@@ -62,6 +63,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
       body: _serializeUpsertInput(input),
     );
     _throwIfNotSuccess(response, '/playlists');
+
     return _parsePlaylist(
       _decodeJsonMap(response.response, path: '/playlists'),
     );
@@ -78,6 +80,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
       body: _serializeUpsertInput(input),
     );
     _throwIfNotSuccess(response, path);
+
     return _parsePlaylist(_decodeJsonMap(response.response, path: path));
   }
 
@@ -291,6 +294,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
     if (body is String) {
       return jsonDecode(body);
     }
+
     return body;
   }
 
@@ -317,6 +321,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
             .toList(growable: false),
       );
     }
+
     return result;
   }
 
@@ -330,6 +335,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
     if (value is String) {
       return int.tryParse(value);
     }
+
     return null;
   }
 }

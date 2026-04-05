@@ -33,6 +33,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
     final endIndex = (startIndex + safePageSize)
         .clamp(0, tracks.length)
         .toInt();
+
     return tracks.sublist(startIndex, endIndex);
   }
 
@@ -95,6 +96,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
             .toList(growable: false),
       );
     }
+
     return result;
   }
 
@@ -166,6 +168,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
     if (body is String) {
       return jsonDecode(body);
     }
+
     return body;
   }
 
@@ -179,6 +182,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
     if (value is String) {
       return int.tryParse(value);
     }
+
     return null;
   }
 }

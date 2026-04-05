@@ -22,6 +22,7 @@ class JustAudioAudioPlayer implements AudioPlayer {
         if (index == null || index < 0 || index >= _queue.length) {
           return null;
         }
+
         return _queue[index];
       });
 
@@ -61,6 +62,7 @@ class JustAudioAudioPlayer implements AudioPlayer {
     if (path.isEmpty) {
       throw StateError('Track file path is empty');
     }
+
     return path;
   }
 
@@ -95,6 +97,7 @@ class JustAudioAudioPlayer implements AudioPlayer {
   Future<void> togglePlay() async {
     if (_audioPlayer.playing) {
       await _audioPlayer.pause();
+
       return;
     }
     await _audioPlayer.play();

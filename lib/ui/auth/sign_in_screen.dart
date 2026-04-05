@@ -36,6 +36,7 @@ class _SignInScreenState extends State<SignInScreen> {
         if (state.isAuthenticated) {
           // TODO: make this navigation more universal so we don't accidentally navigate to some infinity-loading screen.
           Navigator.of(context).popUntil((route) => route.isFirst);
+
           return;
         }
 
@@ -133,6 +134,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!text.contains('@')) {
       return 'Enter a valid email';
     }
+
     return null;
   }
 
@@ -142,6 +144,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (text.isEmpty) {
       return 'Enter your password';
     }
+
     return null;
   }
 
@@ -158,6 +161,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (error is HttpAppError) {
       return 'Request failed. Please try again.';
     }
+
     return 'Something went wrong. Please try again.';
   }
 

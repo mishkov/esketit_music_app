@@ -105,6 +105,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                 itemCount: tracks.length,
                                 itemBuilder: (context, index) {
                                   final track = tracks[index];
+
                                   return TrackListCard(
                                     key: ValueKey(
                                       'playlist-${playlist.id}-track-${track.id}',

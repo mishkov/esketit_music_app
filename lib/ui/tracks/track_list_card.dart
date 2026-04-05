@@ -118,6 +118,7 @@ class TrackListCard extends StatelessWidget {
   void _toggleFavorite(BuildContext context, {required bool shouldBeFavorite}) {
     if (!context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
+
       return;
     }
 
@@ -132,6 +133,7 @@ class TrackListCard extends StatelessWidget {
   Future<void> _showAddToPlaylistsSheet(BuildContext context) async {
     if (!context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
+
       return;
     }
 
@@ -145,6 +147,7 @@ class TrackListCard extends StatelessWidget {
             .playlists
             .where((playlist) => !playlist.isFavorites)
             .toList(growable: false);
+
         return _PlaylistPickerSheet(playlists: playlists);
       },
     );
@@ -206,6 +209,7 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                         final isSelected = _selectedPlaylistIds.contains(
                           playlist.id,
                         );
+
                         return CheckboxListTile(
                           value: isSelected,
                           title: Text(playlist.name),

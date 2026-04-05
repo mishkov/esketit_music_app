@@ -26,6 +26,7 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
+
         return Stack(
           children: [
             BlocBuilder<CatalogBloc, CatalogState>(
@@ -65,6 +66,7 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                             const SizedBox(width: 12),
                         itemBuilder: (context, index) {
                           final author = state.authors[index];
+
                           return SizedBox(
                             width: 180,
                             child: _AuthorCard(author: author),

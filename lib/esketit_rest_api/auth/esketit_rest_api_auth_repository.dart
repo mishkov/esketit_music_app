@@ -29,6 +29,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     final storedSession = await _sessionStorage.read();
     if (storedSession == null) {
       _cachedSession = null;
+
       return null;
     }
 
@@ -45,6 +46,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     final user = _parseUser(meBody);
     final restoredSession = refreshedSession.copyWith(user: user);
     await _persistSession(restoredSession);
+
     return restoredSession;
   }
 
@@ -59,6 +61,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     );
     final session = _parseAuthResponse(response, path: '/auth/login');
     await _persistSession(session);
+
     return session;
   }
 
@@ -73,6 +76,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     );
     final session = _parseAuthResponse(response, path: '/auth/register');
     await _persistSession(session);
+
     return session;
   }
 
@@ -99,16 +103,19 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     final currentSession = _cachedSession ?? await _sessionStorage.read();
     if (currentSession == null) {
       _cachedSession = null;
+
       return null;
     }
 
     if (!forceRefresh && !currentSession.isAccessTokenExpired) {
       _cachedSession = currentSession;
+
       return currentSession;
     }
 
     if (currentSession.isRefreshTokenExpired) {
       await _clearSession();
+
       return null;
     }
 
@@ -121,6 +128,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
       path: '/auth/refresh',
     );
     await _persistSession(refreshedSession);
+
     return refreshedSession;
   }
 
@@ -149,6 +157,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     }
 
     final body = _decodeJsonMap(response.response, path: path);
+
     return AuthSession(
       user: _parseUser(_jsonMap(body['user'], path: path, fieldName: 'user')),
       accessToken: body['accessToken'] as String,
@@ -179,6 +188,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     if (decoded is! Map<String, dynamic>) {
       throw AppError('Expected JSON object response for $path', cause: decoded);
     }
+
     return decoded;
   }
 

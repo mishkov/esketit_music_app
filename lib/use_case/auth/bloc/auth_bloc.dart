@@ -83,6 +83,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           ),
         );
         await _errorReporter.setUserId(null);
+
         return;
       }
 
@@ -223,6 +224,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (error is AppError) {
       return error;
     }
+
     return UnknownAuthAppError(cause: error, stackTrace: stackTrace);
   }
 }

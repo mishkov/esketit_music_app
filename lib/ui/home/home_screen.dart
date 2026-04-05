@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _currentTabIndex = _browseTabIndex;
                 });
               }
+
               return;
             }
 
@@ -94,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (index == _libraryTabIndex &&
         !context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
+
       return;
     }
 

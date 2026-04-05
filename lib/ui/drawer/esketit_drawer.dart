@@ -12,6 +12,7 @@ class EsketitDrawer extends StatelessWidget {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           final user = state.session?.user;
+
           return ListView(
             children: [
               UserAccountsDrawerHeader(

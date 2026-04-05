@@ -42,6 +42,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     required int authorId,
   }) async {
     final response = await _getPublishedAlbumsPage(authorId: authorId);
+
     return response;
   }
 
@@ -112,6 +113,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       'isPublished': 'true',
       if (authorId != null) 'authorId': '$authorId',
     };
+
     return Uri(path: '/albums', queryParameters: queryParameters).toString();
   }
 
@@ -159,6 +161,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
 
   Album _parseAlbum(Map<String, dynamic> item) {
     final coverImagePath = (item['coverImagePath'] as String?) ?? '';
+
     return Album(
       id: _asInt(item['id']) ?? 0,
       title: (item['title'] as String?) ?? '',
@@ -248,6 +251,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
 
   CatalogSearchResultItem? _parseSearchResultItem(Map<String, dynamic> item) {
     final type = item['type'] as String?;
+
     return switch (type) {
       'author' => _parseAuthorSearchResult(item['author']),
       'album' => _parseAlbumSearchResult(item['album']),
@@ -262,6 +266,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     }
 
     final author = _parseAuthor(value);
+
     return author.id > 0 ? CatalogSearchResultItem.author(author) : null;
   }
 
@@ -271,6 +276,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     }
 
     final album = _parseAlbum(value);
+
     return album.id > 0 ? CatalogSearchResultItem.album(album) : null;
   }
 
@@ -280,6 +286,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     }
 
     final track = _parseTrack(value);
+
     return track.id > 0 ? CatalogSearchResultItem.track(track) : null;
   }
 
@@ -368,6 +375,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
         (item['imagePath'] as String?) ??
         (item['coverImagePath'] as String?) ??
         '';
+
     return _resolveAlbumCoverUri(rawPath);
   }
 
@@ -407,6 +415,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     if (body is String) {
       return jsonDecode(body);
     }
+
     return body;
   }
 
@@ -420,6 +429,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     if (value is String) {
       return int.tryParse(value);
     }
+
     return null;
   }
 }

@@ -79,6 +79,7 @@ class AuthenticatedHttpClientProxy implements HttpClient {
     }
 
     _throwIfUnauthorizedOrForbidden(response, path: path);
+
     return response;
   }
 
