@@ -9,14 +9,9 @@ import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 
 // TODO: rename it because actaully this is a page used inside tabbed screen.
-class MyLibraryScreen extends StatefulWidget {
+class MyLibraryScreen extends StatelessWidget {
   const MyLibraryScreen({super.key});
 
-  @override
-  State<MyLibraryScreen> createState() => _MyLibraryScreenState();
-}
-
-class _MyLibraryScreenState extends State<MyLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
