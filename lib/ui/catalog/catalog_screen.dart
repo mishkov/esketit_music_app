@@ -122,6 +122,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       return;
     }
 
+    // TODO: bloc have built-in support for debounce with evenet transformer.
     _searchDebounce = Timer(_searchDebounceDuration, _loadSearchResults);
   }
 
