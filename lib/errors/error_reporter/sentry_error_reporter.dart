@@ -17,9 +17,8 @@ class SentryErrorReporter implements ErrorReporter {
     required FutureOr<void> Function()? appRunner,
   }) async {
     await sentry.SentryFlutter.init((options) {
-      // This way is used by official documentaiton
+      // This way of mutating parameter is used by official documentaiton
       // https://pub.dev/packages/sentry_flutter.
-      // ignore: avoid-mutating-parameters
       options.dsn = dsn;
     }, appRunner: appRunner);
   }
