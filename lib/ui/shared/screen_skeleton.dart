@@ -1,4 +1,4 @@
-import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
+import 'package:esketit_music_app/ui/auth/login_required_prompt_host.dart';
 import 'package:flutter/material.dart';
 
 class ScreenSkeleton extends StatelessWidget {

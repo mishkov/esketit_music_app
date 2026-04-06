@@ -2,7 +2,7 @@ import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
-import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -76,7 +76,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                   ),
                   child: Column(
                     children: [
-                      _PlaylistHeader(playlist: playlist),
+                      PlaylistHeader(playlist: playlist),
                       Expanded(
                         child: tracks == null
                             ? const Center(child: CircularProgressIndicator())
@@ -214,89 +214,4 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
       ),
     );
   }
-}
-
-class _PlaylistHeader extends StatelessWidget {
-  const _PlaylistHeader({required this.playlist});
-
-  final Playlist playlist;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 112,
-            height: 112,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: playlist.coverImagePath.isEmpty
-                  ? ColoredBox(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
-                      child: Icon(
-                        playlist.isFavorites
-                            ? Icons.favorite_rounded
-                            : Icons.queue_music_rounded,
-                        size: 42,
-                      ),
-                    )
-                  : RemoteImage(
-                      imageUrl: playlist.coverImagePath,
-                      icon: playlist.isFavorites
-                          ? Icons.favorite_rounded
-                          : Icons.queue_music_rounded,
-                    ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  playlist.name,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(playlist.description),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    Chip(
-                      avatar: Icon(
-                        playlist.isFavorites
-                            ? Icons.favorite_rounded
-                            : Icons.queue_music_rounded,
-                      ),
-                      label: Text('${playlist.trackCount} tracks'),
-                    ),
-                    Chip(
-                      label: Text(
-                        _playlistVisibilityLabel(playlist.visibility),
-                      ),
-                    ),
-                    if (playlist.system)
-                      const Chip(label: Text('System playlist')),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-String _playlistVisibilityLabel(PlaylistVisibility visibility) {
-  return switch (visibility) {
-    PlaylistVisibility.private => 'Private',
-    PlaylistVisibility.public => 'Public',
-    PlaylistVisibility.shared => 'Shared',
-  };
 }

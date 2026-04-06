@@ -1,6 +1,6 @@
-import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
+import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
@@ -148,7 +148,7 @@ class TrackListCard extends StatelessWidget {
             .where((playlist) => !playlist.isFavorites)
             .toList(growable: false);
 
-        return _PlaylistPickerSheet(playlists: playlists);
+        return PlaylistPickerSheet(playlists: playlists);
       },
     );
 
@@ -166,86 +166,5 @@ class TrackListCard extends StatelessWidget {
         playlistIds: selectedPlaylistIds,
       ),
     );
-  }
-}
-
-class _PlaylistPickerSheet extends StatefulWidget {
-  const _PlaylistPickerSheet({required this.playlists});
-
-  final List<Playlist> playlists;
-
-  @override
-  State<_PlaylistPickerSheet> createState() => _PlaylistPickerSheetState();
-}
-
-class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
-  final Set<int> _selectedPlaylistIds = <int>{};
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Add to playlists',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            if (widget.playlists.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: Text('Create a custom playlist first.'),
-              )
-            else
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: widget.playlists
-                      .map((playlist) {
-                        final isSelected = _selectedPlaylistIds.contains(
-                          playlist.id,
-                        );
-
-                        return CheckboxListTile(
-                          value: isSelected,
-                          title: Text(playlist.name),
-                          subtitle: Text('${playlist.trackCount} tracks'),
-                          onChanged: (checked) =>
-                              _onPlaylistSelectionChanged(playlist, checked),
-                        );
-                      })
-                      .toList(growable: false),
-                ),
-              ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: widget.playlists.isEmpty
-                    ? null
-                    : () => Navigator.of(
-                        context,
-                      ).pop(_selectedPlaylistIds.toList(growable: false)),
-                child: const Text('Add'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onPlaylistSelectionChanged(Playlist playlist, bool? checked) {
-    setState(() {
-      if (checked ?? false) {
-        _selectedPlaylistIds.add(playlist.id);
-      } else {
-        _selectedPlaylistIds.remove(playlist.id);
-      }
-    });
   }
 }

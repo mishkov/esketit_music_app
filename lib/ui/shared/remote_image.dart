@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:esketit_music_app/ui/shared/fallback_image.dart';
 
 class RemoteImage extends StatelessWidget {
   const RemoteImage({
@@ -15,31 +16,15 @@ class RemoteImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return _FallbackImage(icon: icon);
+      return FallbackImage(icon: icon);
     }
 
     return Image.network(
       imageUrl!,
       fit: fit,
       errorBuilder: (context, error, stackTrace) {
-        return _FallbackImage(icon: icon);
+        return FallbackImage(icon: icon);
       },
-    );
-  }
-}
-
-class _FallbackImage extends StatelessWidget {
-  const _FallbackImage({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Center(child: Icon(icon, size: 40)),
     );
   }
 }
