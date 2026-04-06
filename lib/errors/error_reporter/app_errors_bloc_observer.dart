@@ -11,7 +11,7 @@ class AppErrorsBlocObserver extends BlocObserver {
     : _reporter = reporter;
 
   @override
-  void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
+  void onError(BlocBase<Object?> bloc, Object error, StackTrace stackTrace) {
     final wrappedError = AppError(
       'Unexpected error in ${bloc.runtimeType} bloc',
       cause: error,
