@@ -79,7 +79,7 @@ class HttpPackageHttpClient implements HttpClient {
   }
 
   Uri _resolve(String path) {
-    final sanitizedPath = path.startsWith('/') ? path.substring(1) : path;
+    final sanitizedPath = path.replaceFirst(RegExp('^/'), '');
 
     return baseUri.resolve(sanitizedPath);
   }
