@@ -31,42 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
       listeners: [
         BlocListener<AuthBloc, AuthState>(
           listenWhen: (previous, current) => previous.status != current.status,
-          listener: (context, state) {
-            if (!state.isAuthenticated) {
-              context.read<PlaylistsBloc>().add(const ClearPlaylists());
-              if (_currentTabIndex == _libraryTabIndex) {
-                setState(() {
-                  _currentTabIndex = _browseTabIndex;
-                });
-              }
-
-              return;
-            }
-
-            if (_currentTabIndex == _libraryTabIndex) {
-              context.read<PlaylistsBloc>().add(const LoadPlaylists());
-            }
-          },
+          listener: _onAuthStateChanged,
         ),
         BlocListener<PlaylistsBloc, PlaylistsState>(
           listenWhen: (previous, current) =>
               previous.feedbackSerial != current.feedbackSerial &&
               current.feedbackMessage != null,
-          listener: (context, state) {
-            final message = state.feedbackMessage;
-            if (message == null) {
-              return;
-            }
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(message),
-                backgroundColor: state.isFeedbackError
-                    ? Theme.of(context).colorScheme.error
-                    : null,
-              ),
-            );
-          },
+          listener: _onPlaylistsStateChanged,
         ),
       ],
       child: BlocBuilder<PlayerBloc, PlayerState>(
@@ -106,6 +77,39 @@ class _HomeScreenState extends State<HomeScreen> {
     if (index == _libraryTabIndex) {
       context.read<PlaylistsBloc>().add(const LoadPlaylists());
     }
+  }
+
+  void _onAuthStateChanged(BuildContext context, AuthState state) {
+    if (!state.isAuthenticated) {
+      context.read<PlaylistsBloc>().add(const ClearPlaylists());
+      if (_currentTabIndex == _libraryTabIndex) {
+        setState(() {
+          _currentTabIndex = _browseTabIndex;
+        });
+      }
+
+      return;
+    }
+
+    if (_currentTabIndex == _libraryTabIndex) {
+      context.read<PlaylistsBloc>().add(const LoadPlaylists());
+    }
+  }
+
+  void _onPlaylistsStateChanged(BuildContext context, PlaylistsState state) {
+    final message = state.feedbackMessage;
+    if (message == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: state.isFeedbackError
+            ? Theme.of(context).colorScheme.error
+            : null,
+      ),
+    );
   }
 
   String _titleForIndex(int index) {

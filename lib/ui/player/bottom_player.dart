@@ -70,9 +70,7 @@ class BottomPlayer extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {
-                        context.read<PlayerBloc>().add(TogglePlay());
-                      },
+                      onPressed: () => _togglePlay(context),
                       icon: Icon(
                         state.isPlaying
                             ? Icons.pause_rounded
@@ -90,5 +88,9 @@ class BottomPlayer extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _togglePlay(BuildContext context) {
+    context.read<PlayerBloc>().add(TogglePlay());
   }
 }

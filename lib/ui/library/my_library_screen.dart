@@ -32,11 +32,7 @@ class MyLibraryScreen extends StatelessWidget {
             }
 
             return RefreshIndicator(
-              onRefresh: () async {
-                context.read<PlaylistsBloc>().add(
-                  const LoadPlaylists(forceRefresh: true),
-                );
-              },
+              onRefresh: () => _refreshPlaylists(context),
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -94,6 +90,10 @@ class MyLibraryScreen extends StatelessWidget {
 
     context.read<PlaylistsBloc>().add(CreatePlaylistRequested(input));
   }
+
+  Future<void> _refreshPlaylists(BuildContext context) async {
+    context.read<PlaylistsBloc>().add(const LoadPlaylists(forceRefresh: true));
+  }
 }
 
 class _PlaylistCard extends StatelessWidget {
@@ -107,14 +107,7 @@ class _PlaylistCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  PlaylistDetailsScreen(playlistId: playlist.id),
-            ),
-          );
-        },
+        onTap: () => _openPlaylistDetails(context),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -183,6 +176,14 @@ class _PlaylistCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _openPlaylistDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PlaylistDetailsScreen(playlistId: playlist.id),
       ),
     );
   }

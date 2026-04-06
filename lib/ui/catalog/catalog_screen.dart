@@ -122,12 +122,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       return;
     }
 
-    _searchDebounce = Timer(_searchDebounceDuration, () {
-      if (!mounted) {
-        return;
-      }
-      context.read<CatalogBloc>().add(LoadCatalogSearchResults());
-    });
+    _searchDebounce = Timer(_searchDebounceDuration, _loadSearchResults);
   }
 
   void _clearSearch() {
@@ -155,6 +150,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
     context.read<CatalogBloc>().add(
       LoadCatalogSearchResults(page: state.searchPage + 1),
     );
+  }
+
+  void _loadSearchResults() {
+    if (!mounted) {
+      return;
+    }
+
+    context.read<CatalogBloc>().add(LoadCatalogSearchResults());
   }
 }
 
@@ -392,14 +395,14 @@ class _AlbumSearchTile extends StatelessWidget {
               : 'Album • ${_formatReleaseDate(album.releaseDate!)}',
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AlbumDetailsScreen(album: album),
-            ),
-          );
-        },
+        onTap: () => _openAlbumDetails(context),
       ),
+    );
+  }
+
+  void _openAlbumDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => AlbumDetailsScreen(album: album)),
     );
   }
 }

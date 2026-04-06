@@ -31,21 +31,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       listenWhen: (previous, current) =>
           previous.status != current.status ||
           previous.failure != current.failure,
-      listener: (context, state) {
-        if (state.isAuthenticated) {
-          // TODO: again, consider more universal navigation to successfull screen.
-          Navigator.of(context).popUntil((route) => route.isFirst);
-
-          return;
-        }
-
-        final failureMessage = _toFailureMessage(state.failure);
-        if (failureMessage != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(failureMessage)));
-        }
-      },
+      listener: _onAuthStateChanged,
       child: ScreenSkeleton(
         // TODO: translate all the strings.
         appBar: AppBar(title: const Text('Sign up')),
@@ -163,5 +149,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
         password: _passwordController.text,
       ),
     );
+  }
+
+  void _onAuthStateChanged(BuildContext context, AuthState state) {
+    if (state.isAuthenticated) {
+      // TODO: again, consider more universal navigation to successfull screen.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
+      return;
+    }
+
+    final failureMessage = _toFailureMessage(state.failure);
+    if (failureMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failureMessage)));
+    }
   }
 }

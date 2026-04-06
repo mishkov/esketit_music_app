@@ -134,14 +134,14 @@ class _AlbumTile extends StatelessWidget {
               : _formatReleaseDate(album.releaseDate!),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AlbumDetailsScreen(album: album),
-            ),
-          );
-        },
+        onTap: () => _openAlbumDetails(context),
       ),
+    );
+  }
+
+  void _openAlbumDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => AlbumDetailsScreen(album: album)),
     );
   }
 }

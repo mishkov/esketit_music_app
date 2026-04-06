@@ -67,14 +67,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(labelText: 'Name'),
                 maxLength: 200,
-                validator: (value) {
-                  final trimmed = value?.trim() ?? '';
-                  if (trimmed.isEmpty) {
-                    return 'Name is required.';
-                  }
-
-                  return null;
-                },
+                validator: _validateName,
               ),
               TextFormField(
                 controller: _descriptionController,
@@ -83,14 +76,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                 maxLength: 1000,
                 minLines: 2,
                 maxLines: 4,
-                validator: (value) {
-                  final trimmed = value?.trim() ?? '';
-                  if (trimmed.isEmpty) {
-                    return 'Description is required.';
-                  }
-
-                  return null;
-                },
+                validator: _validateDescription,
               ),
               TextFormField(
                 controller: _coverImagePathController,
@@ -111,14 +97,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                       );
                     })
                     .toList(growable: false),
-                onChanged: (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  setState(() {
-                    _visibility = value;
-                  });
-                },
+                onChanged: _onVisibilityChanged,
               ),
             ],
           ),
@@ -126,27 +105,61 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => _cancel(context),
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () {
-            if (!_formKey.currentState!.validate()) {
-              return;
-            }
-
-            Navigator.of(context).pop(
-              PlaylistUpsertInput(
-                name: _nameController.text.trim(),
-                description: _descriptionController.text.trim(),
-                coverImagePath: _coverImagePathController.text.trim(),
-                visibility: _visibility,
-              ),
-            );
-          },
+          onPressed: () => _submit(context),
           child: Text(widget.submitLabel),
         ),
       ],
+    );
+  }
+
+  String? _validateName(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return 'Name is required.';
+    }
+
+    return null;
+  }
+
+  String? _validateDescription(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return 'Description is required.';
+    }
+
+    return null;
+  }
+
+  void _onVisibilityChanged(PlaylistVisibility? value) {
+    if (value == null) {
+      return;
+    }
+
+    setState(() {
+      _visibility = value;
+    });
+  }
+
+  void _cancel(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
+  void _submit(BuildContext context) {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    Navigator.of(context).pop(
+      PlaylistUpsertInput(
+        name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        coverImagePath: _coverImagePathController.text.trim(),
+        visibility: _visibility,
+      ),
     );
   }
 }

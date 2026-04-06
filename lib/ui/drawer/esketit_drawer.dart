@@ -27,15 +27,7 @@ class EsketitDrawer extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.login_rounded),
                   title: const Text('Sign in'),
-                  onTap: () {
-                    final navigator = Navigator.of(context);
-                    navigator.pop();
-                    navigator.push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SignInScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => _openSignIn(context),
                 ),
               ListTile(
                 leading: const Icon(Icons.settings_rounded),
@@ -46,20 +38,26 @@ class EsketitDrawer extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.logout_rounded),
                   title: const Text('Sign out'),
-                  onTap: state.isSubmitting
-                      ? null
-                      : () {
-                          final navigator = Navigator.of(context);
-                          navigator.pop();
-                          context.read<AuthBloc>().add(
-                            const AuthSignOutRequested(),
-                          );
-                        },
+                  onTap: state.isSubmitting ? null : () => _signOut(context),
                 ),
             ],
           );
         },
       ),
     );
+  }
+
+  void _openSignIn(BuildContext context) {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    navigator.push(
+      MaterialPageRoute<void>(builder: (_) => const SignInScreen()),
+    );
+  }
+
+  void _signOut(BuildContext context) {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    context.read<AuthBloc>().add(const AuthSignOutRequested());
   }
 }

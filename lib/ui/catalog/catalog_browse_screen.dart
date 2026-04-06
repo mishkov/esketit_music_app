@@ -64,14 +64,8 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                         itemCount: state.authors.length,
                         separatorBuilder: (context, index) =>
                             const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          final author = state.authors[index];
-
-                          return SizedBox(
-                            width: 180,
-                            child: _AuthorCard(author: author),
-                          );
-                        },
+                        itemBuilder: (context, index) =>
+                            _buildAuthorCard(state.authors[index]),
                       ),
                     ),
                   ],
@@ -90,6 +84,10 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
       },
     );
   }
+
+  Widget _buildAuthorCard(Author author) {
+    return SizedBox(width: 180, child: _AuthorCard(author: author));
+  }
 }
 
 class _AuthorCard extends StatelessWidget {
@@ -102,13 +100,7 @@ class _AuthorCard extends StatelessWidget {
     return Card.outlined(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AuthorDetailsScreen(author: author),
-            ),
-          );
-        },
+        onTap: () => _openAuthorDetails(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -129,6 +121,14 @@ class _AuthorCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openAuthorDetails(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AuthorDetailsScreen(author: author),
       ),
     );
   }

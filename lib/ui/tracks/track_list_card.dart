@@ -214,15 +214,8 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
                           value: isSelected,
                           title: Text(playlist.name),
                           subtitle: Text('${playlist.trackCount} tracks'),
-                          onChanged: (checked) {
-                            setState(() {
-                              if (checked ?? false) {
-                                _selectedPlaylistIds.add(playlist.id);
-                              } else {
-                                _selectedPlaylistIds.remove(playlist.id);
-                              }
-                            });
-                          },
+                          onChanged: (checked) =>
+                              _onPlaylistSelectionChanged(playlist, checked),
                         );
                       })
                       .toList(growable: false),
@@ -244,5 +237,15 @@ class _PlaylistPickerSheetState extends State<_PlaylistPickerSheet> {
         ),
       ),
     );
+  }
+
+  void _onPlaylistSelectionChanged(Playlist playlist, bool? checked) {
+    setState(() {
+      if (checked ?? false) {
+        _selectedPlaylistIds.add(playlist.id);
+      } else {
+        _selectedPlaylistIds.remove(playlist.id);
+      }
+    });
   }
 }

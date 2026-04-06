@@ -32,21 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
       listenWhen: (previous, current) =>
           previous.status != current.status ||
           previous.failure != current.failure,
-      listener: (context, state) {
-        if (state.isAuthenticated) {
-          // TODO: make this navigation more universal so we don't accidentally navigate to some infinity-loading screen.
-          Navigator.of(context).popUntil((route) => route.isFirst);
-
-          return;
-        }
-
-        final failureMessage = _toFailureMessage(state.failure);
-        if (failureMessage != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(failureMessage)));
-        }
-      },
+      listener: _onAuthStateChanged,
       child: ScreenSkeleton(
         // TODO: translate all the strings.
         appBar: AppBar(title: const Text('Sign in')),
@@ -103,13 +89,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           TextButton(
                             onPressed: state.isSubmitting
                                 ? null
-                                : () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) => const SignUpScreen(),
-                                      ),
-                                    );
-                                  },
+                                : () => _openSignUp(context),
                             child: const Text('Create an account'),
                           ),
                         ],
@@ -176,5 +156,27 @@ class _SignInScreenState extends State<SignInScreen> {
         password: _passwordController.text,
       ),
     );
+  }
+
+  void _onAuthStateChanged(BuildContext context, AuthState state) {
+    if (state.isAuthenticated) {
+      // TODO: make this navigation more universal so we don't accidentally navigate to some infinity-loading screen.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+
+      return;
+    }
+
+    final failureMessage = _toFailureMessage(state.failure);
+    if (failureMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failureMessage)));
+    }
+  }
+
+  void _openSignUp(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const SignUpScreen()));
   }
 }
