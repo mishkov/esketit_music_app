@@ -238,10 +238,10 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
       final albums = await _catalogStorage.getPublishedAlbumsByAuthor(
         authorId: authorId,
       );
-      final nextAlbumsByAuthorId = Map<int, List<Album>>.from(
+      final nextAlbumsByAuthorId = Map<int, List<Album>>.of(
         state.albumsByAuthorId,
       )..[authorId] = albums;
-      final nextLoadingAuthorIds = Set<int>.from(state.loadingAuthorIds)
+      final nextLoadingAuthorIds = Set<int>.of(state.loadingAuthorIds)
         ..remove(authorId);
       emit(
         state.copyWith(
@@ -251,7 +251,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         ),
       );
     } catch (error, stackTrace) {
-      final nextLoadingAuthorIds = Set<int>.from(state.loadingAuthorIds)
+      final nextLoadingAuthorIds = Set<int>.of(state.loadingAuthorIds)
         ..remove(authorId);
       emit(
         state.copyWith(
@@ -291,10 +291,10 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
 
     try {
       final tracks = await _catalogStorage.getAlbumTracks(album: event.album);
-      final nextTracksByAlbumId = Map<int, List<Track>>.from(
+      final nextTracksByAlbumId = Map<int, List<Track>>.of(
         state.tracksByAlbumId,
       )..[albumId] = tracks;
-      final nextLoadingAlbumIds = Set<int>.from(state.loadingAlbumIds)
+      final nextLoadingAlbumIds = Set<int>.of(state.loadingAlbumIds)
         ..remove(albumId);
       emit(
         state.copyWith(
@@ -304,7 +304,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         ),
       );
     } catch (error, stackTrace) {
-      final nextLoadingAlbumIds = Set<int>.from(state.loadingAlbumIds)
+      final nextLoadingAlbumIds = Set<int>.of(state.loadingAlbumIds)
         ..remove(albumId);
       emit(
         state.copyWith(
@@ -383,14 +383,14 @@ class CatalogState extends Equatable {
     String? searchErrorMessage,
     bool clearSearchError = false,
   }) {
-    final nextAuthorAlbumsErrorMessages = Map<int, String>.from(
+    final nextAuthorAlbumsErrorMessages = Map<int, String>.of(
       authorAlbumsErrorMessages ?? this.authorAlbumsErrorMessages,
     );
     if (clearAuthorAlbumsErrorId != null) {
       nextAuthorAlbumsErrorMessages.remove(clearAuthorAlbumsErrorId);
     }
 
-    final nextAlbumTracksErrorMessages = Map<int, String>.from(
+    final nextAlbumTracksErrorMessages = Map<int, String>.of(
       albumTracksErrorMessages ?? this.albumTracksErrorMessages,
     );
     if (clearAlbumTracksErrorId != null) {

@@ -203,9 +203,9 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       );
 
       final updatedPlaylists = _upsertPlaylist(state.playlists, playlist);
-      final updatedTracks = Map<int, List<Track>>.from(state.playlistTracksById)
+      final updatedTracks = Map<int, List<Track>>.of(state.playlistTracksById)
         ..[event.playlistId] = _applyFavoriteOverrides(tracks);
-      final loadingPlaylistIds = Set<int>.from(state.loadingPlaylistIds)
+      final loadingPlaylistIds = Set<int>.of(state.loadingPlaylistIds)
         ..remove(event.playlistId);
 
       emit(
@@ -217,7 +217,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
     } catch (error, stackTrace) {
-      final loadingPlaylistIds = Set<int>.from(state.loadingPlaylistIds)
+      final loadingPlaylistIds = Set<int>.of(state.loadingPlaylistIds)
         ..remove(event.playlistId);
       emit(
         state.copyWith(
@@ -293,15 +293,15 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     DeletePlaylistRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
-    final deletingPlaylistIds = Set<int>.from(state.deletingPlaylistIds)
+    final deletingPlaylistIds = Set<int>.of(state.deletingPlaylistIds)
       ..add(event.playlist.id);
     emit(state.copyWith(deletingPlaylistIds: deletingPlaylistIds));
 
     try {
       await _playlistsStorage.deletePlaylist(playlistId: event.playlist.id);
-      final updatedDeletingIds = Set<int>.from(state.deletingPlaylistIds)
+      final updatedDeletingIds = Set<int>.of(state.deletingPlaylistIds)
         ..remove(event.playlist.id);
-      final updatedTracks = Map<int, List<Track>>.from(state.playlistTracksById)
+      final updatedTracks = Map<int, List<Track>>.of(state.playlistTracksById)
         ..remove(event.playlist.id);
       emit(
         state.copyWith(
@@ -314,7 +314,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       );
       _emitFeedback(emit, message: 'Playlist deleted.');
     } catch (error, stackTrace) {
-      final updatedDeletingIds = Set<int>.from(state.deletingPlaylistIds)
+      final updatedDeletingIds = Set<int>.of(state.deletingPlaylistIds)
         ..remove(event.playlist.id);
       emit(state.copyWith(deletingPlaylistIds: updatedDeletingIds));
       _emitFeedback(emit, message: 'Failed to delete playlist.', isError: true);
@@ -330,9 +330,9 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     ToggleFavoriteRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
-    final pendingFavoriteTrackIds = Set<int>.from(state.pendingFavoriteTrackIds)
+    final pendingFavoriteTrackIds = Set<int>.of(state.pendingFavoriteTrackIds)
       ..add(event.trackId);
-    final favoriteOverrides = Map<int, bool>.from(state.favoriteOverrides)
+    final favoriteOverrides = Map<int, bool>.of(state.favoriteOverrides)
       ..[event.trackId] = event.shouldBeFavorite;
 
     emit(
@@ -357,7 +357,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         );
       }
 
-      final updatedPendingIds = Set<int>.from(state.pendingFavoriteTrackIds)
+      final updatedPendingIds = Set<int>.of(state.pendingFavoriteTrackIds)
         ..remove(event.trackId);
       emit(state.copyWith(pendingFavoriteTrackIds: updatedPendingIds));
       add(const LoadPlaylists(forceRefresh: true));
@@ -369,9 +369,9 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         add(LoadPlaylistDetails(favoritesPlaylist.id, forceRefresh: true));
       }
     } catch (error, stackTrace) {
-      final updatedPendingIds = Set<int>.from(state.pendingFavoriteTrackIds)
+      final updatedPendingIds = Set<int>.of(state.pendingFavoriteTrackIds)
         ..remove(event.trackId);
-      final revertedOverrides = Map<int, bool>.from(state.favoriteOverrides)
+      final revertedOverrides = Map<int, bool>.of(state.favoriteOverrides)
         ..[event.trackId] = !event.shouldBeFavorite;
       emit(
         state.copyWith(
@@ -398,7 +398,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     AddTrackToPlaylistsRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
-    final pendingTrackPlaylistActionIds = Set<int>.from(
+    final pendingTrackPlaylistActionIds = Set<int>.of(
       state.pendingTrackPlaylistActionIds,
     )..add(event.trackId);
     emit(
@@ -413,9 +413,8 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         playlistIds: event.playlistIds,
       );
 
-      final updatedPendingIds = Set<int>.from(
-        state.pendingTrackPlaylistActionIds,
-      )..remove(event.trackId);
+      final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
+        ..remove(event.trackId);
       emit(
         state.copyWith(
           pendingTrackPlaylistActionIds: updatedPendingIds,
@@ -432,9 +431,8 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       );
       _emitFeedback(emit, message: 'Track added to playlists.');
     } catch (error, stackTrace) {
-      final updatedPendingIds = Set<int>.from(
-        state.pendingTrackPlaylistActionIds,
-      )..remove(event.trackId);
+      final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
+        ..remove(event.trackId);
       emit(state.copyWith(pendingTrackPlaylistActionIds: updatedPendingIds));
       _emitFeedback(
         emit,
@@ -453,7 +451,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     RemoveTrackFromPlaylistRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
-    final pendingTrackPlaylistActionIds = Set<int>.from(
+    final pendingTrackPlaylistActionIds = Set<int>.of(
       state.pendingTrackPlaylistActionIds,
     )..add(event.trackId);
     final previousTracks =
@@ -488,15 +486,13 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         trackId: event.trackId,
         playlistId: event.playlistId,
       );
-      final updatedPendingIds = Set<int>.from(
-        state.pendingTrackPlaylistActionIds,
-      )..remove(event.trackId);
+      final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
+        ..remove(event.trackId);
       emit(state.copyWith(pendingTrackPlaylistActionIds: updatedPendingIds));
       _emitFeedback(emit, message: 'Track removed from playlist.');
     } catch (error, stackTrace) {
-      final updatedPendingIds = Set<int>.from(
-        state.pendingTrackPlaylistActionIds,
-      )..remove(event.trackId);
+      final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
+        ..remove(event.trackId);
       emit(
         state.copyWith(
           pendingTrackPlaylistActionIds: updatedPendingIds,
@@ -546,7 +542,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       return;
     }
 
-    final reorderingPlaylistIds = Set<int>.from(state.reorderingPlaylistIds)
+    final reorderingPlaylistIds = Set<int>.of(state.reorderingPlaylistIds)
       ..add(event.playlistId);
     emit(
       state.copyWith(
@@ -563,11 +559,11 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         playlistId: event.playlistId,
         trackIds: event.trackIds,
       );
-      final updatedReorderingIds = Set<int>.from(state.reorderingPlaylistIds)
+      final updatedReorderingIds = Set<int>.of(state.reorderingPlaylistIds)
         ..remove(event.playlistId);
       emit(state.copyWith(reorderingPlaylistIds: updatedReorderingIds));
     } catch (error, stackTrace) {
-      final updatedReorderingIds = Set<int>.from(state.reorderingPlaylistIds)
+      final updatedReorderingIds = Set<int>.of(state.reorderingPlaylistIds)
         ..remove(event.playlistId);
       emit(
         state.copyWith(
@@ -729,7 +725,7 @@ class PlaylistsState extends Equatable {
     int? feedbackSerial,
     bool? isFeedbackError,
   }) {
-    final nextPlaylistErrorMessages = Map<int, String>.from(
+    final nextPlaylistErrorMessages = Map<int, String>.of(
       playlistErrorMessages ?? this.playlistErrorMessages,
     );
     if (clearPlaylistErrorId != null) {

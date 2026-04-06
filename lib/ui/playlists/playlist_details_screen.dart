@@ -198,7 +198,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
     required int oldIndex,
     required int newIndex,
   }) {
-    final reorderedTracks = List<Track>.from(tracks);
+    final reorderedTracks = List<Track>.of(tracks);
     if (newIndex > oldIndex) {
       newIndex -= 1;
     }
