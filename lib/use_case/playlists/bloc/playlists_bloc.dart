@@ -13,7 +13,7 @@ sealed class PlaylistsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadPlaylists extends PlaylistsEvent {
+final class LoadPlaylists extends PlaylistsEvent {
   const LoadPlaylists({this.forceRefresh = false});
 
   final bool forceRefresh;
@@ -22,7 +22,7 @@ class LoadPlaylists extends PlaylistsEvent {
   List<Object?> get props => [forceRefresh];
 }
 
-class LoadPlaylistDetails extends PlaylistsEvent {
+final class LoadPlaylistDetails extends PlaylistsEvent {
   const LoadPlaylistDetails(this.playlistId, {this.forceRefresh = false});
 
   final int playlistId;
@@ -32,7 +32,7 @@ class LoadPlaylistDetails extends PlaylistsEvent {
   List<Object?> get props => [playlistId, forceRefresh];
 }
 
-class CreatePlaylistRequested extends PlaylistsEvent {
+final class CreatePlaylistRequested extends PlaylistsEvent {
   const CreatePlaylistRequested(this.input);
 
   final PlaylistUpsertInput input;
@@ -41,7 +41,7 @@ class CreatePlaylistRequested extends PlaylistsEvent {
   List<Object?> get props => [input];
 }
 
-class UpdatePlaylistRequested extends PlaylistsEvent {
+final class UpdatePlaylistRequested extends PlaylistsEvent {
   const UpdatePlaylistRequested({
     required this.playlistId,
     required this.input,
@@ -54,7 +54,7 @@ class UpdatePlaylistRequested extends PlaylistsEvent {
   List<Object?> get props => [playlistId, input];
 }
 
-class DeletePlaylistRequested extends PlaylistsEvent {
+final class DeletePlaylistRequested extends PlaylistsEvent {
   const DeletePlaylistRequested(this.playlist);
 
   final Playlist playlist;
@@ -63,7 +63,7 @@ class DeletePlaylistRequested extends PlaylistsEvent {
   List<Object?> get props => [playlist];
 }
 
-class ToggleFavoriteRequested extends PlaylistsEvent {
+final class ToggleFavoriteRequested extends PlaylistsEvent {
   const ToggleFavoriteRequested({
     required this.trackId,
     required this.shouldBeFavorite,
@@ -76,7 +76,7 @@ class ToggleFavoriteRequested extends PlaylistsEvent {
   List<Object?> get props => [trackId, shouldBeFavorite];
 }
 
-class AddTrackToPlaylistsRequested extends PlaylistsEvent {
+final class AddTrackToPlaylistsRequested extends PlaylistsEvent {
   const AddTrackToPlaylistsRequested({
     required this.trackId,
     required this.playlistIds,
@@ -89,7 +89,7 @@ class AddTrackToPlaylistsRequested extends PlaylistsEvent {
   List<Object?> get props => [trackId, playlistIds];
 }
 
-class RemoveTrackFromPlaylistRequested extends PlaylistsEvent {
+final class RemoveTrackFromPlaylistRequested extends PlaylistsEvent {
   const RemoveTrackFromPlaylistRequested({
     required this.trackId,
     required this.playlistId,
@@ -102,7 +102,7 @@ class RemoveTrackFromPlaylistRequested extends PlaylistsEvent {
   List<Object?> get props => [trackId, playlistId];
 }
 
-class ReorderPlaylistTracksRequested extends PlaylistsEvent {
+final class ReorderPlaylistTracksRequested extends PlaylistsEvent {
   const ReorderPlaylistTracksRequested({
     required this.playlistId,
     required this.trackIds,
@@ -115,7 +115,7 @@ class ReorderPlaylistTracksRequested extends PlaylistsEvent {
   List<Object?> get props => [playlistId, trackIds];
 }
 
-class ClearPlaylists extends PlaylistsEvent {
+final class ClearPlaylists extends PlaylistsEvent {
   const ClearPlaylists();
 }
 

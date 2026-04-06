@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 sealed class CatalogEvent extends Equatable {}
 
-class CatalogSearchQueryChanged extends CatalogEvent {
+final class CatalogSearchQueryChanged extends CatalogEvent {
   final String query;
 
   CatalogSearchQueryChanged(this.query);
@@ -19,7 +19,7 @@ class CatalogSearchQueryChanged extends CatalogEvent {
   List<Object?> get props => [query];
 }
 
-class LoadCatalogSearchResults extends CatalogEvent {
+final class LoadCatalogSearchResults extends CatalogEvent {
   final int? page;
 
   LoadCatalogSearchResults({this.page});
@@ -28,12 +28,12 @@ class LoadCatalogSearchResults extends CatalogEvent {
   List<Object?> get props => [page];
 }
 
-class LoadPublishedAuthors extends CatalogEvent {
+final class LoadPublishedAuthors extends CatalogEvent {
   @override
   List<Object?> get props => [];
 }
 
-class LoadPublishedAlbumsByAuthor extends CatalogEvent {
+final class LoadPublishedAlbumsByAuthor extends CatalogEvent {
   final Author author;
 
   LoadPublishedAlbumsByAuthor(this.author);
@@ -42,7 +42,7 @@ class LoadPublishedAlbumsByAuthor extends CatalogEvent {
   List<Object?> get props => [author];
 }
 
-class LoadAlbumTracks extends CatalogEvent {
+final class LoadAlbumTracks extends CatalogEvent {
   final Album album;
 
   LoadAlbumTracks(this.album);

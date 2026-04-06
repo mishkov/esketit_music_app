@@ -16,11 +16,11 @@ sealed class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class AuthSessionRestoreRequested extends AuthEvent {
+final class AuthSessionRestoreRequested extends AuthEvent {
   const AuthSessionRestoreRequested();
 }
 
-class AuthSignInRequested extends AuthEvent {
+final class AuthSignInRequested extends AuthEvent {
   const AuthSignInRequested({required this.email, required this.password});
 
   final String email;
@@ -30,7 +30,7 @@ class AuthSignInRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
-class AuthSignUpRequested extends AuthEvent {
+final class AuthSignUpRequested extends AuthEvent {
   const AuthSignUpRequested({required this.email, required this.password});
 
   final String email;
@@ -40,7 +40,7 @@ class AuthSignUpRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
-class AuthSignOutRequested extends AuthEvent {
+final class AuthSignOutRequested extends AuthEvent {
   const AuthSignOutRequested();
 }
 

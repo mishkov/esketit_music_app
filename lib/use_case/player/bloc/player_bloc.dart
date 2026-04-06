@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 sealed class PlayerEvent extends Equatable {}
 
-class PlayTrack extends PlayerEvent {
+final class PlayTrack extends PlayerEvent {
   final Track track;
   final List<Track> queue;
 
@@ -20,12 +20,12 @@ class PlayTrack extends PlayerEvent {
   List<Object?> get props => [track, queue];
 }
 
-class TogglePlay extends PlayerEvent {
+final class TogglePlay extends PlayerEvent {
   @override
   List<Object?> get props => [];
 }
 
-class _PlaybackStateChanged extends PlayerEvent {
+final class _PlaybackStateChanged extends PlayerEvent {
   final bool isPlaying;
 
   _PlaybackStateChanged(this.isPlaying);
@@ -34,7 +34,7 @@ class _PlaybackStateChanged extends PlayerEvent {
   List<Object?> get props => [isPlaying];
 }
 
-class _SelectedTrackChanged extends PlayerEvent {
+final class _SelectedTrackChanged extends PlayerEvent {
   final Track? track;
 
   _SelectedTrackChanged(this.track);

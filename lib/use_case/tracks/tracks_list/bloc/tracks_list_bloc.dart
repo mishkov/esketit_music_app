@@ -8,7 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 sealed class TracksListEvent extends Equatable {}
 
-class LoadMoreTracks extends TracksListEvent {
+final class LoadMoreTracks extends TracksListEvent {
   @override
   List<Object?> get props => [];
 }

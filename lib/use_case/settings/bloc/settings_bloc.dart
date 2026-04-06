@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 sealed class SettingsEvent extends Equatable {}
 
-class SetServerUri extends SettingsEvent {
+final class SetServerUri extends SettingsEvent {
   final Uri uri;
 
   SetServerUri(this.uri);
