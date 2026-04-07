@@ -84,6 +84,28 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
     );
   }
 
+  static List<Album> _sortAlbumsByReleaseDateDescending(List<Album> albums) {
+    final sortedAlbums = List<Album>.of(albums);
+    sortedAlbums.sort((left, right) {
+      final leftReleaseDate = left.releaseDate;
+      final rightReleaseDate = right.releaseDate;
+
+      if (leftReleaseDate == null && rightReleaseDate == null) {
+        return 0;
+      }
+      if (leftReleaseDate == null) {
+        return 1;
+      }
+      if (rightReleaseDate == null) {
+        return -1;
+      }
+
+      return rightReleaseDate.compareTo(leftReleaseDate);
+    });
+
+    return sortedAlbums;
+  }
+
   void _onCatalogSearchQueryChanged(
     CatalogSearchQueryChanged event,
     Emitter<CatalogState> emit,
@@ -240,7 +262,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
       );
       final nextAlbumsByAuthorId = Map<int, List<Album>>.of(
         state.albumsByAuthorId,
-      )..[authorId] = albums;
+      )..[authorId] = _sortAlbumsByReleaseDateDescending(albums);
       final nextLoadingAuthorIds = Set<int>.of(state.loadingAuthorIds)
         ..remove(authorId);
       emit(
