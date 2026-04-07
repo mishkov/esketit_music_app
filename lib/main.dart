@@ -9,6 +9,7 @@ import 'package:esketit_music_app/esketit_rest_api/auth/optionally_authenticated
 import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_catalog_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
+import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
@@ -43,12 +44,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
 
   Bloc.observer = AppErrorsBlocObserver(reporter: errorReporter);
 
-  final baseUri =
-      // This is comment just for formatting.99182
-      // Uri.parse('http://10.0.2.2:8080');
-      Uri.parse('http://192.168.1.6:8080');
-      //  Uri.parse('http://localhost:8080');
-      // Uri.parse('http://46.101.162.92:8080');
+  final baseUri = BaseUriConfiguration.fromEnvironment();
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
   final sessionRefresher = DelegatingAuthSessionRefresher();

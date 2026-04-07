@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate launch defines",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/generate_vscode_current_device_base_url.sh ${input:serverTarget}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "serverTarget",
+      "type": "pickString",
+      "description": "Choose the backend server address",
+      "default": "production",
+      "options": [
+        {
+          "label": "emulator localhost",
+          "value": "emulator-localhost"
+        },
+        {
+          "label": "localhost",
+          "value": "localhost"
+        },
+        {
+          "label": "production",
+          "value": "production"
+        },
+        {
+          "label": "current device",
+          "value": "current-device"
+        }
+      ]
+    }
+  ]
+}

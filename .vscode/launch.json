@@ -7,7 +7,12 @@
     {
       "name": "esketit_music_app",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "preLaunchTask": "Generate launch defines",
+      "flutterMode": "debug",
+      "toolArgs": [
+        "--dart-define-from-file=.vscode/launch_defines.json"
+      ]
     },
     {
       "name": "esketit_music_app (profile mode)",
