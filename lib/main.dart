@@ -13,6 +13,7 @@ import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_s
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
@@ -50,23 +51,24 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       // Uri.parse('http://46.101.162.92:8080');
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
-  // TODO: refactor dependencies to remove the usage of `late`.
-  late final EsketitRestApiAuthRepository authRepository;
+  final sessionRefresher = DelegatingAuthSessionRefresher();
+  final authRepository = EsketitRestApiAuthRepository(
+    unauthenticatedHttpClient: unauthenticatedHttpClient,
+    authenticatedHttpClient: AuthenticatedHttpClientProxy(
+      httpClient: unauthenticatedHttpClient,
+      sessionRefresher: sessionRefresher,
+    ),
+    sessionStorage: FlutterSecureAuthSessionStorage(),
+  );
+  sessionRefresher.setDelegate(authRepository);
   final authenticatedHttpClient = AuthenticatedHttpClientProxy(
     httpClient: unauthenticatedHttpClient,
-    refreshSession: ({forceRefresh = false}) =>
-        authRepository.refreshSession(forceRefresh: forceRefresh),
-  );
-  authRepository = EsketitRestApiAuthRepository(
-    unauthenticatedHttpClient: unauthenticatedHttpClient,
-    authenticatedHttpClient: authenticatedHttpClient,
-    sessionStorage: FlutterSecureAuthSessionStorage(),
+    sessionRefresher: authRepository,
   );
   final optionallyAuthenticatedHttpClient =
       OptionallyAuthenticatedHttpClientProxy(
         httpClient: unauthenticatedHttpClient,
-        refreshSession: ({forceRefresh = false}) =>
-            authRepository.refreshSession(forceRefresh: forceRefresh),
+        sessionRefresher: authRepository,
       );
   final catalogStorage = EsketitRestApiCatalogStorage(
     httpClient: optionallyAuthenticatedHttpClient,

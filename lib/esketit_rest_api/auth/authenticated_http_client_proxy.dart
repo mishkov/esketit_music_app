@@ -2,15 +2,17 @@ import 'package:esketit_music_app/domain/auth/auth_session.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
+import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 
 class AuthenticatedHttpClientProxy implements HttpClient {
   const AuthenticatedHttpClientProxy({
     required HttpClient httpClient,
-    required this.refreshSession,
-  }) : _httpClient = httpClient;
+    required AuthSessionRefresher sessionRefresher,
+  }) : _httpClient = httpClient,
+       _sessionRefresher = sessionRefresher;
 
   final HttpClient _httpClient;
-  final Future<AuthSession?> Function({bool forceRefresh}) refreshSession;
+  final AuthSessionRefresher _sessionRefresher;
 
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) {
@@ -63,14 +65,16 @@ class AuthenticatedHttpClientProxy implements HttpClient {
     required Map<String, String>? headers,
     required Future<HttpResponse> Function(Map<String, String> headers) send,
   }) async {
-    final session = await refreshSession();
+    final session = await _sessionRefresher.refreshSession();
     if (session == null) {
       throw UnauthorizedAppError(path: path);
     }
 
     var response = await send(_authorizationHeaders(session, headers));
     if (response.statusCode == 401) {
-      final refreshedSession = await refreshSession(forceRefresh: true);
+      final refreshedSession = await _sessionRefresher.refreshSession(
+        forceRefresh: true,
+      );
       if (refreshedSession == null) {
         throw UnauthorizedAppError(path: path, responseBody: response.response);
       }

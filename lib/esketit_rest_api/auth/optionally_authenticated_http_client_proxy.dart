@@ -1,15 +1,17 @@
 import 'package:esketit_music_app/domain/auth/auth_session.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
+import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 
 class OptionallyAuthenticatedHttpClientProxy implements HttpClient {
   const OptionallyAuthenticatedHttpClientProxy({
     required HttpClient httpClient,
-    required this.refreshSession,
-  }) : _httpClient = httpClient;
+    required AuthSessionRefresher sessionRefresher,
+  }) : _httpClient = httpClient,
+       _sessionRefresher = sessionRefresher;
 
   final HttpClient _httpClient;
-  final Future<AuthSession?> Function({bool forceRefresh}) refreshSession;
+  final AuthSessionRefresher _sessionRefresher;
 
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) {
@@ -62,7 +64,7 @@ class OptionallyAuthenticatedHttpClientProxy implements HttpClient {
     required Map<String, String>? headers,
     required Future<HttpResponse> Function(Map<String, String>? headers) send,
   }) async {
-    final session = await refreshSession();
+    final session = await _sessionRefresher.refreshSession();
     if (session == null) {
       return send(headers);
     }
@@ -72,7 +74,9 @@ class OptionallyAuthenticatedHttpClientProxy implements HttpClient {
       return response;
     }
 
-    final refreshedSession = await refreshSession(forceRefresh: true);
+    final refreshedSession = await _sessionRefresher.refreshSession(
+      forceRefresh: true,
+    );
     if (refreshedSession == null) {
       return send(headers);
     }
