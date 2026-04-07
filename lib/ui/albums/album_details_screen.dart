@@ -60,8 +60,8 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: SizedBox(
-                      height: 260,
+                    child: AspectRatio(
+                      aspectRatio: 1,
                       child: RemoteImage(
                         imageUrl: _albumCoverUrl(widget.album),
                         icon: Icons.album_rounded,
