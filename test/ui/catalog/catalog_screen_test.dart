@@ -131,52 +131,72 @@ void main() {
 }
 
 class _CatalogTestHarness {
-  _CatalogTestHarness({
+  factory _CatalogTestHarness({
     required Map<String, Map<int, PaginatedCatalogSearchResults>>
     searchResponses,
-  }) : catalogStorage = _FakeCatalogStorage(searchResponses: searchResponses),
-       player = _FakeAudioPlayer(),
-       errorReporter = _FakeErrorReporter(),
-       playlistsStorage = _FakePlaylistsStorage() {
-    catalogBloc = CatalogBloc(
-      initialState: const CatalogState(
-        authors: [],
-        isLoadingAuthors: false,
-        authorsErrorMessage: null,
-        albumsByAuthorId: {},
-        loadingAuthorIds: {},
-        authorAlbumsErrorMessages: {},
-        tracksByAlbumId: {},
-        loadingAlbumIds: {},
-        albumTracksErrorMessages: {},
-        searchQuery: '',
-        searchPage: 1,
-        searchPageSize: CatalogBloc.searchPageSize,
-        searchResults: null,
-        isLoadingSearch: false,
-        searchErrorMessage: null,
-      ),
-      catalogStorage: catalogStorage,
-      errorReporter: errorReporter,
+  }) {
+    final catalogStorage = _FakeCatalogStorage(
+      searchResponses: searchResponses,
     );
-    playerBloc = PlayerBloc(
-      initialState: const PlayerState(selectedTrack: null, isPlaying: false),
+    final player = _FakeAudioPlayer();
+    final errorReporter = _FakeErrorReporter();
+    final playlistsStorage = _FakePlaylistsStorage();
+
+    return _CatalogTestHarness._(
+      catalogStorage: catalogStorage,
       player: player,
       errorReporter: errorReporter,
-    );
-    playlistsBloc = PlaylistsBloc(
       playlistsStorage: playlistsStorage,
-      errorReporter: errorReporter,
+      catalogBloc: CatalogBloc(
+        initialState: const CatalogState(
+          authors: [],
+          isLoadingAuthors: false,
+          authorsErrorMessage: null,
+          albumsByAuthorId: {},
+          loadingAuthorIds: {},
+          authorAlbumsErrorMessages: {},
+          tracksByAlbumId: {},
+          loadingAlbumIds: {},
+          albumTracksErrorMessages: {},
+          searchQuery: '',
+          searchPage: 1,
+          searchPageSize: CatalogBloc.searchPageSize,
+          searchResults: null,
+          isLoadingSearch: false,
+          searchErrorMessage: null,
+        ),
+        catalogStorage: catalogStorage,
+        errorReporter: errorReporter,
+      ),
+      playerBloc: PlayerBloc(
+        initialState: const PlayerState(selectedTrack: null, isPlaying: false),
+        player: player,
+        errorReporter: errorReporter,
+      ),
+      playlistsBloc: PlaylistsBloc(
+        playlistsStorage: playlistsStorage,
+        errorReporter: errorReporter,
+      ),
     );
   }
+
+  const _CatalogTestHarness._({
+    required this.catalogStorage,
+    required this.player,
+    required this.errorReporter,
+    required this.playlistsStorage,
+    required this.catalogBloc,
+    required this.playerBloc,
+    required this.playlistsBloc,
+  });
 
   final _FakeCatalogStorage catalogStorage;
   final _FakeAudioPlayer player;
   final _FakeErrorReporter errorReporter;
   final _FakePlaylistsStorage playlistsStorage;
-  late final CatalogBloc catalogBloc;
-  late final PlayerBloc playerBloc;
-  late final PlaylistsBloc playlistsBloc;
+  final CatalogBloc catalogBloc;
+  final PlayerBloc playerBloc;
+  final PlaylistsBloc playlistsBloc;
 
   Widget get widget => MaterialApp(
     home: MultiBlocProvider(

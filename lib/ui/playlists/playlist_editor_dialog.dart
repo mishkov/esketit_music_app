@@ -25,22 +25,19 @@ class PlaylistEditorDialog extends StatefulWidget {
 }
 
 class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _coverImagePathController;
-  late PlaylistVisibility _visibility;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _coverImagePathController =
+      TextEditingController();
+  PlaylistVisibility _visibility = PlaylistVisibility.private;
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialName);
-    _descriptionController = TextEditingController(
-      text: widget.initialDescription,
-    );
-    _coverImagePathController = TextEditingController(
-      text: widget.initialCoverImagePath,
-    );
+    _nameController.text = widget.initialName;
+    _descriptionController.text = widget.initialDescription;
+    _coverImagePathController.text = widget.initialCoverImagePath;
     _visibility = widget.initialVisibility;
   }
 

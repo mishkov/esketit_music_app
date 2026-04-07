@@ -19,8 +19,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
   static const Duration _searchDebounceDuration = Duration(milliseconds: 400);
   static const double _lazyLoadTriggerOffset = 240;
 
-  late final TextEditingController _searchController;
-  late final ScrollController _scrollController;
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   Timer? _searchDebounce;
 
   @override
@@ -28,10 +28,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.initState();
 
     final catalogBloc = context.read<CatalogBloc>();
-    _searchController = TextEditingController(
-      text: catalogBloc.state.searchQuery,
-    );
-    _scrollController = ScrollController()..addListener(_onScroll);
+    _searchController.text = catalogBloc.state.searchQuery;
+    _scrollController.addListener(_onScroll);
   }
 
   @override
