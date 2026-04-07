@@ -13,6 +13,7 @@ class AppShell extends StatelessWidget {
       builder: (context, state) {
         if (state.status == AuthStatus.restoring) {
           return const ScreenSkeleton(
+            enableBottomPlayer: false,
             body: Center(child: CircularProgressIndicator()),
           );
         }

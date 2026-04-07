@@ -1,7 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/ui/authors/album_tile.dart';
-import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
@@ -33,71 +32,57 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
 
         return ScreenSkeleton(
           appBar: AppBar(title: Text(widget.author.currentName)),
-          body: Stack(
-            children: [
-              BlocBuilder<CatalogBloc, CatalogState>(
-                builder: (context, state) {
-                  final albums = state.albumsByAuthorId[widget.author.id];
-                  final isLoading = state.loadingAuthorIds.contains(
-                    widget.author.id,
-                  );
-                  final errorMessage =
-                      state.authorAlbumsErrorMessages[widget.author.id];
+          body: BlocBuilder<CatalogBloc, CatalogState>(
+            builder: (context, state) {
+              final albums = state.albumsByAuthorId[widget.author.id];
+              final isLoading = state.loadingAuthorIds.contains(
+                widget.author.id,
+              );
+              final errorMessage =
+                  state.authorAlbumsErrorMessages[widget.author.id];
 
-                  if (isLoading && albums == null) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              if (isLoading && albums == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                  if (errorMessage != null && albums == null) {
-                    return Center(child: Text(errorMessage));
-                  }
+              if (errorMessage != null && albums == null) {
+                return Center(child: Text(errorMessage));
+              }
 
-                  final safeAlbums = albums ?? const <Album>[];
+              final safeAlbums = albums ?? const <Album>[];
 
-                  return ListView(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 16,
-                      bottom: selectedTrackExists ? 100 : 16,
-                    ),
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: SizedBox(
-                          height: 260,
-                          child: RemoteImage(
-                            imageUrl: widget.author.primaryPhotoUrl,
-                            icon: Icons.person_rounded,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        widget.author.currentName,
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Albums',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      if (safeAlbums.isEmpty)
-                        const Text('No published albums yet.'),
-                      ...safeAlbums.map((album) => AlbumTile(album: album)),
-                    ],
-                  );
-                },
-              ),
-              if (selectedTrackExists)
-                const Positioned(
-                  bottom: 0,
-                  right: 0,
-                  left: 0,
-                  child: BottomPlayer(),
+              return ListView(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: selectedTrackExists ? 100 : 16,
                 ),
-            ],
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: SizedBox(
+                      height: 260,
+                      child: RemoteImage(
+                        imageUrl: widget.author.primaryPhotoUrl,
+                        icon: Icons.person_rounded,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.author.currentName,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 24),
+                  Text('Albums', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  if (safeAlbums.isEmpty)
+                    const Text('No published albums yet.'),
+                  ...safeAlbums.map((album) => AlbumTile(album: album)),
+                ],
+              );
+            },
           ),
         );
       },

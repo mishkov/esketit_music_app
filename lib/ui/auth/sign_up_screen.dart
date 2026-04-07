@@ -33,6 +33,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           previous.failure != current.failure,
       listener: _onAuthStateChanged,
       child: ScreenSkeleton(
+        enableBottomPlayer: false,
         // TODO: translate all the strings.
         appBar: AppBar(title: const Text('Sign up')),
         body: SafeArea(

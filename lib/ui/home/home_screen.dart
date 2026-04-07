@@ -6,7 +6,6 @@ import 'package:esketit_music_app/ui/drawer/esketit_drawer.dart';
 import 'package:esketit_music_app/ui/library/my_library_screen.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
-import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,24 +39,18 @@ class _HomeScreenState extends State<HomeScreen> {
           listener: _onPlaylistsStateChanged,
         ),
       ],
-      child: BlocBuilder<PlayerBloc, PlayerState>(
-        builder: (context, state) {
-          final pages = [
-            const CatalogBrowseScreen(),
-            const CatalogScreen(),
-            const MyLibraryScreen(),
-          ];
-
-          return ScreenSkeleton(
-            appBar: AppBar(title: Text(_titleForIndex(_currentTabIndex))),
-            drawer: const EsketitDrawer(),
-            bottomNavigationBar: EsketitBottomNavigationBar(
-              currentIndex: _currentTabIndex,
-              onTap: _onTabSelected,
-            ),
-            body: pages[_currentTabIndex],
-          );
-        },
+      child: ScreenSkeleton(
+        appBar: AppBar(title: Text(_titleForIndex(_currentTabIndex))),
+        drawer: const EsketitDrawer(),
+        bottomNavigationBar: EsketitBottomNavigationBar(
+          currentIndex: _currentTabIndex,
+          onTap: _onTabSelected,
+        ),
+        body: [
+          const CatalogBrowseScreen(),
+          const CatalogScreen(),
+          const MyLibraryScreen(),
+        ][_currentTabIndex],
       ),
     );
   }

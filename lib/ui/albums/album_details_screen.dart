@@ -1,6 +1,5 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/track.dart';
-import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
@@ -34,81 +33,63 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
 
         return ScreenSkeleton(
           appBar: AppBar(title: Text(widget.album.title)),
-          body: Stack(
-            children: [
-              BlocBuilder<CatalogBloc, CatalogState>(
-                builder: (context, state) {
-                  final tracks = state.tracksByAlbumId[widget.album.id];
-                  final isLoading = state.loadingAlbumIds.contains(
-                    widget.album.id,
-                  );
-                  final errorMessage =
-                      state.albumTracksErrorMessages[widget.album.id];
+          body: BlocBuilder<CatalogBloc, CatalogState>(
+            builder: (context, state) {
+              final tracks = state.tracksByAlbumId[widget.album.id];
+              final isLoading = state.loadingAlbumIds.contains(widget.album.id);
+              final errorMessage =
+                  state.albumTracksErrorMessages[widget.album.id];
 
-                  if (isLoading && tracks == null) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              if (isLoading && tracks == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                  if (errorMessage != null && tracks == null) {
-                    return Center(child: Text(errorMessage));
-                  }
+              if (errorMessage != null && tracks == null) {
+                return Center(child: Text(errorMessage));
+              }
 
-                  final safeTracks = tracks ?? const <Track>[];
+              final safeTracks = tracks ?? const <Track>[];
 
-                  return ListView(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                      top: 16,
-                      bottom: selectedTrackExists ? 100 : 16,
-                    ),
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: SizedBox(
-                          height: 260,
-                          child: RemoteImage(
-                            imageUrl: _albumCoverUrl(widget.album),
-                            icon: Icons.album_rounded,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        widget.album.title,
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Tracks',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      if (safeTracks.isEmpty)
-                        const Text('No tracks in this album yet.'),
-                      ...safeTracks.asMap().entries.map((entry) {
-                        return TrackListCard(
-                          track: entry.value,
-                          queue: safeTracks
-                              .where((track) => track.isAvailable)
-                              .toList(growable: false),
-                          indexLabel: CircleAvatar(
-                            child: Text('${entry.key + 1}'),
-                          ),
-                        );
-                      }),
-                    ],
-                  );
-                },
-              ),
-              if (selectedTrackExists)
-                const Positioned(
-                  bottom: 0,
-                  right: 0,
-                  left: 0,
-                  child: BottomPlayer(),
+              return ListView(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: selectedTrackExists ? 100 : 16,
                 ),
-            ],
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: SizedBox(
+                      height: 260,
+                      child: RemoteImage(
+                        imageUrl: _albumCoverUrl(widget.album),
+                        icon: Icons.album_rounded,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.album.title,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 24),
+                  Text('Tracks', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  if (safeTracks.isEmpty)
+                    const Text('No tracks in this album yet.'),
+                  ...safeTracks.asMap().entries.map((entry) {
+                    return TrackListCard(
+                      track: entry.value,
+                      queue: safeTracks
+                          .where((track) => track.isAvailable)
+                          .toList(growable: false),
+                      indexLabel: CircleAvatar(child: Text('${entry.key + 1}')),
+                    );
+                  }),
+                ],
+              );
+            },
           ),
         );
       },

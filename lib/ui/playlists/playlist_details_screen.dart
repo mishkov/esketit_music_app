@@ -1,6 +1,5 @@
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
-import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
@@ -61,16 +60,13 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                 ),
             ],
           ),
-          body: Stack(
-            children: [
-              if (isLoading && playlist == null)
-                const Center(child: CircularProgressIndicator())
-              else if (errorMessage != null && playlist == null)
-                Center(child: Text(errorMessage))
-              else if (playlist == null)
-                const Center(child: Text('Playlist not found.'))
-              else
-                Padding(
+          body: isLoading && playlist == null
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null && playlist == null
+              ? Center(child: Text(errorMessage))
+              : playlist == null
+              ? const Center(child: Text('Playlist not found.'))
+              : Padding(
                   padding: EdgeInsets.only(
                     bottom: selectedTrackExists ? 100 : 0,
                   ),
@@ -129,15 +125,6 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                     ],
                   ),
                 ),
-              if (selectedTrackExists)
-                const Positioned(
-                  bottom: 0,
-                  right: 0,
-                  left: 0,
-                  child: BottomPlayer(),
-                ),
-            ],
-          ),
         );
       },
     );

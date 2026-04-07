@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:esketit_music_app/ui/catalog/browse_catalog_view.dart';
 import 'package:esketit_music_app/ui/catalog/search_catalog_view.dart';
-import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
@@ -48,57 +47,46 @@ class _CatalogScreenState extends State<CatalogScreen> {
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
 
-        return Stack(
-          children: [
-            BlocBuilder<CatalogBloc, CatalogState>(
-              builder: (context, state) {
-                final activeQuery = state.searchQuery.trim();
+        return BlocBuilder<CatalogBloc, CatalogState>(
+          builder: (context, state) {
+            final activeQuery = state.searchQuery.trim();
 
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: _onSearchQueryChanged,
-                        textInputAction: TextInputAction.search,
-                        decoration: InputDecoration(
-                          hintText: 'Search authors, albums, tracks',
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          suffixIcon: activeQuery.isEmpty
-                              ? null
-                              : IconButton(
-                                  tooltip: 'Clear search',
-                                  onPressed: _clearSearch,
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
-                          border: const OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: activeQuery.isEmpty
-                          ? BrowseCatalogView(
-                              selectedTrackExists: selectedTrackExists,
-                            )
-                          : SearchCatalogView(
-                              state: state,
-                              selectedTrackExists: selectedTrackExists,
-                              scrollController: _scrollController,
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchQueryChanged,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search authors, albums, tracks',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: activeQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              onPressed: _clearSearch,
+                              icon: const Icon(Icons.close_rounded),
                             ),
+                      border: const OutlineInputBorder(),
                     ),
-                  ],
-                );
-              },
-            ),
-            if (selectedTrackExists)
-              const Positioned(
-                bottom: 0,
-                right: 0,
-                left: 0,
-                child: BottomPlayer(),
-              ),
-          ],
+                  ),
+                ),
+                Expanded(
+                  child: activeQuery.isEmpty
+                      ? BrowseCatalogView(
+                          selectedTrackExists: selectedTrackExists,
+                        )
+                      : SearchCatalogView(
+                          state: state,
+                          selectedTrackExists: selectedTrackExists,
+                          scrollController: _scrollController,
+                        ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

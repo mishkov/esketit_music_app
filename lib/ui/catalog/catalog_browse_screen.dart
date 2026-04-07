@@ -1,6 +1,5 @@
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/ui/catalog/author_card.dart';
-import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
@@ -26,59 +25,47 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
 
-        return Stack(
-          children: [
-            BlocBuilder<CatalogBloc, CatalogState>(
-              builder: (context, state) {
-                if (state.isLoadingAuthors && state.authors.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        return BlocBuilder<CatalogBloc, CatalogState>(
+          builder: (context, state) {
+            if (state.isLoadingAuthors && state.authors.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                if (state.authorsErrorMessage != null &&
-                    state.authors.isEmpty) {
-                  return Center(child: Text(state.authorsErrorMessage!));
-                }
+            if (state.authorsErrorMessage != null && state.authors.isEmpty) {
+              return Center(child: Text(state.authorsErrorMessage!));
+            }
 
-                if (state.authors.isEmpty) {
-                  return const Center(child: Text('No published authors yet.'));
-                }
+            if (state.authors.isEmpty) {
+              return const Center(child: Text('No published authors yet.'));
+            }
 
-                return ListView(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: selectedTrackExists ? 100 : 16,
-                  ),
-                  children: [
-                    Text(
-                      'Featured Authors',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 240,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: state.authors.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 12),
-                        itemBuilder: (context, index) =>
-                            _buildAuthorCard(state.authors[index]),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            if (selectedTrackExists)
-              const Positioned(
-                bottom: 0,
-                right: 0,
-                left: 0,
-                child: BottomPlayer(),
+            return ListView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: selectedTrackExists ? 100 : 16,
               ),
-          ],
+              children: [
+                Text(
+                  'Featured Authors',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 240,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: state.authors.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemBuilder: (context, index) =>
+                        _buildAuthorCard(state.authors[index]),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
