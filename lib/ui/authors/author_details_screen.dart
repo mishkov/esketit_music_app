@@ -61,8 +61,8 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: SizedBox(
-                      height: 260,
+                    child: AspectRatio(
+                      aspectRatio: 1,
                       child: RemoteImage(
                         imageUrl: widget.author.primaryPhotoUrl,
                         icon: Icons.person_rounded,
