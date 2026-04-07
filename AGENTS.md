@@ -14,6 +14,8 @@
   I - create as simple as possible interfaces so each part of app will depend and have access to only methods that it really requires
   D - Make low level classes depend on top level
 
+- Write tests for new code
+
 # After any changes
 - Run dart linter and DCM to avoid common issues
 
@@ -28,4 +30,4 @@ dcm analyze .
 flutter test .
 ```
 
-- Write tests to new classes
+- If any issues found then fix them and repeat `After any changes` steps
