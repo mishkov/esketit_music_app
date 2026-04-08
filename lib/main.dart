@@ -21,6 +21,7 @@ import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
+import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -52,6 +53,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     keyValueStorage: SharedPreferencesKeyValueStorage(),
   );
   final selectedLocale = await settingsStorage.getLocale();
+  final selectedThemeMode =
+      await settingsStorage.getThemeMode() ?? AppThemeMode.auto;
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
   final sessionRefresher = DelegatingAuthSessionRefresher();
@@ -132,6 +135,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
             initialState: SettingsState(
               serverUri: baseUri,
               locale: selectedLocale,
+              themeMode: selectedThemeMode,
             ),
             settingsStorage: settingsStorage,
           ),

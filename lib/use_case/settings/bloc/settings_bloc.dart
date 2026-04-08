@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
+import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
 import 'package:esketit_music_app/use_case/settings/settings_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +23,15 @@ final class SetLocale extends SettingsEvent {
 
   @override
   List<Object?> get props => [locale];
+}
+
+final class SetThemeMode extends SettingsEvent {
+  final AppThemeMode themeMode;
+
+  SetThemeMode(this.themeMode);
+
+  @override
+  List<Object?> get props => [themeMode];
 }
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
@@ -54,22 +64,40 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         // TODO: report error.
       }
     });
+    on<SetThemeMode>((event, emit) async {
+      try {
+        await _settingsStorage.setThemeMode(event.themeMode);
+        emit(state.copyWith(themeMode: event.themeMode));
+      } catch (error) {
+        // TODO: report error.
+      }
+    });
   }
 }
 
 class SettingsState extends Equatable {
   final Uri serverUri;
   final AppLocale? locale;
+  final AppThemeMode themeMode;
 
-  const SettingsState({required this.serverUri, required this.locale});
+  const SettingsState({
+    required this.serverUri,
+    required this.locale,
+    required this.themeMode,
+  });
 
-  SettingsState copyWith({Uri? serverUri, NullableOption<AppLocale>? locale}) {
+  SettingsState copyWith({
+    Uri? serverUri,
+    NullableOption<AppLocale>? locale,
+    AppThemeMode? themeMode,
+  }) {
     return SettingsState(
       serverUri: serverUri ?? this.serverUri,
       locale: locale == null ? this.locale : locale.value,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
   @override
-  List<Object?> get props => [serverUri, locale];
+  List<Object?> get props => [serverUri, locale, themeMode];
 }

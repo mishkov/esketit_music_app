@@ -308,6 +308,30 @@ abstract class AppLocalizations {
   /// **'Auto'**
   String get settingsLanguageAutoOption;
 
+  /// No description provided for @settingsThemeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsThemeLabel;
+
+  /// No description provided for @settingsThemeLightOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLightOption;
+
+  /// No description provided for @settingsThemeDarkOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDarkOption;
+
+  /// No description provided for @settingsThemeAutoOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settingsThemeAutoOption;
+
   /// No description provided for @signOutButton.
   ///
   /// In en, this message translates to:

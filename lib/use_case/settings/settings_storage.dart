@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
+import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 
 abstract class SettingsStorage {
   Future<Uri?> getServerUri();
@@ -8,4 +9,8 @@ abstract class SettingsStorage {
   Future<AppLocale?> getLocale();
 
   Future<void> setLocale(AppLocale? locale);
+
+  Future<AppThemeMode?> getThemeMode();
+
+  Future<void> setThemeMode(AppThemeMode themeMode);
 }

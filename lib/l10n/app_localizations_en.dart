@@ -116,6 +116,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageAutoOption => 'Auto';
 
   @override
+  String get settingsThemeLabel => 'Theme';
+
+  @override
+  String get settingsThemeLightOption => 'Light';
+
+  @override
+  String get settingsThemeDarkOption => 'Dark';
+
+  @override
+  String get settingsThemeAutoOption => 'Auto';
+
+  @override
   String get signOutButton => 'Sign out';
 
   @override

@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/app_shell.dart';
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
+import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,6 +22,12 @@ class EsketitApp extends StatelessWidget {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
+          darkTheme: ThemeData(
+            colorSchemeSeed: Colors.green,
+            useMaterial3: true,
+            brightness: Brightness.dark,
+          ),
+          themeMode: _toFlutterThemeMode(state.themeMode),
           home: const AppShell(),
         );
       },
@@ -33,5 +40,13 @@ class EsketitApp extends StatelessWidget {
     }
 
     return Locale(appLocale.languageCode);
+  }
+
+  ThemeMode _toFlutterThemeMode(AppThemeMode appThemeMode) {
+    return switch (appThemeMode) {
+      AppThemeMode.light => ThemeMode.light,
+      AppThemeMode.dark => ThemeMode.dark,
+      AppThemeMode.auto => ThemeMode.system,
+    };
   }
 }

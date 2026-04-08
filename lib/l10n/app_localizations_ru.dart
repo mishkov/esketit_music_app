@@ -116,6 +116,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsLanguageAutoOption => 'Авто';
 
   @override
+  String get settingsThemeLabel => 'Тема';
+
+  @override
+  String get settingsThemeLightOption => 'Светлая';
+
+  @override
+  String get settingsThemeDarkOption => 'Тёмная';
+
+  @override
+  String get settingsThemeAutoOption => 'Авто';
+
+  @override
   String get signOutButton => 'Выйти';
 
   @override
