@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
@@ -27,6 +28,8 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
@@ -74,10 +77,12 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 24),
-                  Text('Tracks', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    l10n.tracksTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
-                  if (safeTracks.isEmpty)
-                    const Text('No tracks in this album yet.'),
+                  if (safeTracks.isEmpty) Text(l10n.noTracksInAlbumYet),
                   ...safeTracks.asMap().entries.map((entry) {
                     return TrackListCard(
                       track: entry.value,

@@ -6,6 +6,7 @@ import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
+import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/player/bottom_player.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -70,6 +71,8 @@ class _TestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: BlocProvider<PlayerBloc>.value(
         value: playerBloc,
         child: child ?? const ScreenSkeleton(body: SizedBox.shrink()),

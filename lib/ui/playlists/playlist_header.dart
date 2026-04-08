@@ -1,5 +1,7 @@
 import 'package:esketit_music_app/domain/playlist.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistHeader extends StatelessWidget {
@@ -9,6 +11,8 @@ class PlaylistHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -59,15 +63,17 @@ class PlaylistHeader extends StatelessWidget {
                             ? Icons.favorite_rounded
                             : Icons.queue_music_rounded,
                       ),
-                      label: Text('${playlist.trackCount} tracks'),
+                      label: Text(
+                        l10n.playlistTracksCount(playlist.trackCount),
+                      ),
                     ),
                     Chip(
                       label: Text(
-                        _playlistVisibilityLabel(playlist.visibility),
+                        context.playlistVisibilityLabel(playlist.visibility),
                       ),
                     ),
                     if (playlist.system)
-                      const Chip(label: Text('System playlist')),
+                      Chip(label: Text(l10n.systemPlaylistLabel)),
                   ],
                 ),
               ],
@@ -77,12 +83,4 @@ class PlaylistHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-String _playlistVisibilityLabel(PlaylistVisibility visibility) {
-  return switch (visibility) {
-    PlaylistVisibility.private => 'Private',
-    PlaylistVisibility.public => 'Public',
-    PlaylistVisibility.shared => 'Shared',
-  };
 }

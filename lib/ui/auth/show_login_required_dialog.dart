@@ -1,21 +1,23 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:flutter/material.dart';
 
 Future<bool?> showLoginRequiredDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
     builder: (context) {
+      final l10n = context.l10n;
+
       return AlertDialog(
-        // TODO: translate all this strings.
-        title: const Text('Login required'),
-        content: const Text('This feature requires login.'),
+        title: Text(l10n.loginRequiredTitle),
+        content: Text(l10n.loginRequiredMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancelButton),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Go to login'),
+            child: Text(l10n.goToLoginButton),
           ),
         ],
       );

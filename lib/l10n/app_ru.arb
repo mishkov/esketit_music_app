@@ -1,0 +1,120 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Эщкере Музыка",
+  "catalogTitle": "Каталог",
+  "searchTitle": "Поиск",
+  "myLibraryTitle": "Моя библиотека",
+  "homeNavigationLabel": "Главная",
+  "searchNavigationLabel": "Поиск",
+  "myLibraryNavigationLabel": "Моя библиотека",
+  "signInTitle": "Войти",
+  "signUpTitle": "Регистрация",
+  "emailLabel": "Email",
+  "passwordLabel": "Пароль",
+  "signInButton": "Войти",
+  "createAccountButton": "Создать аккаунт",
+  "createAccountLink": "Создать аккаунт",
+  "passwordHelperText": "Используйте не менее 8 символов.",
+  "enterYourEmail": "Введите email",
+  "enterValidEmail": "Введите корректный email",
+  "enterYourPassword": "Введите пароль",
+  "passwordMinLength": "Пароль должен содержать не менее 8 символов",
+  "forbiddenActionMessage": "У вас нет доступа к этому действию.",
+  "sessionExpiredMessage": "Сессия истекла. Войдите снова.",
+  "requestFailedMessage": "Не удалось выполнить запрос. Попробуйте еще раз.",
+  "unknownErrorMessage": "Что-то пошло не так. Попробуйте еще раз.",
+  "loginRequiredTitle": "Требуется вход",
+  "loginRequiredMessage": "Для этой функции требуется вход.",
+  "cancelButton": "Отмена",
+  "goToLoginButton": "Перейти ко входу",
+  "bottomPlayerNoTrackSelected": "Трек не выбран",
+  "bottomPlayerUnknownArtist": "Неизвестный исполнитель",
+  "guestModeLabel": "Гостевой режим",
+  "signInToUnlockProtectedFeatures": "Войдите, чтобы открыть защищенные функции",
+  "settingsTitle": "Настройки",
+  "signOutButton": "Выйти",
+  "signInToSeeYourPlaylists": "Войдите, чтобы увидеть свои плейлисты.",
+  "yourPlaylistsTitle": "Ваши плейлисты",
+  "newPlaylistButton": "Новый",
+  "playlistsDescription": "Избранное управляется автоматически. Все остальное можно редактировать.",
+  "noPlaylistsYet": "Плейлистов пока нет. Создайте первый.",
+  "tracksTitle": "Треки",
+  "noTracksInAlbumYet": "В этом альбоме пока нет треков.",
+  "albumsTitle": "Альбомы",
+  "noPublishedAlbumsYet": "Опубликованных альбомов пока нет.",
+  "featuredAuthorsTitle": "Избранные авторы",
+  "noPublishedAuthorsYet": "Опубликованных авторов пока нет.",
+  "searchHint": "Искать авторов, альбомы, треки",
+  "clearSearchTooltip": "Очистить поиск",
+  "searchResultsCount": "{count, plural, =0{0 результатов} one{{count} результат} few{{count} результата} many{{count} результатов} other{{count} результата}}",
+  "@searchResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noResultsFound": "По запросу \"{query}\" ничего не найдено.",
+  "@noResultsFound": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "endOfResults": "Результаты закончились",
+  "authorTypeLabel": "Автор",
+  "albumTypeLabel": "Альбом",
+  "albumWithReleaseDateLabel": "Альбом • {date}",
+  "@albumWithReleaseDateLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "releaseDateUnknown": "Дата релиза неизвестна",
+  "playlistTracksCount": "{count, plural, =0{0 треков} one{{count} трек} few{{count} трека} many{{count} треков} other{{count} трека}}",
+  "@playlistTracksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "systemPlaylistLabel": "Системный плейлист",
+  "playlistVisibilityPrivate": "Приватный",
+  "playlistVisibilityPublic": "Публичный",
+  "playlistVisibilityShared": "Общий",
+  "addToPlaylistsTitle": "Добавить в плейлисты",
+  "createCustomPlaylistFirst": "Сначала создайте пользовательский плейлист.",
+  "addButton": "Добавить",
+  "newPlaylistTitle": "Новый плейлист",
+  "createButton": "Создать",
+  "editPlaylistTitle": "Редактировать плейлист",
+  "saveButton": "Сохранить",
+  "nameLabel": "Название",
+  "descriptionLabel": "Описание",
+  "coverImageUrlOrPathLabel": "URL или путь к обложке",
+  "visibilityLabel": "Видимость",
+  "nameRequired": "Название обязательно.",
+  "descriptionRequired": "Описание обязательно.",
+  "playlistFallbackTitle": "Плейлист",
+  "playlistNotFound": "Плейлист не найден.",
+  "playlistHasNoTracksYet": "В этом плейлисте пока нет треков.",
+  "deletePlaylistTitle": "Удалить плейлист?",
+  "deletePlaylistMessage": "Удалить \"{name}\"? Это действие нельзя отменить.",
+  "@deletePlaylistMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteButton": "Удалить",
+  "trackNotAvailable": "Недоступно",
+  "removeFromFavoritesTooltip": "Убрать из избранного",
+  "addToFavoritesTooltip": "Добавить в избранное",
+  "addToPlaylistsTooltip": "Добавить в плейлисты",
+  "removeFromPlaylistTooltip": "Убрать из плейлиста"
+}

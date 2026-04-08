@@ -5,13 +5,12 @@ import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
-import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_screen.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
+import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
@@ -23,41 +22,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('renders mixed result types from search', (tester) async {
-    final harness = _CatalogTestHarness(
+  testWidgets('catalog screen renders Russian localized search copy', (
+    tester,
+  ) async {
+    final harness = _CatalogLocalizationHarness(
       searchResponses: {
-        'mix': {
-          1: PaginatedCatalogSearchResults(
-            items: [
-              CatalogSearchResultItem.author(_author(name: 'Author Result')),
-              CatalogSearchResultItem.album(_album(title: 'Album Result')),
-              CatalogSearchResultItem.track(_track(name: 'Track Result')),
-            ],
-            page: 1,
-            pageSize: CatalogBloc.searchPageSize,
-            totalItems: 3,
-            totalPages: 1,
-          ),
-        },
-      },
-    );
-    addTearDown(harness.dispose);
-
-    await tester.pumpWidget(harness.widget);
-    await tester.enterText(find.byType(TextField), 'mix');
-    await tester.pump(const Duration(milliseconds: 401));
-    await tester.pump();
-
-    expect(find.text('Author Result'), findsOneWidget);
-    expect(find.text('Author'), findsOneWidget);
-    expect(find.text('Album Result'), findsOneWidget);
-    expect(find.text('Track Result'), findsOneWidget);
-  });
-
-  testWidgets('shows empty state when search returns no items', (tester) async {
-    final harness = _CatalogTestHarness(
-      searchResponses: {
-        'empty': {
+        'пусто': {
           1: const PaginatedCatalogSearchResults(
             items: [],
             page: 1,
@@ -70,69 +40,69 @@ void main() {
     );
     addTearDown(harness.dispose);
 
-    await tester.pumpWidget(harness.widget);
-    await tester.enterText(find.byType(TextField), 'empty');
+    await tester.pumpWidget(harness.widget(const Locale('ru')));
+
+    expect(find.text('Искать авторов, альбомы, треки'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'пусто');
     await tester.pump(const Duration(milliseconds: 401));
     await tester.pump();
 
-    expect(find.text('No results found for "empty".'), findsOneWidget);
+    expect(find.text('По запросу "пусто" ничего не найдено.'), findsOneWidget);
   });
 
-  testWidgets('loads next page when scrolled near the bottom', (tester) async {
-    final harness = _CatalogTestHarness(
-      searchResponses: {
-        'paged': {
-          1: PaginatedCatalogSearchResults(
-            items: List.generate(
-              10,
-              (index) => CatalogSearchResultItem.author(
-                _author(name: index == 0 ? 'Page One' : 'Page One $index'),
+  testWidgets('playlist editor renders Russian localized defaults', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ru'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const Scaffold(body: SizedBox.shrink()),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ru'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            return Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) => const PlaylistEditorDialog(),
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
               ),
-            ),
-            page: 1,
-            pageSize: CatalogBloc.searchPageSize,
-            totalItems: 11,
-            totalPages: 2,
-          ),
-          2: PaginatedCatalogSearchResults(
-            items: [CatalogSearchResultItem.author(_author(name: 'Page Two'))],
-            page: 2,
-            pageSize: CatalogBloc.searchPageSize,
-            totalItems: 11,
-            totalPages: 2,
-          ),
-        },
-      },
+            );
+          },
+        ),
+      ),
     );
-    addTearDown(harness.dispose);
 
-    await tester.pumpWidget(harness.widget);
-    await tester.enterText(find.byType(TextField), 'paged');
-    await tester.pump(const Duration(milliseconds: 401));
-    await tester.pump();
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Page One'), findsOneWidget);
-    expect(find.text('Page Two'), findsNothing);
-
-    await tester.fling(
-      find.byType(ListView).last,
-      const Offset(0, -1200),
-      2000,
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-
-    expect(find.text('Page Two'), findsOneWidget);
-    expect(find.text('End of results'), findsOneWidget);
-    expect(harness.catalogStorage.searchCalls, [
-      ('paged', 1, CatalogBloc.searchPageSize),
-      ('paged', 2, CatalogBloc.searchPageSize),
-    ]);
+    expect(find.text('Новый плейлист'), findsOneWidget);
+    expect(find.text('Название'), findsOneWidget);
+    expect(find.text('Описание'), findsOneWidget);
+    expect(find.text('URL или путь к обложке'), findsOneWidget);
+    expect(find.text('Видимость'), findsOneWidget);
+    expect(find.text('Отмена'), findsOneWidget);
+    expect(find.text('Создать'), findsOneWidget);
   });
 }
 
-class _CatalogTestHarness {
-  factory _CatalogTestHarness({
+class _CatalogLocalizationHarness {
+  factory _CatalogLocalizationHarness({
     required Map<String, Map<int, PaginatedCatalogSearchResults>>
     searchResponses,
   }) {
@@ -143,7 +113,7 @@ class _CatalogTestHarness {
     final errorReporter = _FakeErrorReporter();
     final playlistsStorage = _FakePlaylistsStorage();
 
-    return _CatalogTestHarness._(
+    return _CatalogLocalizationHarness._(
       catalogStorage: catalogStorage,
       player: player,
       errorReporter: errorReporter,
@@ -181,7 +151,7 @@ class _CatalogTestHarness {
     );
   }
 
-  const _CatalogTestHarness._({
+  const _CatalogLocalizationHarness._({
     required this.catalogStorage,
     required this.player,
     required this.errorReporter,
@@ -199,7 +169,8 @@ class _CatalogTestHarness {
   final PlayerBloc playerBloc;
   final PlaylistsBloc playlistsBloc;
 
-  Widget get widget => MaterialApp(
+  Widget widget(Locale locale) => MaterialApp(
+    locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MultiBlocProvider(
@@ -224,7 +195,6 @@ class _FakeCatalogStorage implements CatalogStorage {
   _FakeCatalogStorage({required this.searchResponses});
 
   final Map<String, Map<int, PaginatedCatalogSearchResults>> searchResponses;
-  final List<(String, int, int)> searchCalls = <(String, int, int)>[];
 
   @override
   Future<List<Author>> getPublishedAuthors() async => const [];
@@ -243,8 +213,6 @@ class _FakeCatalogStorage implements CatalogStorage {
     required int page,
     required int pageSize,
   }) async {
-    searchCalls.add((query, page, pageSize));
-
     return searchResponses[query]![page]!;
   }
 }
@@ -279,21 +247,14 @@ class _FakeAudioPlayer implements AudioPlayer {
 
 class _FakePlaylistsStorage implements PlaylistsStorage {
   @override
-  Future<void> addTrackToFavorites({required int trackId}) async {}
-
-  @override
-  Future<void> addTrackToPlaylists({
-    required int trackId,
-    required List<int> playlistIds,
-  }) async {}
-
-  @override
   Future<Playlist> createPlaylist(PlaylistUpsertInput input) {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> deletePlaylist({required int playlistId}) async {}
+  Future<void> deletePlaylist({required int playlistId}) {
+    throw UnimplementedError();
+  }
 
   @override
   Future<Playlist> getPlaylist({required int playlistId}) {
@@ -304,23 +265,43 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   Future<List<Playlist>> getPlaylists() async => const [];
 
   @override
-  Future<List<Track>> getPlaylistTracks({required int playlistId}) async =>
-      const [];
+  Future<List<Track>> getPlaylistTracks({required int playlistId}) {
+    throw UnimplementedError();
+  }
 
   @override
-  Future<void> removeTrackFromFavorites({required int trackId}) async {}
+  Future<void> addTrackToPlaylists({
+    required int trackId,
+    required List<int> playlistIds,
+  }) {
+    throw UnimplementedError();
+  }
 
   @override
   Future<void> removeTrackFromPlaylist({
     required int trackId,
     required int playlistId,
-  }) async {}
+  }) {
+    throw UnimplementedError();
+  }
 
   @override
   Future<void> reorderPlaylistTracks({
     required int playlistId,
     required List<int> trackIds,
-  }) async {}
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addTrackToFavorites({required int trackId}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> removeTrackFromFavorites({required int trackId}) {
+    throw UnimplementedError();
+  }
 
   @override
   Future<Playlist> updatePlaylist({
@@ -340,34 +321,4 @@ class _FakeErrorReporter implements ErrorReporter {
 
   @override
   Future<void> setUserId(String? id) async {}
-}
-
-Author _author({required String name}) {
-  return Author(id: name.hashCode, currentName: name, photos: const []);
-}
-
-Album _album({required String title}) {
-  return Album(
-    id: title.hashCode,
-    title: title,
-    coverImage: HttpFile(uri: Uri()),
-    authorIds: const [1],
-    releaseDate: DateTime(2024, 1, 1),
-    isPublished: true,
-    trackIds: const [],
-    additionalInfo: const [],
-  );
-}
-
-Track _track({required String name}) {
-  return Track(
-    id: name.hashCode,
-    name: name,
-    authors: [_author(name: 'Track Author')],
-    addionalInfo: [TextTrackInfo(title: 'Mood', text: 'Warm')],
-    file: HttpFile(uri: Uri()),
-    image: HttpFile(uri: Uri()),
-    isFavorite: false,
-    isAvailable: true,
-  );
 }

@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/author_browse_card.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ class BrowseCatalogView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<CatalogBloc, CatalogState>(
       builder: (context, state) {
         if (state.isLoadingAuthors && state.authors.isEmpty) {
@@ -22,7 +25,7 @@ class BrowseCatalogView extends StatelessWidget {
         }
 
         if (state.authors.isEmpty) {
-          return const Center(child: Text('No published authors yet.'));
+          return Center(child: Text(l10n.noPublishedAuthorsYet));
         }
 
         return ListView(
@@ -34,7 +37,7 @@ class BrowseCatalogView extends StatelessWidget {
           ),
           children: [
             Text(
-              'Featured Authors',
+              l10n.featuredAuthorsTitle,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),

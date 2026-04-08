@@ -1,5 +1,7 @@
 import 'package:esketit_music_app/domain/album.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/albums/album_details_screen.dart';
+import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +13,8 @@ class AlbumTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card.outlined(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -28,8 +32,8 @@ class AlbumTile extends StatelessWidget {
         title: Text(album.title),
         subtitle: Text(
           album.releaseDate == null
-              ? 'Release date unknown'
-              : _formatReleaseDate(album.releaseDate!),
+              ? l10n.releaseDateUnknown
+              : context.formatReleaseDate(album.releaseDate!),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () => _openAlbumDetails(context),
@@ -52,24 +56,4 @@ String? _albumCoverUrl(Album album) {
   final value = cover.uri.toString();
 
   return value.isEmpty ? null : value;
-}
-
-String _formatReleaseDate(DateTime releaseDate) {
-  final month = switch (releaseDate.month) {
-    1 => 'Jan',
-    2 => 'Feb',
-    3 => 'Mar',
-    4 => 'Apr',
-    5 => 'May',
-    6 => 'Jun',
-    7 => 'Jul',
-    8 => 'Aug',
-    9 => 'Sep',
-    10 => 'Oct',
-    11 => 'Nov',
-    12 => 'Dec',
-    _ => '',
-  };
-
-  return '$month ${releaseDate.day}, ${releaseDate.year}';
 }

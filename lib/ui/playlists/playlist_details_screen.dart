@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
@@ -28,6 +29,8 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, state) {
         final playlist = state.playlists
@@ -42,7 +45,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
 
         return ScreenSkeleton(
           appBar: AppBar(
-            title: Text(playlist?.name ?? 'Playlist'),
+            title: Text(playlist?.name ?? l10n.playlistFallbackTitle),
             actions: [
               if (playlist != null && !playlist.system)
                 IconButton(
@@ -65,7 +68,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
               : errorMessage != null && playlist == null
               ? Center(child: Text(errorMessage))
               : playlist == null
-              ? const Center(child: Text('Playlist not found.'))
+              ? Center(child: Text(l10n.playlistNotFound))
               : Padding(
                   padding: EdgeInsets.only(
                     bottom: selectedTrackExists ? 100 : 0,
@@ -77,9 +80,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                         child: tracks == null
                             ? const Center(child: CircularProgressIndicator())
                             : tracks.isEmpty
-                            ? const Center(
-                                child: Text('This playlist has no tracks yet.'),
-                              )
+                            ? Center(child: Text(l10n.playlistHasNoTracksYet))
                             : ReorderableListView.builder(
                                 padding: const EdgeInsets.fromLTRB(
                                   16,
@@ -134,8 +135,8 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
     final input = await showDialog(
       context: context,
       builder: (context) => PlaylistEditorDialog(
-        title: 'Edit playlist',
-        submitLabel: 'Save',
+        title: context.l10n.editPlaylistTitle,
+        submitLabel: context.l10n.saveButton,
         initialName: playlist.name,
         initialDescription: playlist.description,
         initialCoverImagePath: playlist.coverImagePath,
@@ -155,20 +156,24 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
   Future<void> _deletePlaylist(BuildContext context, Playlist playlist) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete playlist?'),
-        content: Text('Delete "${playlist.name}"? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = context.l10n;
+
+        return AlertDialog(
+          title: Text(l10n.deletePlaylistTitle),
+          content: Text(l10n.deletePlaylistMessage(playlist.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancelButton),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.deleteButton),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete != true || !context.mounted) {

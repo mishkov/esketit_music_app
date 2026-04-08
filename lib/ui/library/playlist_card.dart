@@ -1,6 +1,8 @@
 import 'package:esketit_music_app/domain/playlist.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_details_screen.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistCard extends StatelessWidget {
@@ -10,6 +12,8 @@ class PlaylistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card.outlined(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -72,7 +76,7 @@ class PlaylistCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${playlist.trackCount} tracks • ${_playlistVisibilityText(playlist.visibility)}',
+                      '${l10n.playlistTracksCount(playlist.trackCount)} • ${context.playlistVisibilityLabel(playlist.visibility)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -94,12 +98,4 @@ class PlaylistCard extends StatelessWidget {
       ),
     );
   }
-}
-
-String _playlistVisibilityText(PlaylistVisibility visibility) {
-  return switch (visibility) {
-    PlaylistVisibility.private => 'Private',
-    PlaylistVisibility.public => 'Public',
-    PlaylistVisibility.shared => 'Shared',
-  };
 }

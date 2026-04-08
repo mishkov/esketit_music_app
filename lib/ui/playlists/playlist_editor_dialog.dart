@@ -1,4 +1,6 @@
 import 'package:esketit_music_app/domain/playlist.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter/material.dart';
 
@@ -8,8 +10,8 @@ class PlaylistEditorDialog extends StatefulWidget {
     this.initialDescription = '',
     this.initialCoverImagePath = '',
     this.initialVisibility = PlaylistVisibility.private,
-    this.title = 'New playlist',
-    this.submitLabel = 'Create',
+    this.title,
+    this.submitLabel,
     super.key,
   });
 
@@ -17,8 +19,8 @@ class PlaylistEditorDialog extends StatefulWidget {
   final String initialDescription;
   final String initialCoverImagePath;
   final PlaylistVisibility initialVisibility;
-  final String title;
-  final String submitLabel;
+  final String? title;
+  final String? submitLabel;
 
   @override
   State<PlaylistEditorDialog> createState() => _PlaylistEditorDialogState();
@@ -51,8 +53,10 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
-      title: Text(widget.title),
+      title: Text(widget.title ?? l10n.newPlaylistTitle),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -62,14 +66,14 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
               TextFormField(
                 controller: _nameController,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: l10n.nameLabel),
                 maxLength: 200,
                 validator: _validateName,
               ),
               TextFormField(
                 controller: _descriptionController,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: l10n.descriptionLabel),
                 maxLength: 1000,
                 minLines: 2,
                 maxLines: 4,
@@ -78,19 +82,21 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
               TextFormField(
                 controller: _coverImagePathController,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Cover image URL or path',
+                decoration: InputDecoration(
+                  labelText: l10n.coverImageUrlOrPathLabel,
                 ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<PlaylistVisibility>(
                 initialValue: _visibility,
-                decoration: const InputDecoration(labelText: 'Visibility'),
+                decoration: InputDecoration(labelText: l10n.visibilityLabel),
                 items: PlaylistVisibility.values
                     .map((visibility) {
                       return DropdownMenuItem(
                         value: visibility,
-                        child: Text(_visibilityLabel(visibility)),
+                        child: Text(
+                          context.playlistVisibilityLabel(visibility),
+                        ),
                       );
                     })
                     .toList(growable: false),
@@ -103,29 +109,31 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => _cancel(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancelButton),
         ),
         FilledButton(
           onPressed: () => _submit(context),
-          child: Text(widget.submitLabel),
+          child: Text(widget.submitLabel ?? l10n.createButton),
         ),
       ],
     );
   }
 
   String? _validateName(String? value) {
+    final l10n = context.l10n;
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
-      return 'Name is required.';
+      return l10n.nameRequired;
     }
 
     return null;
   }
 
   String? _validateDescription(String? value) {
+    final l10n = context.l10n;
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
-      return 'Description is required.';
+      return l10n.descriptionRequired;
     }
 
     return null;
@@ -159,12 +167,4 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
       ),
     );
   }
-}
-
-String _visibilityLabel(PlaylistVisibility visibility) {
-  return switch (visibility) {
-    PlaylistVisibility.private => 'Private',
-    PlaylistVisibility.public => 'Public',
-    PlaylistVisibility.shared => 'Shared',
-  };
 }

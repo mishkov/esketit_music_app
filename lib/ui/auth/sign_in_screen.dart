@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/sign_up_screen.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
@@ -28,6 +29,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (previous, current) =>
           previous.status != current.status ||
@@ -35,8 +38,7 @@ class _SignInScreenState extends State<SignInScreen> {
       listener: _onAuthStateChanged,
       child: ScreenSkeleton(
         enableBottomPlayer: false,
-        // TODO: translate all the strings.
-        appBar: AppBar(title: const Text('Sign in')),
+        appBar: AppBar(title: Text(l10n.signInTitle)),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -55,7 +57,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
-                              labelText: 'Email',
+                              labelText: l10n.emailLabel,
                               border: _outlinedBorder,
                               enabledBorder: _outlinedBorder,
                               focusedBorder: _outlinedBorder,
@@ -67,7 +69,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             controller: _passwordController,
                             obscureText: true,
                             decoration: InputDecoration(
-                              labelText: 'Password',
+                              labelText: l10n.passwordLabel,
                               border: _outlinedBorder,
                               enabledBorder: _outlinedBorder,
                               focusedBorder: _outlinedBorder,
@@ -84,14 +86,14 @@ class _SignInScreenState extends State<SignInScreen> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text('Sign in'),
+                                : Text(l10n.signInButton),
                           ),
                           const SizedBox(height: 12),
                           TextButton(
                             onPressed: state.isSubmitting
                                 ? null
                                 : () => _openSignUp(context),
-                            child: const Text('Create an account'),
+                            child: Text(l10n.createAccountLink),
                           ),
                         ],
                       ),
@@ -108,12 +110,13 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // TODO: better to move this validator to some shared class and domain layer.
   String? _validateEmail(String? value) {
+    final l10n = context.l10n;
     final text = value?.trim() ?? '';
     if (text.isEmpty) {
-      return 'Enter your email';
+      return l10n.enterYourEmail;
     }
     if (!text.contains('@')) {
-      return 'Enter a valid email';
+      return l10n.enterValidEmail;
     }
 
     return null;
@@ -121,29 +124,32 @@ class _SignInScreenState extends State<SignInScreen> {
 
   // TODO: better to move this validator to some shared class and domain layer.
   String? _validatePassword(String? value) {
+    final l10n = context.l10n;
     final text = value ?? '';
     if (text.isEmpty) {
-      return 'Enter your password';
+      return l10n.enterYourPassword;
     }
 
     return null;
   }
 
   String? _toFailureMessage(AppError? error) {
+    final l10n = context.l10n;
+
     if (error == null) {
       return null;
     }
     if (error is ForbiddenAppError) {
-      return 'You do not have access to this action.';
+      return l10n.forbiddenActionMessage;
     }
     if (error is UnauthorizedAppError) {
-      return 'Your session expired. Please sign in again.';
+      return l10n.sessionExpiredMessage;
     }
     if (error is HttpAppError) {
-      return 'Request failed. Please try again.';
+      return l10n.requestFailedMessage;
     }
 
-    return 'Something went wrong. Please try again.';
+    return l10n.unknownErrorMessage;
   }
 
   void _submit() {

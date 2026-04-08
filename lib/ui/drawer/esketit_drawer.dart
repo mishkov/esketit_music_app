@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/sign_in_screen.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ class EsketitDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Drawer(
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -17,27 +20,29 @@ class EsketitDrawer extends StatelessWidget {
             children: [
               UserAccountsDrawerHeader(
                 accountName: Text(
-                  user == null ? 'Guest mode' : user.role.name.toUpperCase(),
+                  user == null
+                      ? l10n.guestModeLabel
+                      : user.role.name.toUpperCase(),
                 ),
                 accountEmail: Text(
-                  user?.email ?? 'Sign in to unlock protected features',
+                  user?.email ?? l10n.signInToUnlockProtectedFeatures,
                 ),
               ),
               if (user == null)
                 ListTile(
                   leading: const Icon(Icons.login_rounded),
-                  title: const Text('Sign in'),
+                  title: Text(l10n.signInTitle),
                   onTap: () => _openSignIn(context),
                 ),
               ListTile(
                 leading: const Icon(Icons.settings_rounded),
-                title: const Text('Settings'),
+                title: Text(l10n.settingsTitle),
                 onTap: () => Navigator.of(context).pop(),
               ),
               if (user != null)
                 ListTile(
                   leading: const Icon(Icons.logout_rounded),
-                  title: const Text('Sign out'),
+                  title: Text(l10n.signOutButton),
                   onTap: state.isSubmitting ? null : () => _signOut(context),
                 ),
             ],

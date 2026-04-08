@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:esketit_music_app/ui/library/playlist_card.dart';
@@ -12,10 +13,12 @@ class MyLibraryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         if (!authState.isAuthenticated) {
-          return const Center(child: Text('Sign in to see your playlists.'));
+          return Center(child: Text(l10n.signInToSeeYourPlaylists));
         }
 
         return BlocBuilder<PlaylistsBloc, PlaylistsState>(
@@ -38,7 +41,7 @@ class MyLibraryScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Your playlists',
+                          l10n.yourPlaylistsTitle,
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
@@ -47,22 +50,20 @@ class MyLibraryScreen extends StatelessWidget {
                             ? null
                             : () => _createPlaylist(context),
                         icon: const Icon(Icons.add_rounded),
-                        label: const Text('New'),
+                        label: Text(l10n.newPlaylistButton),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Favorites is managed automatically. Everything else is fully editable.',
+                    l10n.playlistsDescription,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
                   if (state.playlists.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(top: 40),
-                      child: Center(
-                        child: Text('No playlists yet. Create your first one.'),
-                      ),
+                      child: Center(child: Text(l10n.noPlaylistsYet)),
                     ),
                   ...state.playlists.map((playlist) {
                     return PlaylistCard(playlist: playlist);

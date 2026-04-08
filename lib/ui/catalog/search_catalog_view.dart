@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/ui/catalog/album_search_tile.dart';
 import 'package:esketit_music_app/ui/catalog/author_search_tile.dart';
@@ -19,6 +20,7 @@ class SearchCatalogView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final safeResults = state.searchResults;
     final items = safeResults?.items ?? const <CatalogSearchResultItem>[];
 
@@ -31,9 +33,7 @@ class SearchCatalogView extends StatelessWidget {
     }
 
     if (items.isEmpty) {
-      return Center(
-        child: Text('No results found for "${state.searchQuery.trim()}".'),
-      );
+      return Center(child: Text(l10n.noResultsFound(state.searchQuery.trim())));
     }
 
     final trackQueue = items
@@ -51,7 +51,7 @@ class SearchCatalogView extends StatelessWidget {
       ),
       children: [
         Text(
-          '${safeResults?.totalItems ?? items.length} result${(safeResults?.totalItems ?? items.length) == 1 ? '' : 's'}',
+          l10n.searchResultsCount(safeResults?.totalItems ?? items.length),
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 12),
@@ -80,9 +80,9 @@ class SearchCatalogView extends StatelessWidget {
             child: Center(child: Text(state.searchErrorMessage!)),
           ),
         if (!state.hasMoreSearchResults && !state.isLoadingSearch)
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: Text('End of results')),
+            child: Center(child: Text(l10n.endOfResults)),
           ),
       ],
     );

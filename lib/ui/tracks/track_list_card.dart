@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
@@ -25,6 +26,8 @@ class TrackListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, playlistState) {
         final effectiveIsFavorite =
@@ -53,7 +56,7 @@ class TrackListCard extends StatelessWidget {
               subtitle: Text(
                 [
                   track.authors.map((author) => author.currentName).join(', '),
-                  if (!track.isAvailable) 'Not available',
+                  if (!track.isAvailable) l10n.trackNotAvailable,
                 ].where((part) => part.isNotEmpty).join(' • '),
               ),
               trailing: Wrap(
@@ -61,8 +64,8 @@ class TrackListCard extends StatelessWidget {
                 children: [
                   IconButton(
                     tooltip: effectiveIsFavorite
-                        ? 'Remove from favorites'
-                        : 'Add to favorites',
+                        ? l10n.removeFromFavoritesTooltip
+                        : l10n.addToFavoritesTooltip,
                     onPressed: favoritePending
                         ? null
                         : () => _toggleFavorite(
@@ -77,7 +80,7 @@ class TrackListCard extends StatelessWidget {
                   ),
                   if (showAddToPlaylistsAction)
                     IconButton(
-                      tooltip: 'Add to playlists',
+                      tooltip: l10n.addToPlaylistsTooltip,
                       onPressed: playlistsPending
                           ? null
                           : () => _showAddToPlaylistsSheet(context),
@@ -85,7 +88,7 @@ class TrackListCard extends StatelessWidget {
                     ),
                   if (playlistIdForRemoval != null)
                     IconButton(
-                      tooltip: 'Remove from playlist',
+                      tooltip: l10n.removeFromPlaylistTooltip,
                       onPressed: playlistsPending
                           ? null
                           : () => context.read<PlaylistsBloc>().add(

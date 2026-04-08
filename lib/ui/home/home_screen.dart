@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/bottom_navigation_bar/esketit_bottom_navigation_bar.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_browse_screen.dart';
@@ -106,11 +107,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _titleForIndex(int index) {
+    final l10n = context.l10n;
+
     return switch (index) {
-      _browseTabIndex => 'Catalog',
-      _searchTabIndex => 'Search',
-      _libraryTabIndex => 'My Library',
-      _ => 'Catalog',
+      _browseTabIndex => l10n.catalogTitle,
+      _searchTabIndex => l10n.searchTitle,
+      _libraryTabIndex => l10n.myLibraryTitle,
+      _ => l10n.catalogTitle,
     };
   }
 }

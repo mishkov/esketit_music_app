@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/authors/album_tile.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
@@ -26,6 +27,8 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
@@ -75,10 +78,12 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 24),
-                  Text('Albums', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    l10n.albumsTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 12),
-                  if (safeAlbums.isEmpty)
-                    const Text('No published albums yet.'),
+                  if (safeAlbums.isEmpty) Text(l10n.noPublishedAlbumsYet),
                   ...safeAlbums.map((album) => AlbumTile(album: album)),
                 ],
               );

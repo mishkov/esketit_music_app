@@ -1,5 +1,7 @@
 import 'package:esketit_music_app/domain/album.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_screen_helpers.dart';
+import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +12,8 @@ class AlbumSearchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card.outlined(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -27,8 +31,10 @@ class AlbumSearchTile extends StatelessWidget {
         title: Text(album.title),
         subtitle: Text(
           album.releaseDate == null
-              ? 'Album'
-              : 'Album • ${formatReleaseDate(album.releaseDate!)}',
+              ? l10n.albumTypeLabel
+              : l10n.albumWithReleaseDateLabel(
+                  context.formatReleaseDate(album.releaseDate!),
+                ),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () => openAlbumDetails(context, album),

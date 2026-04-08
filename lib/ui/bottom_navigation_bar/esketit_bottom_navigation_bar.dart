@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:flutter/material.dart';
 
 class EsketitBottomNavigationBar extends StatelessWidget {
@@ -12,23 +13,23 @@ class EsketitBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
       items: [
         BottomNavigationBarItem(
-          // TODO: translate the text.
-          label: 'Home',
-          icon: Icon(Icons.home_rounded),
+          label: l10n.homeNavigationLabel,
+          icon: const Icon(Icons.home_rounded),
         ),
         BottomNavigationBarItem(
-          label: 'Search',
-          icon: Icon(Icons.search_rounded),
+          label: l10n.searchNavigationLabel,
+          icon: const Icon(Icons.search_rounded),
         ),
         BottomNavigationBarItem(
-          // TODO: translate the text.
-          label: 'My Library',
-          icon: Icon(Icons.library_music_rounded),
+          label: l10n.myLibraryNavigationLabel,
+          icon: const Icon(Icons.library_music_rounded),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ class BottomPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SafeArea(
       child: Card.filled(
         shape: RoundedRectangleBorder(
@@ -43,9 +46,9 @@ class BottomPlayer extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // TODO: translate error messages.
                           Text(
-                            state.selectedTrack?.name ?? 'error',
+                            state.selectedTrack?.name ??
+                                l10n.bottomPlayerNoTrackSelected,
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -57,7 +60,7 @@ class BottomPlayer extends StatelessWidget {
                             state.selectedTrack?.authors
                                     .map((author) => author.currentName)
                                     .join(', ') ??
-                                'error',
+                                l10n.bottomPlayerUnknownArtist,
 
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(

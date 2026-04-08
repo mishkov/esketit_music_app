@@ -1,0 +1,120 @@
+{
+  "@@locale": "en",
+  "appTitle": "Esketit Music",
+  "catalogTitle": "Catalog",
+  "searchTitle": "Search",
+  "myLibraryTitle": "My Library",
+  "homeNavigationLabel": "Home",
+  "searchNavigationLabel": "Search",
+  "myLibraryNavigationLabel": "My Library",
+  "signInTitle": "Sign in",
+  "signUpTitle": "Sign up",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "signInButton": "Sign in",
+  "createAccountButton": "Create account",
+  "createAccountLink": "Create an account",
+  "passwordHelperText": "Use at least 8 characters.",
+  "enterYourEmail": "Enter your email",
+  "enterValidEmail": "Enter a valid email",
+  "enterYourPassword": "Enter your password",
+  "passwordMinLength": "Password must be at least 8 characters",
+  "forbiddenActionMessage": "You do not have access to this action.",
+  "sessionExpiredMessage": "Your session expired. Please sign in again.",
+  "requestFailedMessage": "Request failed. Please try again.",
+  "unknownErrorMessage": "Something went wrong. Please try again.",
+  "loginRequiredTitle": "Login required",
+  "loginRequiredMessage": "This feature requires login.",
+  "cancelButton": "Cancel",
+  "goToLoginButton": "Go to login",
+  "bottomPlayerNoTrackSelected": "No track selected",
+  "bottomPlayerUnknownArtist": "Unknown artist",
+  "guestModeLabel": "Guest mode",
+  "signInToUnlockProtectedFeatures": "Sign in to unlock protected features",
+  "settingsTitle": "Settings",
+  "signOutButton": "Sign out",
+  "signInToSeeYourPlaylists": "Sign in to see your playlists.",
+  "yourPlaylistsTitle": "Your playlists",
+  "newPlaylistButton": "New",
+  "playlistsDescription": "Favorites is managed automatically. Everything else is fully editable.",
+  "noPlaylistsYet": "No playlists yet. Create your first one.",
+  "tracksTitle": "Tracks",
+  "noTracksInAlbumYet": "No tracks in this album yet.",
+  "albumsTitle": "Albums",
+  "noPublishedAlbumsYet": "No published albums yet.",
+  "featuredAuthorsTitle": "Featured Authors",
+  "noPublishedAuthorsYet": "No published authors yet.",
+  "searchHint": "Search authors, albums, tracks",
+  "clearSearchTooltip": "Clear search",
+  "searchResultsCount": "{count, plural, =0{0 results} =1{1 result} other{{count} results}}",
+  "@searchResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noResultsFound": "No results found for \"{query}\".",
+  "@noResultsFound": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "endOfResults": "End of results",
+  "authorTypeLabel": "Author",
+  "albumTypeLabel": "Album",
+  "albumWithReleaseDateLabel": "Album • {date}",
+  "@albumWithReleaseDateLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "releaseDateUnknown": "Release date unknown",
+  "playlistTracksCount": "{count, plural, =0{0 tracks} =1{1 track} other{{count} tracks}}",
+  "@playlistTracksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "systemPlaylistLabel": "System playlist",
+  "playlistVisibilityPrivate": "Private",
+  "playlistVisibilityPublic": "Public",
+  "playlistVisibilityShared": "Shared",
+  "addToPlaylistsTitle": "Add to playlists",
+  "createCustomPlaylistFirst": "Create a custom playlist first.",
+  "addButton": "Add",
+  "newPlaylistTitle": "New playlist",
+  "createButton": "Create",
+  "editPlaylistTitle": "Edit playlist",
+  "saveButton": "Save",
+  "nameLabel": "Name",
+  "descriptionLabel": "Description",
+  "coverImageUrlOrPathLabel": "Cover image URL or path",
+  "visibilityLabel": "Visibility",
+  "nameRequired": "Name is required.",
+  "descriptionRequired": "Description is required.",
+  "playlistFallbackTitle": "Playlist",
+  "playlistNotFound": "Playlist not found.",
+  "playlistHasNoTracksYet": "This playlist has no tracks yet.",
+  "deletePlaylistTitle": "Delete playlist?",
+  "deletePlaylistMessage": "Delete \"{name}\"? This cannot be undone.",
+  "@deletePlaylistMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteButton": "Delete",
+  "trackNotAvailable": "Not available",
+  "removeFromFavoritesTooltip": "Remove from favorites",
+  "addToFavoritesTooltip": "Add to favorites",
+  "addToPlaylistsTooltip": "Add to playlists",
+  "removeFromPlaylistTooltip": "Remove from playlist"
+}

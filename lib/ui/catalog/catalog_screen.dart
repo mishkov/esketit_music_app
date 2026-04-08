@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/browse_catalog_view.dart';
 import 'package:esketit_music_app/ui/catalog/search_catalog_view.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
@@ -43,6 +44,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
@@ -60,12 +63,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     onChanged: _onSearchQueryChanged,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
-                      hintText: 'Search authors, albums, tracks',
+                      hintText: l10n.searchHint,
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: activeQuery.isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Clear search',
+                              tooltip: l10n.clearSearchTooltip,
                               onPressed: _clearSearch,
                               icon: const Icon(Icons.close_rounded),
                             ),
