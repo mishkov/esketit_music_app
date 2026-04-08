@@ -111,9 +111,6 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                     queue: tracks
                                         .where((item) => item.isAvailable)
                                         .toList(growable: false),
-                                    indexLabel: CircleAvatar(
-                                      child: Text('${index + 1}'),
-                                    ),
                                     playlistIdForRemoval: playlist.isFavorites
                                         ? null
                                         : playlist.id,

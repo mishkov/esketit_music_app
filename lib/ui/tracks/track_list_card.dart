@@ -12,7 +12,6 @@ class TrackListCard extends StatelessWidget {
   const TrackListCard({
     required this.track,
     required this.queue,
-    this.indexLabel,
     this.playlistIdForRemoval,
     this.showAddToPlaylistsAction = true,
     super.key,
@@ -20,7 +19,6 @@ class TrackListCard extends StatelessWidget {
 
   final Track track;
   final List<Track> queue;
-  final Widget? indexLabel;
   final int? playlistIdForRemoval;
   final bool showAddToPlaylistsAction;
 
@@ -28,91 +26,98 @@ class TrackListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return BlocBuilder<PlaylistsBloc, PlaylistsState>(
-      builder: (context, playlistState) {
-        final effectiveIsFavorite =
-            playlistState.favoriteOverrides[track.id] ?? track.isFavorite;
-        final favoritePending = playlistState.pendingFavoriteTrackIds.contains(
-          track.id,
-        );
-        final playlistsPending = playlistState.pendingTrackPlaylistActionIds
-            .contains(track.id);
+    return BlocBuilder<PlayerBloc, PlayerState>(
+      builder: (context, playerState) {
+        final isSelected = playerState.selectedTrack == track;
 
-        return Opacity(
-          opacity: track.isAvailable ? 1 : 0.6,
-          child: Card.outlined(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading:
-                  indexLabel ??
-                  CircleAvatar(
-                    child: Icon(
-                      track.isAvailable
-                          ? Icons.music_note_rounded
-                          : Icons.block_rounded,
-                    ),
-                  ),
-              title: Text(track.name),
-              subtitle: Text(
-                [
-                  track.authors.map((author) => author.currentName).join(', '),
-                  if (!track.isAvailable) l10n.trackNotAvailable,
-                ].where((part) => part.isNotEmpty).join(' • '),
-              ),
-              trailing: Wrap(
-                spacing: 4,
-                children: [
-                  IconButton(
-                    tooltip: effectiveIsFavorite
-                        ? l10n.removeFromFavoritesTooltip
-                        : l10n.addToFavoritesTooltip,
-                    onPressed: favoritePending
-                        ? null
-                        : () => _toggleFavorite(
+        return BlocBuilder<PlaylistsBloc, PlaylistsState>(
+          builder: (context, playlistState) {
+            final effectiveIsFavorite =
+                playlistState.favoriteOverrides[track.id] ?? track.isFavorite;
+            final favoritePending = playlistState.pendingFavoriteTrackIds
+                .contains(track.id);
+            final playlistsPending = playlistState.pendingTrackPlaylistActionIds
+                .contains(track.id);
+
+            return Opacity(
+              opacity: track.isAvailable ? 1 : 0.6,
+              child: Card.outlined(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.secondaryContainer
+                    : null,
+                shape: isSelected
+                    ? RoundedRectangleBorder(
+                        borderRadius: BorderRadiusGeometry.circular(12),
+                        side: BorderSide(
+                          color: Theme.of(
                             context,
-                            shouldBeFavorite: !effectiveIsFavorite,
-                          ),
-                    icon: Icon(
-                      effectiveIsFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                    ),
+                          ).colorScheme.onSecondaryContainer,
+                        ),
+                      )
+                    : null,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text(track.name, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(
+                    [
+                      track.authors
+                          .map((author) => author.currentName)
+                          .join(', '),
+                      if (!track.isAvailable) l10n.trackNotAvailable,
+                    ].where((part) => part.isNotEmpty).join(' • '),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  if (showAddToPlaylistsAction)
-                    IconButton(
-                      tooltip: l10n.addToPlaylistsTooltip,
-                      onPressed: playlistsPending
-                          ? null
-                          : () => _showAddToPlaylistsSheet(context),
-                      icon: const Icon(Icons.playlist_add_rounded),
-                    ),
-                  if (playlistIdForRemoval != null)
-                    IconButton(
-                      tooltip: l10n.removeFromPlaylistTooltip,
-                      onPressed: playlistsPending
-                          ? null
-                          : () => context.read<PlaylistsBloc>().add(
-                              RemoveTrackFromPlaylistRequested(
-                                trackId: track.id,
-                                playlistId: playlistIdForRemoval!,
+                  trailing: Wrap(
+                    spacing: 4,
+                    children: [
+                      IconButton(
+                        tooltip: effectiveIsFavorite
+                            ? l10n.removeFromFavoritesTooltip
+                            : l10n.addToFavoritesTooltip,
+                        onPressed: favoritePending
+                            ? null
+                            : () => _toggleFavorite(
+                                context,
+                                shouldBeFavorite: !effectiveIsFavorite,
                               ),
-                            ),
-                      icon: const Icon(Icons.remove_circle_outline_rounded),
-                    ),
-                  Icon(
-                    track.isAvailable
-                        ? Icons.play_arrow_rounded
-                        : Icons.do_not_disturb_on_rounded,
+                        icon: Icon(
+                          effectiveIsFavorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                        ),
+                      ),
+                      if (showAddToPlaylistsAction)
+                        IconButton(
+                          tooltip: l10n.addToPlaylistsTooltip,
+                          onPressed: playlistsPending
+                              ? null
+                              : () => _showAddToPlaylistsSheet(context),
+                          icon: const Icon(Icons.playlist_add_rounded),
+                        ),
+                      if (playlistIdForRemoval != null)
+                        IconButton(
+                          tooltip: l10n.removeFromPlaylistTooltip,
+                          onPressed: playlistsPending
+                              ? null
+                              : () => context.read<PlaylistsBloc>().add(
+                                  RemoveTrackFromPlaylistRequested(
+                                    trackId: track.id,
+                                    playlistId: playlistIdForRemoval!,
+                                  ),
+                                ),
+                          icon: const Icon(Icons.remove_circle_outline_rounded),
+                        ),
+                    ],
                   ),
-                ],
+                  onTap: track.isAvailable
+                      ? () => context.read<PlayerBloc>().add(
+                          PlayTrack(track, queue: queue),
+                        )
+                      : null,
+                ),
               ),
-              onTap: track.isAvailable
-                  ? () => context.read<PlayerBloc>().add(
-                      PlayTrack(track, queue: queue),
-                    )
-                  : null,
-            ),
-          ),
+            );
+          },
         );
       },
     );

@@ -89,7 +89,6 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
                       queue: safeTracks
                           .where((track) => track.isAvailable)
                           .toList(growable: false),
-                      indexLabel: CircleAvatar(child: Text('${entry.key + 1}')),
                     );
                   }),
                 ],
