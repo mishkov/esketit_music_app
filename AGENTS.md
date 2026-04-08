@@ -15,6 +15,7 @@
   D - Make low level classes depend on top level
 
 - Make any user-seeing client-side text localized.
+- Ensure you added collecting breadcrumbs using [ErrorReporter.addBreadcrumb](lib/errors/error_reporter/error_reporter.dart:6) if needed.
 - Write tests for new code if it's important. For example don't write tests for button color.
 
 # After any changes
