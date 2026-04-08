@@ -54,6 +54,7 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
               final safeTracks = tracks ?? const <Track>[];
 
               return ListView(
+                key: PageStorageKey<int>(widget.album.id),
                 padding: EdgeInsets.only(
                   left: 16,
                   right: 16,

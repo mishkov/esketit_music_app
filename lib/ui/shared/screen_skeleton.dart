@@ -33,23 +33,18 @@ class ScreenSkeleton extends StatelessWidget {
     if (enableBottomPlayer) {
       screenBody = BlocBuilder<PlayerBloc, PlayerState>(
         builder: (context, state) {
-          Widget content = body;
-
-          if (state.selectedTrack != null) {
-            content = Stack(
-              children: [
-                content,
+          return Stack(
+            children: [
+              body,
+              if (state.selectedTrack != null)
                 const Positioned(
                   right: 0,
                   bottom: 0,
                   left: 0,
                   child: BottomPlayer(),
                 ),
-              ],
-            );
-          }
-
-          return content;
+            ],
+          );
         },
       );
     }

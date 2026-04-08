@@ -52,6 +52,40 @@ void main() {
     expect(find.byType(BottomPlayer), findsNothing);
     expect(find.text('Track B'), findsNothing);
   });
+
+  testWidgets('keeps body scroll position when BottomPlayer appears', (
+    tester,
+  ) async {
+    final playerBloc = _createPlayerBloc();
+    addTearDown(playerBloc.close);
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+
+    await tester.pumpWidget(
+      _TestApp(
+        playerBloc: playerBloc,
+        child: ScreenSkeleton(
+          body: ListView.builder(
+            controller: scrollController,
+            itemCount: 60,
+            itemBuilder: (context, index) {
+              return SizedBox(height: 80, child: Text('Item $index'));
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -1200));
+    await tester.pumpAndSettle();
+
+    final offsetBeforeTrackSelection = scrollController.offset;
+
+    playerBloc.add(PlayTrack(_track(name: 'Track C')));
+    await tester.pump();
+
+    expect(scrollController.offset, offsetBeforeTrackSelection);
+  });
 }
 
 PlayerBloc _createPlayerBloc({Track? selectedTrack}) {
