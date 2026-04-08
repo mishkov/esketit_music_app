@@ -14,7 +14,7 @@
   I - create as simple as possible interfaces so each part of app will depend and have access to only methods that it really requires
   D - Make low level classes depend on top level
 
-- Write tests for new code
+- Write tests for new code if it's important. For example don't write tests for button color.
 
 # After any changes
 - Run dart linter and DCM to avoid common issues
