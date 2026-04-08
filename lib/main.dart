@@ -13,11 +13,14 @@ import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
+import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
+import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
+import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -45,6 +48,10 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   Bloc.observer = AppErrorsBlocObserver(reporter: errorReporter);
 
   final baseUri = BaseUriConfiguration.fromEnvironment();
+  final settingsStorage = KeyValueSettingsStorage(
+    keyValueStorage: SharedPreferencesKeyValueStorage(),
+  );
+  final selectedLocale = await settingsStorage.getLocale();
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
   final sessionRefresher = DelegatingAuthSessionRefresher();
@@ -118,6 +125,15 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           create: (context) => PlaylistsBloc(
             playlistsStorage: playlistsStorage,
             errorReporter: errorReporter,
+          ),
+        ),
+        BlocProvider(
+          create: (context) => SettingsBloc(
+            initialState: SettingsState(
+              serverUri: baseUri,
+              locale: selectedLocale,
+            ),
+            settingsStorage: settingsStorage,
           ),
         ),
       ],

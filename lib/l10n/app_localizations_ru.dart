@@ -104,7 +104,16 @@ class AppLocalizationsRu extends AppLocalizations {
       'Войдите, чтобы открыть защищенные функции';
 
   @override
+  String get nativeLanguageName => 'Русский';
+
+  @override
   String get settingsTitle => 'Настройки';
+
+  @override
+  String get settingsLanguageLabel => 'Язык';
+
+  @override
+  String get settingsLanguageAutoOption => 'Авто';
 
   @override
   String get signOutButton => 'Выйти';

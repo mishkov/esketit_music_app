@@ -284,11 +284,29 @@ abstract class AppLocalizations {
   /// **'Sign in to unlock protected features'**
   String get signInToUnlockProtectedFeatures;
 
+  /// No description provided for @nativeLanguageName.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get nativeLanguageName;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get settingsTitle;
+
+  /// No description provided for @settingsLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguageLabel;
+
+  /// No description provided for @settingsLanguageAutoOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settingsLanguageAutoOption;
 
   /// No description provided for @signOutButton.
   ///

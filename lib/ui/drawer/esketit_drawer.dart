@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/sign_in_screen.dart';
+import 'package:esketit_music_app/ui/settings/settings_screen.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +38,7 @@ class EsketitDrawer extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.settings_rounded),
                 title: Text(l10n.settingsTitle),
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () => _openSettings(context),
               ),
               if (user != null)
                 ListTile(
@@ -64,5 +65,13 @@ class EsketitDrawer extends StatelessWidget {
     final navigator = Navigator.of(context);
     navigator.pop();
     context.read<AuthBloc>().add(const AuthSignOutRequested());
+  }
+
+  void _openSettings(BuildContext context) {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    navigator.push(
+      MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+    );
   }
 }

@@ -104,7 +104,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in to unlock protected features';
 
   @override
+  String get nativeLanguageName => 'English';
+
+  @override
   String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguageLabel => 'Language';
+
+  @override
+  String get settingsLanguageAutoOption => 'Auto';
 
   @override
   String get signOutButton => 'Sign out';
