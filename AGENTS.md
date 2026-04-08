@@ -20,15 +20,20 @@
 # After any changes
 - Run dart linter and DCM to avoid common issues
 
-```bash
-dart analyze .
-dcm analyze .
-```
+  ```bash
+  dart analyze .
+  dcm analyze .
+  ```
 
 - Run tests to verify that nothing are broked
 
-```bash
-flutter test .
-```
+  ```bash
+  flutter test .
+  ```
 
 - If any issues found then fix them and repeat `After any changes` steps
+- Format code
+
+  ```bash
+  dart format .
+  ```
