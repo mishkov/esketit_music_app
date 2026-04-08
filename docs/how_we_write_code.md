@@ -42,3 +42,23 @@
         ),
     );
     ```
+
+2. Don't use abbreviations/short verion of words when name variable/class/method/etc.
+
+    ✅ DO
+
+    ```dart
+    var cleanArchitecture = 'That is good';
+    var windowsComputer = 'It is good for pc games';
+
+    extension SecondItemGetterExtension on List<Int> {}
+    ```
+
+    ❌ DON'T
+
+    ```dart
+    var clnArch = 'That is good';
+    var wndsCmptr = 'It is good for pc games';
+
+    extension SecondItemGetterX on List<Int> {}
+    ```
