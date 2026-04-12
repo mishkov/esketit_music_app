@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/track.dart';
 
 abstract class AudioPlayer {
+  Duration get currentPosition;
   Stream<bool> get isPlayingStream;
   Stream<Track?> get currentTrackStream;
   Stream<Duration> get positionStream;

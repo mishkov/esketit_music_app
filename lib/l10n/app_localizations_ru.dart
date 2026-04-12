@@ -304,6 +304,23 @@ class AppLocalizationsRu extends AppLocalizations {
       'Сейчас ни один трек не выбран.';
 
   @override
+  String get trackScreenLyricsSectionTitle => 'Текст песни';
+
+  @override
+  String get trackScreenLyricsNotAvailable =>
+      'Для этого трека текст песни недоступен.';
+
+  @override
+  String get trackScreenLyricsLoadFailed => 'Не удалось загрузить текст песни.';
+
+  @override
+  String get trackLyricsScreenTitle => 'Текст песни';
+
+  @override
+  String get trackScreenLyricsFullscreenTooltip =>
+      'Открыть текст песни на весь экран';
+
+  @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';
 
   @override

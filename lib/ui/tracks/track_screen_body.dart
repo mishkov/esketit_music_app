@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/tracks/track_controls_row.dart';
+import 'package:esketit_music_app/ui/tracks/track_lyrics_section.dart';
 import 'package:esketit_music_app/ui/tracks/track_progress_section.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -67,6 +68,8 @@ class TrackScreenBody extends StatelessWidget {
           const TrackProgressSection(),
           const SizedBox(height: 24),
           TrackControlsRow(state: state, track: track),
+          const SizedBox(height: 24),
+          TrackLyricsSection(trackId: track.id),
         ],
       ),
     );

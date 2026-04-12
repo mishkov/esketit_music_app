@@ -14,6 +14,9 @@ class JustAudioAudioPlayer implements AudioPlayer {
       _baseUri = baseUri;
 
   @override
+  Duration get currentPosition => _audioPlayer.position;
+
+  @override
   Stream<bool> get isPlayingStream => _audioPlayer.playingStream;
 
   @override

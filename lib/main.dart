@@ -8,6 +8,7 @@ import 'package:esketit_music_app/esketit_rest_api/auth/esketit_rest_api_auth_re
 import 'package:esketit_music_app/esketit_rest_api/auth/optionally_authenticated_http_client_proxy.dart';
 import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_catalog_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
+import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_lyrics_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
 import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
@@ -18,6 +19,7 @@ import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
+import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
@@ -84,6 +86,9 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     httpClient: authenticatedHttpClient,
     baseUri: baseUri,
   );
+  final lyricsStorage = EsketitRestApiLyricsStorage(
+    httpClient: optionallyAuthenticatedHttpClient,
+  );
 
   runApp(
     MultiBlocProvider(
@@ -116,6 +121,9 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
             errorReporter: errorReporter,
             catalogStorage: catalogStorage,
           ),
+        ),
+        BlocProvider(
+          create: (context) => LyricsBloc(lyricsStorage: lyricsStorage),
         ),
         BlocProvider(
           create: (context) => PlayerBloc(

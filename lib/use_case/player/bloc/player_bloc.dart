@@ -97,6 +97,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   StreamSubscription<bool>? _hasPreviousTrackSubscription;
   StreamSubscription<bool>? _hasNextTrackSubscription;
 
+  Duration get currentPosition => _player.currentPosition;
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
   Stream<PlayerPlaybackProgress> get playbackProgressStream {

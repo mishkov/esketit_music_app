@@ -620,6 +620,36 @@ abstract class AppLocalizations {
   /// **'No track is currently selected.'**
   String get trackScreenNoTrackSelectedMessage;
 
+  /// No description provided for @trackScreenLyricsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get trackScreenLyricsSectionTitle;
+
+  /// No description provided for @trackScreenLyricsNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics are not available for this track.'**
+  String get trackScreenLyricsNotAvailable;
+
+  /// No description provided for @trackScreenLyricsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load lyrics.'**
+  String get trackScreenLyricsLoadFailed;
+
+  /// No description provided for @trackLyricsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get trackLyricsScreenTitle;
+
+  /// No description provided for @trackScreenLyricsFullscreenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open lyrics fullscreen'**
+  String get trackScreenLyricsFullscreenTooltip;
+
   /// No description provided for @removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:

@@ -298,6 +298,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'No track is currently selected.';
 
   @override
+  String get trackScreenLyricsSectionTitle => 'Lyrics';
+
+  @override
+  String get trackScreenLyricsNotAvailable =>
+      'Lyrics are not available for this track.';
+
+  @override
+  String get trackScreenLyricsLoadFailed => 'Failed to load lyrics.';
+
+  @override
+  String get trackLyricsScreenTitle => 'Lyrics';
+
+  @override
+  String get trackScreenLyricsFullscreenTooltip => 'Open lyrics fullscreen';
+
+  @override
   String get removeFromFavoritesTooltip => 'Remove from favorites';
 
   @override
