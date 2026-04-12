@@ -97,9 +97,9 @@ class BottomPlayer extends StatelessWidget {
   }
 
   void _openTrackScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (context) => const TrackScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (context) => const TrackScreen()));
   }
 
   void _togglePlay(BuildContext context) {
