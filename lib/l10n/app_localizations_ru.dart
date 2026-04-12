@@ -297,6 +297,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackNotAvailable => 'Недоступно';
 
   @override
+  String get trackScreenNowPlayingLabel => 'СЕЙЧАС ИГРАЕТ';
+
+  @override
+  String get trackScreenNoTrackSelectedMessage =>
+      'Сейчас ни один трек не выбран.';
+
+  @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';
 
   @override

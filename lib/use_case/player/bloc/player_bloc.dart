@@ -8,7 +8,9 @@ import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-sealed class PlayerEvent extends Equatable {}
+sealed class PlayerEvent extends Equatable {
+  const PlayerEvent();
+}
 
 final class PlayTrack extends PlayerEvent {
   final Track track;
@@ -21,14 +23,39 @@ final class PlayTrack extends PlayerEvent {
 }
 
 final class TogglePlay extends PlayerEvent {
+  const TogglePlay();
+
   @override
   List<Object?> get props => [];
+}
+
+final class SkipToPreviousTrackRequested extends PlayerEvent {
+  const SkipToPreviousTrackRequested();
+
+  @override
+  List<Object?> get props => [];
+}
+
+final class SkipToNextTrackRequested extends PlayerEvent {
+  const SkipToNextTrackRequested();
+
+  @override
+  List<Object?> get props => [];
+}
+
+final class SeekToPositionRequested extends PlayerEvent {
+  const SeekToPositionRequested(this.position);
+
+  final Duration position;
+
+  @override
+  List<Object?> get props => [position];
 }
 
 final class _PlaybackStateChanged extends PlayerEvent {
   final bool isPlaying;
 
-  _PlaybackStateChanged(this.isPlaying);
+  const _PlaybackStateChanged(this.isPlaying);
 
   @override
   List<Object?> get props => [isPlaying];
@@ -37,10 +64,28 @@ final class _PlaybackStateChanged extends PlayerEvent {
 final class _SelectedTrackChanged extends PlayerEvent {
   final Track? track;
 
-  _SelectedTrackChanged(this.track);
+  const _SelectedTrackChanged(this.track);
 
   @override
   List<Object?> get props => [track];
+}
+
+final class _HasPreviousTrackChanged extends PlayerEvent {
+  const _HasPreviousTrackChanged(this.hasPreviousTrack);
+
+  final bool hasPreviousTrack;
+
+  @override
+  List<Object?> get props => [hasPreviousTrack];
+}
+
+final class _HasNextTrackChanged extends PlayerEvent {
+  const _HasNextTrackChanged(this.hasNextTrack);
+
+  final bool hasNextTrack;
+
+  @override
+  List<Object?> get props => [hasNextTrack];
 }
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
@@ -49,6 +94,42 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   StreamSubscription<bool>? _isPlayingSubscription;
   StreamSubscription<Track?>? _selectedTrackSubscription;
+  StreamSubscription<bool>? _hasPreviousTrackSubscription;
+  StreamSubscription<bool>? _hasNextTrackSubscription;
+
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<Duration?> get durationStream => _player.durationStream;
+  Stream<PlayerPlaybackProgress> get playbackProgressStream {
+    return Stream<PlayerPlaybackProgress>.multi((controller) {
+      var latestPosition = Duration.zero;
+      var latestDuration = Duration.zero;
+
+      void emitPlaybackProgress() {
+        controller.add(
+          PlayerPlaybackProgress(
+            position: latestPosition,
+            duration: latestDuration,
+          ),
+        );
+      }
+
+      emitPlaybackProgress();
+
+      final positionSubscription = positionStream.listen((position) {
+        latestPosition = position;
+        emitPlaybackProgress();
+      });
+      final durationSubscription = durationStream.listen((duration) {
+        latestDuration = duration ?? Duration.zero;
+        emitPlaybackProgress();
+      });
+
+      controller.onCancel = () async {
+        await positionSubscription.cancel();
+        await durationSubscription.cancel();
+      };
+    });
+  }
 
   PlayerBloc({
     required PlayerState initialState,
@@ -62,6 +143,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     });
     _selectedTrackSubscription = _player.currentTrackStream.listen((track) {
       add(_SelectedTrackChanged(track));
+    });
+    _hasPreviousTrackSubscription = _player.hasPreviousTrackStream.listen((
+      hasPreviousTrack,
+    ) {
+      add(_HasPreviousTrackChanged(hasPreviousTrack));
+    });
+    _hasNextTrackSubscription = _player.hasNextTrackStream.listen((
+      hasNextTrack,
+    ) {
+      add(_HasNextTrackChanged(hasNextTrack));
     });
 
     on<PlayTrack>((event, emit) async {
@@ -98,6 +189,48 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       }
     });
 
+    on<SkipToPreviousTrackRequested>((event, emit) async {
+      try {
+        await _player.skipToPreviousTrack();
+      } catch (error, stackTrace) {
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to skip to previous track',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      }
+    });
+
+    on<SkipToNextTrackRequested>((event, emit) async {
+      try {
+        await _player.skipToNextTrack();
+      } catch (error, stackTrace) {
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to skip to next track',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      }
+    });
+
+    on<SeekToPositionRequested>((event, emit) async {
+      try {
+        await _player.seekTo(event.position);
+      } catch (error, stackTrace) {
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to seek playback position',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      }
+    });
+
     on<_PlaybackStateChanged>((event, emit) {
       emit(state.copyWith(isPlaying: event.isPlaying));
     });
@@ -111,35 +244,81 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         ),
       );
     });
+
+    on<_HasPreviousTrackChanged>((event, emit) {
+      emit(state.copyWith(hasPreviousTrack: event.hasPreviousTrack));
+    });
+
+    on<_HasNextTrackChanged>((event, emit) {
+      emit(state.copyWith(hasNextTrack: event.hasNextTrack));
+    });
   }
 
   @override
   Future<void> close() async {
     await _isPlayingSubscription?.cancel();
     await _selectedTrackSubscription?.cancel();
+    await _hasPreviousTrackSubscription?.cancel();
+    await _hasNextTrackSubscription?.cancel();
 
     return super.close();
   }
 }
 
+/// Current playback progress of the selected track.
+///
+/// [position] is the current playback point.
+/// [duration] is the full length of the current track.
+class PlayerPlaybackProgress extends Equatable {
+  /// Current playback point of the selected track.
+  final Duration position;
+
+  /// Full length of the selected track.
+  final Duration duration;
+
+  const PlayerPlaybackProgress({
+    required this.position,
+    required this.duration,
+  });
+
+  @override
+  List<Object> get props => [position, duration];
+}
+
 class PlayerState extends Equatable {
   final Track? selectedTrack;
   final bool isPlaying;
+  final bool hasPreviousTrack;
+  final bool hasNextTrack;
 
-  const PlayerState({required this.selectedTrack, required this.isPlaying});
+  const PlayerState({
+    required this.selectedTrack,
+    required this.isPlaying,
+    this.hasPreviousTrack = false,
+    this.hasNextTrack = false,
+  });
 
   PlayerState copyWith({
     NullableOption<Track>? selectedTrack,
     bool? isPlaying,
+    bool? hasPreviousTrack,
+    bool? hasNextTrack,
   }) {
     return PlayerState(
       selectedTrack: selectedTrack == null
           ? this.selectedTrack
           : selectedTrack.value,
       isPlaying: isPlaying ?? this.isPlaying,
+      hasPreviousTrack: hasPreviousTrack ?? this.hasPreviousTrack,
+      hasNextTrack: hasNextTrack ?? this.hasNextTrack,
     );
   }
 
   @override
-  List<Object?> get props => [selectedTrack, isPlaying];
+  List<Object?> get props => [
+    selectedTrack,
+    isPlaying,
+    hasPreviousTrack,
+    hasNextTrack,
+  ];
 }

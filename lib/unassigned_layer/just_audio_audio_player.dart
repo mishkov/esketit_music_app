@@ -17,6 +17,19 @@ class JustAudioAudioPlayer implements AudioPlayer {
   Stream<bool> get isPlayingStream => _audioPlayer.playingStream;
 
   @override
+  Stream<Duration?> get durationStream => _audioPlayer.durationStream;
+
+  @override
+  Stream<bool> get hasNextTrackStream => _audioPlayer.currentIndexStream
+      .map((index) => index != null && index >= 0 && index < _queue.length - 1)
+      .distinct();
+
+  @override
+  Stream<bool> get hasPreviousTrackStream => _audioPlayer.currentIndexStream
+      .map((index) => index != null && index > 0)
+      .distinct();
+
+  @override
   Stream<Track?> get currentTrackStream =>
       _audioPlayer.currentIndexStream.map((index) {
         if (index == null || index < 0 || index >= _queue.length) {
@@ -25,6 +38,9 @@ class JustAudioAudioPlayer implements AudioPlayer {
 
         return _queue[index];
       });
+
+  @override
+  Stream<Duration> get positionStream => _audioPlayer.positionStream;
 
   @override
   Future<void> beginPlayingQueue(
@@ -50,6 +66,21 @@ class JustAudioAudioPlayer implements AudioPlayer {
   @override
   Future<void> dispose() async {
     await _audioPlayer.dispose();
+  }
+
+  @override
+  Future<void> seekTo(Duration position) async {
+    await _audioPlayer.seek(position);
+  }
+
+  @override
+  Future<void> skipToNextTrack() async {
+    await _audioPlayer.seekToNext();
+  }
+
+  @override
+  Future<void> skipToPreviousTrack() async {
+    await _audioPlayer.seekToPrevious();
   }
 
   String _extractTrackPath(Track track) {

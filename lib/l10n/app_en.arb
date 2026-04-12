@@ -120,6 +120,8 @@
   },
   "deleteButton": "Delete",
   "trackNotAvailable": "Not available",
+  "trackScreenNowPlayingLabel": "NOW PLAYING",
+  "trackScreenNoTrackSelectedMessage": "No track is currently selected.",
   "removeFromFavoritesTooltip": "Remove from favorites",
   "addToFavoritesTooltip": "Add to favorites",
   "addToPlaylistsTooltip": "Add to playlists",

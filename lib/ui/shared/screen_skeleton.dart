@@ -32,6 +32,8 @@ class ScreenSkeleton extends StatelessWidget {
 
     if (enableBottomPlayer) {
       screenBody = BlocBuilder<PlayerBloc, PlayerState>(
+        buildWhen: (previous, current) =>
+            previous.selectedTrack != current.selectedTrack,
         builder: (context, state) {
           return Stack(
             children: [

@@ -25,6 +25,8 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
     final l10n = context.l10n;
 
     return BlocBuilder<PlayerBloc, PlayerState>(
+      buildWhen: (previous, current) =>
+          previous.selectedTrack != current.selectedTrack,
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
 

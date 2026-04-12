@@ -608,6 +608,18 @@ abstract class AppLocalizations {
   /// **'Not available'**
   String get trackNotAvailable;
 
+  /// No description provided for @trackScreenNowPlayingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NOW PLAYING'**
+  String get trackScreenNowPlayingLabel;
+
+  /// No description provided for @trackScreenNoTrackSelectedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No track is currently selected.'**
+  String get trackScreenNoTrackSelectedMessage;
+
   /// No description provided for @removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:

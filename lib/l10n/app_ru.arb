@@ -120,6 +120,8 @@
   },
   "deleteButton": "Удалить",
   "trackNotAvailable": "Недоступно",
+  "trackScreenNowPlayingLabel": "СЕЙЧАС ИГРАЕТ",
+  "trackScreenNoTrackSelectedMessage": "Сейчас ни один трек не выбран.",
   "removeFromFavoritesTooltip": "Убрать из избранного",
   "addToFavoritesTooltip": "Добавить в избранное",
   "addToPlaylistsTooltip": "Добавить в плейлисты",

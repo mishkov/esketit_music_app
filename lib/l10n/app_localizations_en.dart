@@ -291,6 +291,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackNotAvailable => 'Not available';
 
   @override
+  String get trackScreenNowPlayingLabel => 'NOW PLAYING';
+
+  @override
+  String get trackScreenNoTrackSelectedMessage =>
+      'No track is currently selected.';
+
+  @override
   String get removeFromFavoritesTooltip => 'Remove from favorites';
 
   @override

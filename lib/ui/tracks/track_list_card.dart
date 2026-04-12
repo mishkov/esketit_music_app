@@ -27,6 +27,8 @@ class TrackListCard extends StatelessWidget {
     final l10n = context.l10n;
 
     return BlocBuilder<PlayerBloc, PlayerState>(
+      buildWhen: (previous, current) =>
+          previous.selectedTrack != current.selectedTrack,
       builder: (context, playerState) {
         final isSelected = playerState.selectedTrack == track;
 

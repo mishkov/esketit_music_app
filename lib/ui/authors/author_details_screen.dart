@@ -30,6 +30,8 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
     final l10n = context.l10n;
 
     return BlocBuilder<PlayerBloc, PlayerState>(
+      buildWhen: (previous, current) =>
+          previous.selectedTrack != current.selectedTrack,
       builder: (context, playerState) {
         final selectedTrackExists = playerState.selectedTrack != null;
 
