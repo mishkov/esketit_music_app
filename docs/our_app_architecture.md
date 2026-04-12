@@ -35,3 +35,5 @@ We are trying to keep clean architecture approach so consider it like in Robert 
 - `Domain`. This is the most hight level layer. It can depend only on third party helpers packages
 - `Use-case`. This layer can depend on `Domain` and on third party helpers packages
 - `UI`, `Esketit Rest Api`, `Errors`, `l10n`, `Unassigned Layer` etc. this layers are the most low level. They can depend on any other layer and can import any third party plugin but there is still some limitations. For example `UI` should not depend on `Esketit Rest Api` becuase ui should not know how we work with data but `UI` can depend on `Errors`, `l10n` because we want to identify the error and show related localized message to user. Shortly, we should keep as less as possible links to other layer to simplify their changes and replacement in future.
+
+And please for consistency keep `UI` depend on BLoC's from `Use-case` not directly on some Storage/Repositories etc.
