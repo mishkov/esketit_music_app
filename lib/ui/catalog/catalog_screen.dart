@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/browse_catalog_view.dart';
+import 'package:esketit_music_app/ui/catalog/recent_search_queries_section.dart';
 import 'package:esketit_music_app/ui/catalog/search_catalog_view.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -20,6 +21,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   static const double _lazyLoadTriggerOffset = 240;
 
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   Timer? _searchDebounce;
 
@@ -29,6 +31,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
     final catalogBloc = context.read<CatalogBloc>();
     _searchController.text = catalogBloc.state.searchQuery;
+    _searchFocusNode.addListener(_onSearchFocusChanged);
     _scrollController.addListener(_onScroll);
   }
 
@@ -36,6 +39,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode
+      ..removeListener(_onSearchFocusChanged)
+      ..dispose();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -55,6 +61,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
         return BlocBuilder<CatalogBloc, CatalogState>(
           builder: (context, state) {
             final activeQuery = state.searchQuery.trim();
+            final showRecentSearchQueries =
+                _searchFocusNode.hasFocus &&
+                activeQuery.isEmpty &&
+                state.recentSearchQueries.isNotEmpty;
 
             return Column(
               children: [
@@ -62,6 +72,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: TextField(
                     controller: _searchController,
+                    focusNode: _searchFocusNode,
                     onChanged: _onSearchQueryChanged,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
@@ -79,7 +90,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   ),
                 ),
                 Expanded(
-                  child: activeQuery.isEmpty
+                  child: showRecentSearchQueries
+                      ? RecentSearchQueriesSection(
+                          recentSearchQueries: state.recentSearchQueries,
+                          onQuerySelected: _applyRecentSearchQuery,
+                          selectedTrackExists: selectedTrackExists,
+                        )
+                      : activeQuery.isEmpty
                       ? BrowseCatalogView(
                           selectedTrackExists: selectedTrackExists,
                         )
@@ -114,6 +131,24 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void _clearSearch() {
     _searchController.clear();
     _onSearchQueryChanged('');
+  }
+
+  void _applyRecentSearchQuery(String query) {
+    _searchController.text = query;
+    _searchController.selection = TextSelection.collapsed(
+      offset: _searchController.text.length,
+    );
+    _onSearchQueryChanged(query);
+    _searchDebounce?.cancel();
+    _loadSearchResults();
+  }
+
+  void _onSearchFocusChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
   }
 
   void _onScroll() {

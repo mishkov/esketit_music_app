@@ -53,6 +53,7 @@
   "noPublishedAuthorsYet": "Опубликованных авторов пока нет.",
   "searchHint": "Искать авторов, альбомы, треки",
   "clearSearchTooltip": "Очистить поиск",
+  "recentSearchQueriesTitle": "Недавние поисковые запросы",
   "searchResultsCount": "{count, plural, =0{0 результатов} one{{count} результат} few{{count} результата} many{{count} результатов} other{{count} результата}}",
   "@searchResultsCount": {
     "placeholders": {

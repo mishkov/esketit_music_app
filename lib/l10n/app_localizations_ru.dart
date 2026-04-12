@@ -172,6 +172,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get clearSearchTooltip => 'Очистить поиск';
 
   @override
+  String get recentSearchQueriesTitle => 'Недавние поисковые запросы';
+
+  @override
   String searchResultsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

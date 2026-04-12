@@ -416,6 +416,12 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get clearSearchTooltip;
 
+  /// No description provided for @recentSearchQueriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get recentSearchQueriesTitle;
+
   /// No description provided for @searchResultsCount.
   ///
   /// In en, this message translates to:

@@ -171,6 +171,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearSearchTooltip => 'Clear search';
 
   @override
+  String get recentSearchQueriesTitle => 'Recent searches';
+
+  @override
   String searchResultsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

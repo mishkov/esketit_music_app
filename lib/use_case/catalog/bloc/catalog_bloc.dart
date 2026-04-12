@@ -6,6 +6,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
+import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 sealed class CatalogEvent extends Equatable {}
@@ -26,6 +27,11 @@ final class LoadCatalogSearchResults extends CatalogEvent {
 
   @override
   List<Object?> get props => [page];
+}
+
+final class LoadRecentSearchQueries extends CatalogEvent {
+  @override
+  List<Object?> get props => [];
 }
 
 final class LoadPublishedAuthors extends CatalogEvent {
@@ -53,23 +59,46 @@ final class LoadAlbumTracks extends CatalogEvent {
 
 class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   final CatalogStorage _catalogStorage;
+  final RecentSearchQueriesStorage _recentSearchQueriesStorage;
   final ErrorReporter _errorReporter;
 
   CatalogBloc({
     required CatalogState initialState,
     required CatalogStorage catalogStorage,
+    required RecentSearchQueriesStorage recentSearchQueriesStorage,
     required ErrorReporter errorReporter,
   }) : _catalogStorage = catalogStorage,
+       _recentSearchQueriesStorage = recentSearchQueriesStorage,
        _errorReporter = errorReporter,
        super(initialState) {
     on<CatalogSearchQueryChanged>(_onCatalogSearchQueryChanged);
     on<LoadCatalogSearchResults>(_onLoadCatalogSearchResults);
+    on<LoadRecentSearchQueries>(_onLoadRecentSearchQueries);
     on<LoadPublishedAuthors>(_onLoadPublishedAuthors);
     on<LoadPublishedAlbumsByAuthor>(_onLoadPublishedAlbumsByAuthor);
     on<LoadAlbumTracks>(_onLoadAlbumTracks);
   }
 
   static const int searchPageSize = 20;
+
+  Future<void> _onLoadRecentSearchQueries(
+    LoadRecentSearchQueries event,
+    Emitter<CatalogState> emit,
+  ) async {
+    try {
+      final recentSearchQueries = await _recentSearchQueriesStorage
+          .getRecentSearchQueries();
+      emit(state.copyWith(recentSearchQueries: recentSearchQueries));
+    } catch (error, stackTrace) {
+      await _errorReporter.reportError(
+        AppError(
+          'Failed to load recent search queries',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
 
   static PaginatedCatalogSearchResults _mergeSearchResults(
     PaginatedCatalogSearchResults previous,
@@ -170,11 +199,28 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         return;
       }
 
+      List<String>? recentSearchQueries;
+      if (requestedPage == 1 && results.items.isNotEmpty) {
+        try {
+          recentSearchQueries = await _recentSearchQueriesStorage
+              .saveRecentSearchQuery(query);
+        } catch (error, stackTrace) {
+          await _errorReporter.reportError(
+            AppError(
+              'Failed to save recent search query "$query"',
+              cause: error,
+              stackTrace: stackTrace,
+            ),
+          );
+        }
+      }
+
       emit(
         state.copyWith(
           searchResults: requestedPage > 1 && state.searchResults != null
               ? _mergeSearchResults(state.searchResults!, results)
               : results,
+          recentSearchQueries: recentSearchQueries,
           searchPage: results.page,
           searchPageSize: results.pageSize,
           isLoadingSearch: false,
@@ -359,6 +405,7 @@ class CatalogState extends Equatable {
   final Set<int> loadingAlbumIds;
   final Map<int, String> albumTracksErrorMessages;
   final String searchQuery;
+  final List<String> recentSearchQueries;
   final int searchPage;
   final int searchPageSize;
   final PaginatedCatalogSearchResults? searchResults;
@@ -376,6 +423,7 @@ class CatalogState extends Equatable {
     required this.loadingAlbumIds,
     required this.albumTracksErrorMessages,
     required this.searchQuery,
+    required this.recentSearchQueries,
     required this.searchPage,
     required this.searchPageSize,
     required this.searchResults,
@@ -397,6 +445,7 @@ class CatalogState extends Equatable {
     Map<int, String>? albumTracksErrorMessages,
     int? clearAlbumTracksErrorId,
     String? searchQuery,
+    List<String>? recentSearchQueries,
     int? searchPage,
     int? searchPageSize,
     PaginatedCatalogSearchResults? searchResults,
@@ -432,6 +481,7 @@ class CatalogState extends Equatable {
       loadingAlbumIds: loadingAlbumIds ?? this.loadingAlbumIds,
       albumTracksErrorMessages: nextAlbumTracksErrorMessages,
       searchQuery: searchQuery ?? this.searchQuery,
+      recentSearchQueries: recentSearchQueries ?? this.recentSearchQueries,
       searchPage: searchPage ?? this.searchPage,
       searchPageSize: searchPageSize ?? this.searchPageSize,
       searchResults: clearSearchResults
@@ -456,6 +506,7 @@ class CatalogState extends Equatable {
     loadingAlbumIds,
     albumTracksErrorMessages,
     searchQuery,
+    recentSearchQueries,
     searchPage,
     searchPageSize,
     searchResults,

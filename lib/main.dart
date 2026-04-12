@@ -13,6 +13,7 @@ import 'package:esketit_music_app/ui/esketit_app.dart';
 import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
+import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
@@ -51,8 +52,12 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   Bloc.observer = AppErrorsBlocObserver(reporter: errorReporter);
 
   final baseUri = BaseUriConfiguration.fromEnvironment();
+  final keyValueStorage = SharedPreferencesKeyValueStorage();
   final settingsStorage = KeyValueSettingsStorage(
-    keyValueStorage: SharedPreferencesKeyValueStorage(),
+    keyValueStorage: keyValueStorage,
+  );
+  final recentSearchQueriesStorage = KeyValueRecentSearchQueriesStorage(
+    keyValueStorage: keyValueStorage,
   );
   final selectedLocale = await settingsStorage.getLocale();
   final selectedThemeMode =
@@ -112,6 +117,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
               loadingAlbumIds: {},
               albumTracksErrorMessages: {},
               searchQuery: '',
+              recentSearchQueries: [],
               searchPage: 1,
               searchPageSize: CatalogBloc.searchPageSize,
               searchResults: null,
@@ -120,7 +126,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
             ),
             errorReporter: errorReporter,
             catalogStorage: catalogStorage,
-          ),
+            recentSearchQueriesStorage: recentSearchQueriesStorage,
+          )..add(LoadRecentSearchQueries()),
         ),
         BlocProvider(
           create: (context) => LyricsBloc(lyricsStorage: lyricsStorage),
