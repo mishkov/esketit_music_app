@@ -62,3 +62,35 @@
 
     extension SecondItemGetterX on List<Int> {}
     ```
+
+3. Prefer using classes over functions to make reusable widget-tree. Read [this StackOverflow thread](https://stackoverflow.com/questions/53234825/what-is-the-difference-between-functions-and-classes-to-create-reusable-widgets) for details.
+
+    ✅ DO
+
+    ```dart
+    class SomeWidget extends StatelessWidget {
+        final VoidCallback callback;
+        final String title;
+
+        const SomeWidget({Key key, this.callback, this.title}) : super(key: key);
+
+        @override
+        Widget build(BuildContext context) {
+            return GestureDetector(
+                onTap: callback,
+                child:// some widget
+            );
+        }
+    }
+    ```
+
+    ❌ DON'T
+
+    ```dart
+    Widget _buildSomeWidget({ String title, VoidCallback callback }) {
+        return GestureDetector(
+            onTap: callback,
+            child: // some widget
+        );
+    }
+    ```
