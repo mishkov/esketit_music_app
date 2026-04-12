@@ -39,3 +39,35 @@
 
     const Object _sentinelValue = Object();
     ```
+
+2. Use `BlocBuilder` only around widgets that really depend on that bloc state. Do not wrap large widget subtrees when only a small part needs rebuilding.
+
+    ✅ DO
+
+    ```dart
+    return Column(
+        children: [
+            const Header(),
+            BlocBuilder<ExampleBloc, ExampleState>(
+                builder: (context, state) {
+                    return Text(state.title);
+                },
+            ),
+        ],
+    );
+    ```
+
+    ❌ DON'T
+
+    ```dart
+    return BlocBuilder<ExampleBloc, ExampleState>(
+        builder: (context, state) {
+            return Column(
+                children: [
+                    const Header(),
+                    Text(state.title),
+                ],
+            );
+        },
+    );
+    ```
