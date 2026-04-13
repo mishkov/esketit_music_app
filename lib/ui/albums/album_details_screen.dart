@@ -1,10 +1,7 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/track.dart';
-import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
-import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/albums/album_details_content.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
-import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +25,6 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
     return BlocBuilder<PlayerBloc, PlayerState>(
       buildWhen: (previous, current) =>
           previous.selectedTrack != current.selectedTrack,
@@ -55,46 +50,10 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
 
               final safeTracks = tracks ?? const <Track>[];
 
-              return ListView(
-                key: PageStorageKey<int>(widget.album.id),
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 16,
-                  bottom: selectedTrackExists ? 100 : 16,
-                ),
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: RemoteImage(
-                        imageUrl: _albumCoverUrl(widget.album),
-                        icon: Icons.album_rounded,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.album.title,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.tracksTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  if (safeTracks.isEmpty) Text(l10n.noTracksInAlbumYet),
-                  ...safeTracks.asMap().entries.map((entry) {
-                    return TrackListCard(
-                      track: entry.value,
-                      queue: safeTracks
-                          .where((track) => track.isAvailable)
-                          .toList(growable: false),
-                    );
-                  }),
-                ],
+              return AlbumDetailsContent(
+                album: widget.album,
+                tracks: safeTracks,
+                selectedTrackExists: selectedTrackExists,
               );
             },
           ),
@@ -102,14 +61,4 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
       },
     );
   }
-}
-
-String? _albumCoverUrl(Album album) {
-  final cover = album.coverImage;
-  if (cover is! HttpFile) {
-    return null;
-  }
-  final value = cover.uri.toString();
-
-  return value.isEmpty ? null : value;
 }
