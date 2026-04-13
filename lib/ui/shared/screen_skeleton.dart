@@ -37,7 +37,7 @@ class ScreenSkeleton extends StatelessWidget {
         builder: (context, state) {
           return Stack(
             children: [
-              body,
+              Positioned.fill(child: body),
               if (state.selectedTrack != null)
                 const Positioned(
                   right: 0,
