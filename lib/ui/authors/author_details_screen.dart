@@ -1,8 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
-import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
-import 'package:esketit_music_app/ui/authors/album_tile.dart';
-import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/authors/author_details_content.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -27,8 +25,6 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
     return BlocBuilder<PlayerBloc, PlayerState>(
       buildWhen: (previous, current) =>
           previous.selectedTrack != current.selectedTrack,
@@ -56,38 +52,10 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
 
               final safeAlbums = albums ?? const <Album>[];
 
-              return ListView(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 16,
-                  bottom: selectedTrackExists ? 100 : 16,
-                ),
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: RemoteImage(
-                        imageUrl: widget.author.primaryPhotoUrl,
-                        icon: Icons.person_rounded,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.author.currentName,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.albumsTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  if (safeAlbums.isEmpty) Text(l10n.noPublishedAlbumsYet),
-                  ...safeAlbums.map((album) => AlbumTile(album: album)),
-                ],
+              return AuthorDetailsContent(
+                author: widget.author,
+                albums: safeAlbums,
+                selectedTrackExists: selectedTrackExists,
               );
             },
           ),

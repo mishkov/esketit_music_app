@@ -1,8 +1,8 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/albums/album_details_screen.dart';
-import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:flutter/material.dart';
 
@@ -21,8 +21,8 @@ class AlbumTile extends StatelessWidget {
         contentPadding: const EdgeInsets.all(12),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: SizedBox.square(
-            dimension: 56,
+          child: AspectRatio(
+            aspectRatio: 1,
             child: RemoteImage(
               imageUrl: _albumCoverUrl(album),
               icon: Icons.album_rounded,
