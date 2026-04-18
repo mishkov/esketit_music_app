@@ -13,6 +13,7 @@ abstract class AudioPlayer {
     List<Track> tracks, {
     required int initialIndex,
   });
+  Future<void> appendToQueue(List<Track> tracks);
 
   Future<void> togglePlay();
   Future<void> skipToPreviousTrack();

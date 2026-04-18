@@ -72,8 +72,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionExpiredMessage => 'Сессия истекла. Войдите снова.';
 
   @override
-  String get requestFailedMessage =>
-      'Не удалось выполнить запрос. Попробуйте еще раз.';
+  String get requestFailedMessage => 'Не удалось выполнить запрос. Попробуйте еще раз.';
 
   @override
   String get unknownErrorMessage => 'Что-то пошло не так. Попробуйте еще раз.';
@@ -100,8 +99,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guestModeLabel => 'Гостевой режим';
 
   @override
-  String get signInToUnlockProtectedFeatures =>
-      'Войдите, чтобы открыть защищенные функции';
+  String get signInToUnlockProtectedFeatures => 'Войдите, чтобы открыть защищенные функции';
 
   @override
   String get nativeLanguageName => 'Русский';
@@ -131,8 +129,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signOutButton => 'Выйти';
 
   @override
-  String get signInToSeeYourPlaylists =>
-      'Войдите, чтобы увидеть свои плейлисты.';
+  String get signInToSeeYourPlaylists => 'Войдите, чтобы увидеть свои плейлисты.';
 
   @override
   String get yourPlaylistsTitle => 'Ваши плейлисты';
@@ -141,8 +138,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get newPlaylistButton => 'Новый';
 
   @override
-  String get playlistsDescription =>
-      'Избранное управляется автоматически. Все остальное можно редактировать.';
+  String get playlistsDescription => 'Избранное управляется автоматически. Все остальное можно редактировать.';
 
   @override
   String get noPlaylistsYet => 'Плейлистов пока нет. Создайте первый.';
@@ -161,6 +157,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get featuredAuthorsTitle => 'Избранные авторы';
+
+  @override
+  String get playMyVibeButton => 'Включить мой вайб';
 
   @override
   String get noPublishedAuthorsYet => 'Опубликованных авторов пока нет.';
@@ -240,8 +239,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addToPlaylistsTitle => 'Добавить в плейлисты';
 
   @override
-  String get createCustomPlaylistFirst =>
-      'Сначала создайте пользовательский плейлист.';
+  String get createCustomPlaylistFirst => 'Сначала создайте пользовательский плейлист.';
 
   @override
   String get addButton => 'Добавить';
@@ -303,15 +301,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackScreenNowPlayingLabel => 'СЕЙЧАС ИГРАЕТ';
 
   @override
-  String get trackScreenNoTrackSelectedMessage =>
-      'Сейчас ни один трек не выбран.';
+  String get trackScreenNoTrackSelectedMessage => 'Сейчас ни один трек не выбран.';
 
   @override
   String get trackScreenLyricsSectionTitle => 'Текст песни';
 
   @override
-  String get trackScreenLyricsNotAvailable =>
-      'Для этого трека текст песни недоступен.';
+  String get trackScreenLyricsNotAvailable => 'Для этого трека текст песни недоступен.';
 
   @override
   String get trackScreenLyricsLoadFailed => 'Не удалось загрузить текст песни.';
@@ -320,8 +316,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackLyricsScreenTitle => 'Текст песни';
 
   @override
-  String get trackScreenLyricsFullscreenTooltip =>
-      'Открыть текст песни на весь экран';
+  String get trackScreenLyricsFullscreenTooltip => 'Открыть текст песни на весь экран';
 
   @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';

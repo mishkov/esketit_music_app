@@ -5,6 +5,7 @@ import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
@@ -111,6 +112,10 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                     queue: tracks
                                         .where((item) => item.isAvailable)
                                         .toList(growable: false),
+                                    autoplayContext: AutoplayContext(
+                                      sourceType: AutoplaySourceType.playlist,
+                                      sourceId: playlist.id,
+                                    ),
                                     playlistIdForRemoval: playlist.isFavorites
                                         ? null
                                         : playlist.id,

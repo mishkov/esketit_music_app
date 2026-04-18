@@ -69,8 +69,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forbiddenActionMessage => 'You do not have access to this action.';
 
   @override
-  String get sessionExpiredMessage =>
-      'Your session expired. Please sign in again.';
+  String get sessionExpiredMessage => 'Your session expired. Please sign in again.';
 
   @override
   String get requestFailedMessage => 'Request failed. Please try again.';
@@ -100,8 +99,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestModeLabel => 'Guest mode';
 
   @override
-  String get signInToUnlockProtectedFeatures =>
-      'Sign in to unlock protected features';
+  String get signInToUnlockProtectedFeatures => 'Sign in to unlock protected features';
 
   @override
   String get nativeLanguageName => 'English';
@@ -140,8 +138,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newPlaylistButton => 'New';
 
   @override
-  String get playlistsDescription =>
-      'Favorites is managed automatically. Everything else is fully editable.';
+  String get playlistsDescription => 'Favorites is managed automatically. Everything else is fully editable.';
 
   @override
   String get noPlaylistsYet => 'No playlists yet. Create your first one.';
@@ -160,6 +157,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featuredAuthorsTitle => 'Featured Authors';
+
+  @override
+  String get playMyVibeButton => 'Play my vibe';
 
   @override
   String get noPublishedAuthorsYet => 'No published authors yet.';
@@ -297,15 +297,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackScreenNowPlayingLabel => 'NOW PLAYING';
 
   @override
-  String get trackScreenNoTrackSelectedMessage =>
-      'No track is currently selected.';
+  String get trackScreenNoTrackSelectedMessage => 'No track is currently selected.';
 
   @override
   String get trackScreenLyricsSectionTitle => 'Lyrics';
 
   @override
-  String get trackScreenLyricsNotAvailable =>
-      'Lyrics are not available for this track.';
+  String get trackScreenLyricsNotAvailable => 'Lyrics are not available for this track.';
 
   @override
   String get trackScreenLyricsLoadFailed => 'Failed to load lyrics.';

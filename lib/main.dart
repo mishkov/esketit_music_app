@@ -7,6 +7,7 @@ import 'package:esketit_music_app/esketit_rest_api/auth/authenticated_http_clien
 import 'package:esketit_music_app/esketit_rest_api/auth/esketit_rest_api_auth_repository.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/optionally_authenticated_http_client_proxy.dart';
 import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_catalog_storage.dart';
+import 'package:esketit_music_app/esketit_rest_api/player/esketit_rest_api_autoplay_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_lyrics_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
@@ -94,6 +95,10 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   final lyricsStorage = EsketitRestApiLyricsStorage(
     httpClient: optionallyAuthenticatedHttpClient,
   );
+  final autoplayStorage = EsketitRestApiAutoplayStorage(
+    httpClient: authenticatedHttpClient,
+    baseUri: baseUri,
+  );
 
   runApp(
     MultiBlocProvider(
@@ -136,6 +141,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           create: (context) => PlayerBloc(
             initialState: PlayerState(selectedTrack: null, isPlaying: false),
             player: JustAudioAudioPlayer(baseUri: baseUri),
+            autoplayStorage: autoplayStorage,
             errorReporter: errorReporter,
           ),
         ),

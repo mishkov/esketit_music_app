@@ -4,6 +4,7 @@ import 'package:esketit_music_app/ui/albums/album_summary_card.dart';
 import 'package:esketit_music_app/ui/albums/album_tracks_section.dart';
 import 'package:esketit_music_app/ui/authors/author_desktop_layout.dart';
 import 'package:esketit_music_app/ui/authors/author_mobile_layout.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:flutter/material.dart';
 
 class AlbumDetailsContent extends StatelessWidget {
@@ -36,6 +37,10 @@ class AlbumDetailsContent extends StatelessWidget {
         final tracksSection = AlbumTracksSection(
           tracks: tracks,
           tracksQueue: tracksQueue,
+          autoplayContext: AutoplayContext(
+            sourceType: AutoplaySourceType.album,
+            sourceId: album.id,
+          ),
         );
 
         Widget content = useDesktopLayout

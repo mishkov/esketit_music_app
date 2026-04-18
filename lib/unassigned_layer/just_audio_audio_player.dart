@@ -67,6 +67,19 @@ class JustAudioAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> appendToQueue(List<Track> tracks) async {
+    if (tracks.isEmpty) {
+      return;
+    }
+
+    _queue = List<Track>.unmodifiable([..._queue, ...tracks]);
+
+    await _audioPlayer.addAudioSources(
+      tracks.map(_buildAudioSource).toList(growable: false),
+    );
+  }
+
+  @override
   Future<void> dispose() async {
     await _audioPlayer.dispose();
   }

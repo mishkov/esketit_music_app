@@ -4,6 +4,7 @@ import 'package:esketit_music_app/ui/catalog/album_search_tile.dart';
 import 'package:esketit_music_app/ui/catalog/author_search_tile.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:flutter/material.dart';
 
 class SearchCatalogView extends StatelessWidget {
@@ -36,11 +37,6 @@ class SearchCatalogView extends StatelessWidget {
       return Center(child: Text(l10n.noResultsFound(state.searchQuery.trim())));
     }
 
-    final trackQueue = items
-        .where((item) => item.track != null && item.track!.isAvailable)
-        .map((item) => item.track!)
-        .toList(growable: false);
-
     return ListView(
       controller: scrollController,
       padding: EdgeInsets.only(
@@ -65,7 +61,11 @@ class SearchCatalogView extends StatelessWidget {
             ),
             CatalogSearchResultType.track => TrackListCard(
               track: item.track!,
-              queue: trackQueue,
+              queue: [item.track!],
+              autoplayContext: AutoplayContext(
+                sourceType: AutoplaySourceType.track,
+                sourceId: item.track!.id,
+              ),
             ),
           };
         }),

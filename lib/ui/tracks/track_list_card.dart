@@ -3,6 +3,7 @@ import 'package:esketit_music_app/l10n/app_localizations_build_context_extension
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ class TrackListCard extends StatelessWidget {
   const TrackListCard({
     required this.track,
     required this.queue,
+    this.autoplayContext,
     this.playlistIdForRemoval,
     this.showAddToPlaylistsAction = true,
     super.key,
@@ -19,6 +21,7 @@ class TrackListCard extends StatelessWidget {
 
   final Track track;
   final List<Track> queue;
+  final AutoplayContext? autoplayContext;
   final int? playlistIdForRemoval;
   final bool showAddToPlaylistsAction;
 
@@ -113,7 +116,11 @@ class TrackListCard extends StatelessWidget {
                   ),
                   onTap: track.isAvailable
                       ? () => context.read<PlayerBloc>().add(
-                          PlayTrack(track, queue: queue),
+                          PlayTrack(
+                            track,
+                            queue: queue,
+                            autoplayContext: autoplayContext,
+                          ),
                         )
                       : null,
                 ),
