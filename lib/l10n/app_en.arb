@@ -129,6 +129,7 @@
   "trackScreenLyricsLoadFailed": "Failed to load lyrics.",
   "trackLyricsScreenTitle": "Lyrics",
   "trackScreenLyricsFullscreenTooltip": "Open lyrics fullscreen",
+  "trackScreenGoToAlbumAction": "Go to album",
   "removeFromFavoritesTooltip": "Remove from favorites",
   "addToFavoritesTooltip": "Add to favorites",
   "addToPlaylistsTooltip": "Add to playlists",

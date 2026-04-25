@@ -1,6 +1,10 @@
+import 'package:esketit_music_app/domain/album.dart';
+import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/catalog/catalog_screen_helpers.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen_body.dart';
+import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,6 +22,9 @@ class TrackScreen extends StatelessWidget {
           previous.hasNextTrack != current.hasNextTrack,
       builder: (context, state) {
         final selectedTrack = state.selectedTrack;
+        final album = selectedTrack == null
+            ? null
+            : _albumForTrack(context.read<CatalogBloc>().state, selectedTrack);
 
         return ScreenSkeleton(
           enableBottomPlayer: false,
@@ -25,8 +32,16 @@ class TrackScreen extends StatelessWidget {
             title: Text(context.l10n.trackScreenNowPlayingLabel),
             centerTitle: true,
             actions: [
-              IconButton(
-                onPressed: () {},
+              PopupMenuButton<_TrackScreenMenuAction>(
+                enabled: album != null,
+                onSelected: (action) =>
+                    _onMenuActionSelected(context, action, album),
+                itemBuilder: (context) => [
+                  PopupMenuItem<_TrackScreenMenuAction>(
+                    value: _TrackScreenMenuAction.goToAlbum,
+                    child: Text(context.l10n.trackScreenGoToAlbumAction),
+                  ),
+                ],
                 icon: const Icon(Icons.more_vert_rounded),
               ),
             ],
@@ -40,4 +55,40 @@ class TrackScreen extends StatelessWidget {
       },
     );
   }
+
+  void _onMenuActionSelected(
+    BuildContext context,
+    _TrackScreenMenuAction action,
+    Album? album,
+  ) {
+    if (action == _TrackScreenMenuAction.goToAlbum && album != null) {
+      openAlbumDetails(context, album);
+    }
+  }
+
+  Album? _albumForTrack(CatalogState catalogState, Track track) {
+    for (final albums in catalogState.albumsByAuthorId.values) {
+      for (final album in albums) {
+        if (album.trackIds.contains(track.id)) {
+          return album;
+        }
+      }
+    }
+
+    final searchResults = catalogState.searchResults;
+    if (searchResults == null) {
+      return null;
+    }
+
+    for (final searchResult in searchResults.items) {
+      final album = searchResult.album;
+      if (album != null && album.trackIds.contains(track.id)) {
+        return album;
+      }
+    }
+
+    return null;
+  }
 }
+
+enum _TrackScreenMenuAction { goToAlbum }

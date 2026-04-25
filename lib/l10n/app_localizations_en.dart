@@ -320,6 +320,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackScreenLyricsFullscreenTooltip => 'Open lyrics fullscreen';
 
   @override
+  String get trackScreenGoToAlbumAction => 'Go to album';
+
+  @override
   String get removeFromFavoritesTooltip => 'Remove from favorites';
 
   @override

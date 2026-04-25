@@ -327,6 +327,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Открыть текст песни на весь экран';
 
   @override
+  String get trackScreenGoToAlbumAction => 'Перейти к альбому';
+
+  @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';
 
   @override

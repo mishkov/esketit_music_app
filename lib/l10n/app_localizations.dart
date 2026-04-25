@@ -662,6 +662,12 @@ abstract class AppLocalizations {
   /// **'Open lyrics fullscreen'**
   String get trackScreenLyricsFullscreenTooltip;
 
+  /// No description provided for @trackScreenGoToAlbumAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to album'**
+  String get trackScreenGoToAlbumAction;
+
   /// No description provided for @removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:
