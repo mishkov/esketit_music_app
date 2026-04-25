@@ -118,6 +118,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   AutoplayContext? _autoplayContext;
   bool _isAutoplayRequestInProgress = false;
   bool _isAutoplayExhausted = false;
+  bool _skipNextSelectedTrackAutoplayPrefetch = false;
 
   StreamSubscription<bool>? _isPlayingSubscription;
   StreamSubscription<Track?>? _selectedTrackSubscription;
@@ -264,6 +265,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       }
 
       _recordRecentlyPlayedTrack(selectedTrack.id);
+      if (_skipNextSelectedTrackAutoplayPrefetch) {
+        _skipNextSelectedTrackAutoplayPrefetch = false;
+
+        return;
+      }
+
       await _ensureAutoplayQueuePrefilled();
     });
 
@@ -299,6 +306,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         queue: event.queue,
         initialIndex: initialIndex,
         autoplayContext: event.autoplayContext,
+        shouldPrefetchAutoplayAfterStart: true,
       );
     } catch (error, stackTrace) {
       emit(state.copyWith(isPlaying: false));
@@ -344,6 +352,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         queue: availableTracks,
         initialIndex: 0,
         autoplayContext: event.autoplayContext,
+        shouldPrefetchAutoplayAfterStart: false,
       );
     } catch (error, stackTrace) {
       await _handleAutoplayFailure(
@@ -360,13 +369,20 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required List<Track> queue,
     required int initialIndex,
     required AutoplayContext? autoplayContext,
+    required bool shouldPrefetchAutoplayAfterStart,
   }) async {
     _replaceManagedQueue(queue);
     _configureAutoplaySession(autoplayContext, seededQueue: queue);
+    _skipNextSelectedTrackAutoplayPrefetch = !shouldPrefetchAutoplayAfterStart;
 
     emit(state.copyWith(selectedTrack: NullableOption.value(track)));
 
     await _player.beginPlayingQueue(queue, initialIndex: initialIndex);
+    if (!shouldPrefetchAutoplayAfterStart) {
+      return;
+    }
+
+    _recordRecentlyPlayedTrack(track.id);
     await _ensureAutoplayQueuePrefilled();
   }
 
@@ -387,6 +403,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       ..addAll(seededQueue.map((track) => track.id));
     _isAutoplayRequestInProgress = false;
     _isAutoplayExhausted = false;
+    _skipNextSelectedTrackAutoplayPrefetch = false;
   }
 
   void _recordRecentlyPlayedTrack(int trackId) {
