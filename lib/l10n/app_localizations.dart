@@ -668,6 +668,18 @@ abstract class AppLocalizations {
   /// **'Go to album'**
   String get trackScreenGoToAlbumAction;
 
+  /// No description provided for @trackScreenGoToAuthorAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to author'**
+  String get trackScreenGoToAuthorAction;
+
+  /// No description provided for @trackScreenChooseAuthorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose author'**
+  String get trackScreenChooseAuthorTitle;
+
   /// No description provided for @removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:

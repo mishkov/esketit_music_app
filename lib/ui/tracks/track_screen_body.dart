@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/single_line_overflow_marquee_text.dart';
+import 'package:esketit_music_app/ui/tracks/author_picker_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_controls_row.dart';
 import 'package:esketit_music_app/ui/tracks/track_lyrics_section.dart';
 import 'package:esketit_music_app/ui/tracks/track_progress_section.dart';
@@ -52,14 +53,25 @@ class TrackScreenBody extends StatelessWidget {
                   style: theme.textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
-                Text(
-                  _authorsLabel(context),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: track.authors.isEmpty
+                      ? null
+                      : () => openAuthorSelection(context, track.authors),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      _authorsLabel(context),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: track.authors.isEmpty
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.primary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),

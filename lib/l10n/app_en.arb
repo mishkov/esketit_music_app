@@ -130,6 +130,8 @@
   "trackLyricsScreenTitle": "Lyrics",
   "trackScreenLyricsFullscreenTooltip": "Open lyrics fullscreen",
   "trackScreenGoToAlbumAction": "Go to album",
+  "trackScreenGoToAuthorAction": "Go to author",
+  "trackScreenChooseAuthorTitle": "Choose author",
   "removeFromFavoritesTooltip": "Remove from favorites",
   "addToFavoritesTooltip": "Add to favorites",
   "addToPlaylistsTooltip": "Add to playlists",

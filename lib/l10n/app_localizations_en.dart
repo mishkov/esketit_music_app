@@ -323,6 +323,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackScreenGoToAlbumAction => 'Go to album';
 
   @override
+  String get trackScreenGoToAuthorAction => 'Go to author';
+
+  @override
+  String get trackScreenChooseAuthorTitle => 'Choose author';
+
+  @override
   String get removeFromFavoritesTooltip => 'Remove from favorites';
 
   @override

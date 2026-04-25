@@ -330,6 +330,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackScreenGoToAlbumAction => 'Перейти к альбому';
 
   @override
+  String get trackScreenGoToAuthorAction => 'Перейти к автору';
+
+  @override
+  String get trackScreenChooseAuthorTitle => 'Выберите автора';
+
+  @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';
 
   @override

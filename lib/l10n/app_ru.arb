@@ -130,6 +130,8 @@
   "trackLyricsScreenTitle": "Текст песни",
   "trackScreenLyricsFullscreenTooltip": "Открыть текст песни на весь экран",
   "trackScreenGoToAlbumAction": "Перейти к альбому",
+  "trackScreenGoToAuthorAction": "Перейти к автору",
+  "trackScreenChooseAuthorTitle": "Выберите автора",
   "removeFromFavoritesTooltip": "Убрать из избранного",
   "addToFavoritesTooltip": "Добавить в избранное",
   "addToPlaylistsTooltip": "Добавить в плейлисты",
