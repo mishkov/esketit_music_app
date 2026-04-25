@@ -7,6 +7,7 @@ import 'package:esketit_music_app/ui/tracks/track_progress_section.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:marquee/marquee.dart';
 
 class TrackScreenBody extends StatelessWidget {
   const TrackScreenBody({required this.track, required this.state, super.key});
@@ -46,12 +47,18 @@ class TrackScreenBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  track.name,
-                  style: theme.textTheme.headlineSmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
+                SizedBox(
+                  height: (theme.textTheme.headlineSmall?.fontSize ?? 24) * 1.4,
+                  child: Marquee(
+                    text: track.name,
+                    style: theme.textTheme.headlineSmall,
+                    blankSpace: 32,
+                    velocity: 36,
+                    pauseAfterRound: const Duration(milliseconds: 800),
+                    startPadding: 0,
+                    accelerationDuration: const Duration(milliseconds: 400),
+                    decelerationDuration: const Duration(milliseconds: 400),
+                  ),
                 ),
                 Text(
                   _authorsLabel(context),
