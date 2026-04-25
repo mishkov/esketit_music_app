@@ -2,8 +2,15 @@ import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class TrackProgressSection extends StatelessWidget {
+class TrackProgressSection extends StatefulWidget {
   const TrackProgressSection({super.key});
+
+  @override
+  State<TrackProgressSection> createState() => _TrackProgressSectionState();
+}
+
+class _TrackProgressSectionState extends State<TrackProgressSection> {
+  Duration? _draggedPosition;
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +29,15 @@ class TrackProgressSection extends StatelessWidget {
               position: Duration.zero,
               duration: Duration.zero,
             );
-        final position = _normalizePosition(
+        final actualPosition = _normalizePosition(
           playbackProgress.position,
           playbackProgress.duration,
         );
         final duration = playbackProgress.duration;
+        final position = _normalizePosition(
+          _draggedPosition ?? actualPosition,
+          duration,
+        );
         final durationMilliseconds = duration.inMilliseconds;
         final sliderMax = durationMilliseconds > 0
             ? durationMilliseconds.toDouble()
@@ -40,14 +51,28 @@ class TrackProgressSection extends StatelessWidget {
                   .clamp(0, sliderMax.toInt())
                   .toDouble(),
               max: sliderMax,
-              onChanged: durationMilliseconds == 0 ? null : (_) {},
+              onChanged: durationMilliseconds == 0
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _draggedPosition = Duration(
+                          milliseconds: value.round(),
+                        );
+                      });
+                    },
               onChangeEnd: durationMilliseconds == 0
                   ? null
                   : (value) {
+                      final seekPosition = Duration(
+                        milliseconds: value.round(),
+                      );
+
+                      setState(() {
+                        _draggedPosition = null;
+                      });
+
                       context.read<PlayerBloc>().add(
-                        SeekToPositionRequested(
-                          Duration(milliseconds: value.round()),
-                        ),
+                        SeekToPositionRequested(seekPosition),
                       );
                     },
             ),
