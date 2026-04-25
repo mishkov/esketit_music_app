@@ -1,13 +1,13 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/shared/single_line_overflow_marquee_text.dart';
 import 'package:esketit_music_app/ui/tracks/track_controls_row.dart';
 import 'package:esketit_music_app/ui/tracks/track_lyrics_section.dart';
 import 'package:esketit_music_app/ui/tracks/track_progress_section.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:marquee/marquee.dart';
 
 class TrackScreenBody extends StatelessWidget {
   const TrackScreenBody({required this.track, required this.state, super.key});
@@ -47,18 +47,10 @@ class TrackScreenBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: (theme.textTheme.headlineSmall?.fontSize ?? 24) * 1.4,
-                  child: Marquee(
-                    text: track.name,
-                    style: theme.textTheme.headlineSmall,
-                    blankSpace: 32,
-                    velocity: 36,
-                    pauseAfterRound: const Duration(milliseconds: 800),
-                    startPadding: 0,
-                    accelerationDuration: const Duration(milliseconds: 400),
-                    decelerationDuration: const Duration(milliseconds: 400),
-                  ),
+                SingleLineOverflowMarqueeText(
+                  text: track.name,
+                  style: theme.textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
                 ),
                 Text(
                   _authorsLabel(context),
