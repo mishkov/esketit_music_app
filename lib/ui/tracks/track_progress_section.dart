@@ -45,37 +45,47 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
 
         return Column(
           children: [
-            Slider(
-              padding: EdgeInsets.zero,
-              value: position.inMilliseconds
-                  .clamp(0, sliderMax.toInt())
-                  .toDouble(),
-              max: sliderMax,
-              onChanged: durationMilliseconds == 0
-                  ? null
-                  : (value) {
-                      setState(() {
-                        _draggedPosition = Duration(
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 4,
+                  disabledThumbRadius: 4,
+                ),
+                overlayShape: SliderComponentShape.noOverlay,
+              ),
+              child: Slider(
+                padding: EdgeInsets.zero,
+                value: position.inMilliseconds
+                    .clamp(0, sliderMax.toInt())
+                    .toDouble(),
+                max: sliderMax,
+                onChanged: durationMilliseconds == 0
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _draggedPosition = Duration(
+                            milliseconds: value.round(),
+                          );
+                        });
+                      },
+                onChangeEnd: durationMilliseconds == 0
+                    ? null
+                    : (value) {
+                        final seekPosition = Duration(
                           milliseconds: value.round(),
                         );
-                      });
-                    },
-              onChangeEnd: durationMilliseconds == 0
-                  ? null
-                  : (value) {
-                      final seekPosition = Duration(
-                        milliseconds: value.round(),
-                      );
 
-                      setState(() {
-                        _draggedPosition = null;
-                      });
+                        setState(() {
+                          _draggedPosition = null;
+                        });
 
-                      context.read<PlayerBloc>().add(
-                        SeekToPositionRequested(seekPosition),
-                      );
-                    },
+                        context.read<PlayerBloc>().add(
+                          SeekToPositionRequested(seekPosition),
+                        );
+                      },
+              ),
             ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Text(_formatDuration(position)),
