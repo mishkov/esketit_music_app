@@ -12,54 +12,57 @@ import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('play track seeds autoplay session and prefetches continuation', () async {
-    final audioPlayer = _FakeAudioPlayer();
-    final autoplayStorage = _FakeAutoplayStorage(
-      nextBatch: AutoplayTracksBatch(
-        context: const AutoplayContext(
+  test(
+    'play track seeds autoplay session and prefetches continuation',
+    () async {
+      final audioPlayer = _FakeAudioPlayer();
+      final autoplayStorage = _FakeAutoplayStorage(
+        nextBatch: AutoplayTracksBatch(
+          context: const AutoplayContext(
+            sourceType: AutoplaySourceType.playlist,
+            sourceId: 7,
+          ),
+          strategy: 'random_stub_v1',
+          tracks: [_track(3), _track(4)],
+        ),
+      );
+      final bloc = PlayerBloc(
+        initialState: const PlayerState(selectedTrack: null, isPlaying: false),
+        player: audioPlayer,
+        autoplayStorage: autoplayStorage,
+        errorReporter: _FakeErrorReporter(),
+      );
+
+      bloc.add(
+        PlayTrack(
+          _track(1),
+          queue: [_track(1), _track(2)],
+          autoplayContext: const AutoplayContext(
+            sourceType: AutoplaySourceType.playlist,
+            sourceId: 7,
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.selectedTrack?.id, 1);
+      expect(audioPlayer.appendedTrackIds, [3, 4]);
+      expect(
+        autoplayStorage.requests.single.context,
+        const AutoplayContext(
           sourceType: AutoplaySourceType.playlist,
           sourceId: 7,
         ),
-        strategy: 'random_stub_v1',
-        tracks: [_track(3), _track(4)],
-      ),
-    );
-    final bloc = PlayerBloc(
-      initialState: const PlayerState(selectedTrack: null, isPlaying: false),
-      player: audioPlayer,
-      autoplayStorage: autoplayStorage,
-      errorReporter: _FakeErrorReporter(),
-    );
+      );
+      expect(autoplayStorage.requests.single.recentTrackIds, [1]);
+      expect(autoplayStorage.requests.single.excludedTrackIds, [1, 2]);
 
-    bloc.add(
-      PlayTrack(
-        _track(1),
-        queue: [_track(1), _track(2)],
-        autoplayContext: const AutoplayContext(
-          sourceType: AutoplaySourceType.playlist,
-          sourceId: 7,
-        ),
-      ),
-    );
-
-    await Future<void>.delayed(Duration.zero);
-    await Future<void>.delayed(Duration.zero);
-
-    expect(bloc.state.selectedTrack?.id, 1);
-    expect(audioPlayer.appendedTrackIds, [3, 4]);
-    expect(
-      autoplayStorage.requests.single.context,
-      const AutoplayContext(
-        sourceType: AutoplaySourceType.playlist,
-        sourceId: 7,
-      ),
-    );
-    expect(autoplayStorage.requests.single.recentTrackIds, [1]);
-    expect(autoplayStorage.requests.single.excludedTrackIds, [1, 2]);
-
-    await bloc.close();
-    await audioPlayer.dispose();
-  });
+      await bloc.close();
+      await audioPlayer.dispose();
+    },
+  );
 
   test('my vibe request starts playback from autoplay response', () async {
     final audioPlayer = _FakeAudioPlayer();

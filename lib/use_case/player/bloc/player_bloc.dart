@@ -21,11 +21,8 @@ final class PlayTrack extends PlayerEvent {
   final List<Track> queue;
   final AutoplayContext? autoplayContext;
 
-  PlayTrack(
-    this.track, {
-    List<Track>? queue,
-    this.autoplayContext,
-  }) : queue = queue ?? [track];
+  PlayTrack(this.track, {List<Track>? queue, this.autoplayContext})
+    : queue = queue ?? [track];
 
   @override
   List<Object?> get props => [track, queue, autoplayContext];
@@ -445,7 +442,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       );
       final newTracks = batch.tracks
           .where(
-            (track) => track.isAvailable && !_excludedTrackIds.contains(track.id),
+            (track) =>
+                track.isAvailable && !_excludedTrackIds.contains(track.id),
           )
           .toList(growable: false);
       if (newTracks.isEmpty) {
@@ -501,7 +499,9 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
   }
 
-  Map<String, Object?> _autoplayBreadcrumbData(AutoplayContext autoplayContext) {
+  Map<String, Object?> _autoplayBreadcrumbData(
+    AutoplayContext autoplayContext,
+  ) {
     return {
       'sourceType': autoplayContext.sourceType.name,
       'sourceId': autoplayContext.sourceId,
