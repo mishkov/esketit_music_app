@@ -16,7 +16,7 @@ build_base_url() {
       echo "http://localhost:$port"
       ;;
     production)
-      echo "http://46.101.162.92:$port"
+      echo "http://46.101.162.92"
       ;;
     current-device)
       resolve_current_device_base_url
