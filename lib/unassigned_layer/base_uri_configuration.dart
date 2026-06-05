@@ -1,6 +1,6 @@
 final class BaseUriConfiguration {
   static const String baseUrlEnvironmentKey = 'BASE_URL';
-  static const String defaultBaseUrl = 'http://46.101.162.92';
+  static const String defaultBaseUrl = 'http://46.101.162.92/api/';
 
   const BaseUriConfiguration._();
 
