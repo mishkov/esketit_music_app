@@ -374,6 +374,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     final rawPath =
         (item['imagePath'] as String?) ??
         (item['coverImagePath'] as String?) ??
+        (item['albumImagePath'] as String?) ??
         '';
 
     return _resolveAlbumCoverUri(rawPath);

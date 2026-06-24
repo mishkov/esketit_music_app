@@ -62,6 +62,7 @@ class SearchCatalogView extends StatelessWidget {
             CatalogSearchResultType.track => TrackListCard(
               track: item.track!,
               queue: [item.track!],
+              showImage: true,
               autoplayContext: AutoplayContext(
                 sourceType: AutoplaySourceType.track,
                 sourceId: item.track!.id,

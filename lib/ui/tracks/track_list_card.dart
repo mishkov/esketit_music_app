@@ -1,6 +1,8 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
+import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
@@ -16,6 +18,7 @@ class TrackListCard extends StatelessWidget {
     this.autoplayContext,
     this.playlistIdForRemoval,
     this.showAddToPlaylistsAction = true,
+    this.showImage = false,
     super.key,
   });
 
@@ -24,6 +27,7 @@ class TrackListCard extends StatelessWidget {
   final AutoplayContext? autoplayContext;
   final int? playlistIdForRemoval;
   final bool showAddToPlaylistsAction;
+  final bool showImage;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +66,19 @@ class TrackListCard extends StatelessWidget {
                     : null,
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
+                  contentPadding: showImage ? const EdgeInsets.all(12) : null,
+                  leading: showImage
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: SizedBox.square(
+                            dimension: 56,
+                            child: RemoteImage(
+                              imageUrl: _trackImageUrl(track),
+                              icon: Icons.music_note_rounded,
+                            ),
+                          ),
+                        )
+                      : null,
                   title: Text(track.name, overflow: TextOverflow.ellipsis),
                   subtitle: Text(
                     [
@@ -130,6 +147,16 @@ class TrackListCard extends StatelessWidget {
         );
       },
     );
+  }
+
+  String? _trackImageUrl(Track track) {
+    final image = track.image;
+    if (image is! HttpFile) {
+      return null;
+    }
+    final value = image.uri.toString();
+
+    return value.isEmpty ? null : value;
   }
 
   void _toggleFavorite(BuildContext context, {required bool shouldBeFavorite}) {
