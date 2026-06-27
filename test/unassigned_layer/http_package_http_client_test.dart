@@ -35,6 +35,18 @@ void main() {
       Uri.parse('http://localhost:8080/api/authors'),
     ]);
   });
+
+  test('get resolves against a root-relative base URI', () async {
+    final transport = _RecordingHttpClient();
+    final client = HttpPackageHttpClient(
+      baseUri: Uri.parse('/api/'),
+      client: transport,
+    );
+
+    await client.get('authors');
+
+    expect(transport.requestedUris, [Uri.parse('/api/authors')]);
+  });
 }
 
 class _RecordingHttpClient extends http.BaseClient {

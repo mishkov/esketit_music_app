@@ -15,9 +15,19 @@ final class BaseUriConfiguration {
 
   static Uri parse(String configuredBaseUrl) {
     final uri = Uri.parse(configuredBaseUrl);
-    if (!uri.hasScheme || uri.host.isEmpty) {
+    final isAbsoluteHttpUri =
+        (uri.scheme == 'http' || uri.scheme == 'https') && uri.host.isNotEmpty;
+    final isRootRelativeUri =
+        !uri.hasScheme &&
+        uri.host.isEmpty &&
+        uri.path.startsWith('/') &&
+        !uri.hasQuery &&
+        !uri.hasFragment;
+
+    if (!isAbsoluteHttpUri && !isRootRelativeUri) {
       throw FormatException(
-        'BASE_URL must include a scheme and host: $configuredBaseUrl',
+        'BASE_URL must be an absolute http(s) URL or root-relative path: '
+        '$configuredBaseUrl',
       );
     }
 

@@ -9,9 +9,20 @@ void main() {
     );
   });
 
-  test('parse throws when the value does not contain a host', () {
+  test('parse returns a URI when the value is root-relative', () {
+    expect(BaseUriConfiguration.parse('/api/'), Uri.parse('/api/'));
+  });
+
+  test('parse throws when the value is an ambiguous relative path', () {
     expect(
       () => BaseUriConfiguration.parse('localhost:8080'),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('parse throws when the root-relative value contains a query', () {
+    expect(
+      () => BaseUriConfiguration.parse('/api/?debug=true'),
       throwsA(isA<FormatException>()),
     );
   });
