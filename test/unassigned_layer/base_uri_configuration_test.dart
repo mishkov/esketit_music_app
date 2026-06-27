@@ -2,14 +2,21 @@ import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('parse returns a URI when the value contains scheme and host', () {
+  test('parse appends api suffix when the value contains scheme and host', () {
     expect(
       BaseUriConfiguration.parse('http://localhost:8080'),
-      Uri.parse('http://localhost:8080'),
+      Uri.parse('http://localhost:8080/api/'),
     );
   });
 
-  test('parse returns a URI when the value is root-relative', () {
+  test('parse keeps an existing api suffix for absolute URLs', () {
+    expect(
+      BaseUriConfiguration.parse('http://localhost:8080/api'),
+      Uri.parse('http://localhost:8080/api/'),
+    );
+  });
+
+  test('parse keeps an existing api suffix for root-relative URLs', () {
     expect(BaseUriConfiguration.parse('/api/'), Uri.parse('/api/'));
   });
 

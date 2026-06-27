@@ -10,13 +10,13 @@ readonly server_target="${1:-production}"
 build_base_url() {
   case "$server_target" in
     emulator-localhost)
-      echo "http://10.0.2.2:$port"
+      echo "http://10.0.2.2:$port/api/"
       ;;
     localhost)
-      echo "http://localhost:$port"
+      echo "http://localhost:$port/api/"
       ;;
     production)
-      echo "http://46.101.162.92"
+      echo "http://46.101.162.92/api/"
       ;;
     current-device)
       resolve_current_device_base_url
@@ -55,7 +55,7 @@ resolve_current_device_base_url() {
     exit 1
   fi
 
-  echo "http://$ip_address:$port"
+  echo "http://$ip_address:$port/api/"
 }
 
 base_url="$(build_base_url)"

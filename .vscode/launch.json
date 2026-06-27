@@ -10,6 +10,7 @@
       "type": "dart",
       "preLaunchTask": "Generate launch defines",
       "flutterMode": "debug",
+      "args": ["--web-port=8081"],
       "toolArgs": [
         "--dart-define-from-file=.vscode/launch_defines.json"
       ]

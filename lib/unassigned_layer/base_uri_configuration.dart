@@ -31,6 +31,16 @@ final class BaseUriConfiguration {
       );
     }
 
-    return uri;
+    return _withApiSuffix(uri);
+  }
+
+  static Uri _withApiSuffix(Uri uri) {
+    final path = uri.path;
+    final directoryPath = path.endsWith('/') ? path : '$path/';
+    final apiPath = directoryPath.endsWith('/api/')
+        ? directoryPath
+        : '${directoryPath == '/' ? '/' : directoryPath}api/';
+
+    return uri.replace(path: apiPath);
   }
 }
