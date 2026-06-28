@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -187,26 +188,38 @@ class TrackListCard extends StatelessWidget {
       playlistsBloc.add(const LoadPlaylists());
     }
 
-    final selectedPlaylistIds = await showModalBottomSheet<List<int>>(
+    _loadMissingPlaylistDetails(playlistsBloc);
+
+    final result = await showModalBottomSheet<PlaylistPickerResult>(
       context: context,
       showDragHandle: true,
       builder: (context) {
-        return BlocBuilder<PlaylistsBloc, PlaylistsState>(
+        return BlocConsumer<PlaylistsBloc, PlaylistsState>(
+          listener: (context, state) =>
+              _loadMissingPlaylistDetails(context.read<PlaylistsBloc>()),
           builder: (context, state) {
             final playlists = state.playlists
                 .where((playlist) => !playlist.isFavorites)
                 .toList(growable: false);
+            final selectedPlaylistIds = _playlistIdsContainingTrack(
+              state,
+              playlists,
+              track.id,
+            );
 
             return PlaylistPickerSheet(
               playlists: playlists,
-              isLoading: state.isLoadingPlaylists,
+              initialSelectedPlaylistIds: selectedPlaylistIds,
+              isLoading:
+                  state.isLoadingPlaylists ||
+                  _isLoadingPlaylistMembership(state, playlists),
             );
           },
         );
       },
     );
 
-    if (selectedPlaylistIds == null || selectedPlaylistIds.isEmpty) {
+    if (result == null) {
       return;
     }
 
@@ -214,11 +227,66 @@ class TrackListCard extends StatelessWidget {
       return;
     }
 
+    final playlistIdsToAdd = result.selectedPlaylistIds
+        .difference(result.initialPlaylistIds)
+        .toList(growable: false);
+    final playlistIdsToRemove = result.initialPlaylistIds
+        .difference(result.selectedPlaylistIds)
+        .toList(growable: false);
+    if (playlistIdsToAdd.isEmpty && playlistIdsToRemove.isEmpty) {
+      return;
+    }
+
     context.read<PlaylistsBloc>().add(
-      AddTrackToPlaylistsRequested(
+      UpdateTrackPlaylistsRequested(
         trackId: track.id,
-        playlistIds: selectedPlaylistIds,
+        addPlaylistIds: playlistIdsToAdd,
+        removePlaylistIds: playlistIdsToRemove,
       ),
     );
+  }
+
+  Set<int> _playlistIdsContainingTrack(
+    PlaylistsState state,
+    List<Playlist> playlists,
+    int trackId,
+  ) {
+    return playlists
+        .where(
+          (playlist) =>
+              state.playlistTracksById[playlist.id]?.any(
+                (track) => track.id == trackId,
+              ) ??
+              false,
+        )
+        .map((playlist) => playlist.id)
+        .toSet();
+  }
+
+  bool _isLoadingPlaylistMembership(
+    PlaylistsState state,
+    List<Playlist> playlists,
+  ) {
+    return playlists.any(
+      (playlist) =>
+          playlist.trackCount > 0 &&
+          !state.playlistTracksById.containsKey(playlist.id) &&
+          !state.playlistErrorMessages.containsKey(playlist.id),
+    );
+  }
+
+  void _loadMissingPlaylistDetails(PlaylistsBloc playlistsBloc) {
+    final state = playlistsBloc.state;
+    for (final playlist in state.playlists.where(
+      (playlist) => !playlist.isFavorites && playlist.trackCount > 0,
+    )) {
+      if (state.playlistTracksById.containsKey(playlist.id) ||
+          state.loadingPlaylistIds.contains(playlist.id) ||
+          state.playlistErrorMessages.containsKey(playlist.id)) {
+        continue;
+      }
+
+      playlistsBloc.add(LoadPlaylistDetails(playlist.id));
+    }
   }
 }

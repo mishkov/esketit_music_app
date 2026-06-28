@@ -42,6 +42,62 @@ void main() {
 
     await bloc.close();
   });
+
+  test('updates track playlist additions and removals', () async {
+    final addPlaylist = _playlist(7, trackCount: 0);
+    final removePlaylist = _playlist(8, trackCount: 1);
+    final track = _track(2);
+    final storage = _FakePlaylistsStorage(
+      playlists: [addPlaylist, removePlaylist],
+      playlistTracksById: {
+        addPlaylist.id: const [],
+        removePlaylist.id: [track],
+      },
+    );
+    final bloc = PlaylistsBloc(
+      playlistsStorage: storage,
+      errorReporter: _FakeErrorReporter(),
+    );
+
+    bloc.add(const LoadPlaylists());
+    bloc.add(LoadPlaylistDetails(removePlaylist.id));
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    bloc.add(
+      UpdateTrackPlaylistsRequested(
+        trackId: track.id,
+        addPlaylistIds: [addPlaylist.id],
+        removePlaylistIds: [removePlaylist.id],
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(storage.addedTrackIds, [track.id]);
+    expect(storage.addedTrackPlaylistIds, [
+      [addPlaylist.id],
+    ]);
+    expect(storage.removedTrackIds, [track.id]);
+    expect(storage.removedTrackPlaylistIds, [removePlaylist.id]);
+    expect(
+      bloc.state.playlists
+          .singleWhere((playlist) => playlist.id == addPlaylist.id)
+          .trackCount,
+      1,
+    );
+    expect(
+      bloc.state.playlists
+          .singleWhere((playlist) => playlist.id == removePlaylist.id)
+          .trackCount,
+      0,
+    );
+    expect(bloc.state.playlistTracksById[removePlaylist.id], isEmpty);
+
+    await bloc.close();
+  });
 }
 
 class _FakePlaylistsStorage implements PlaylistsStorage {
@@ -53,6 +109,10 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   List<Playlist> playlists;
   Map<int, List<Track>> playlistTracksById;
   final List<int> loadedPlaylistIds = <int>[];
+  final List<int> addedTrackIds = <int>[];
+  final List<List<int>> addedTrackPlaylistIds = <List<int>>[];
+  final List<int> removedTrackIds = <int>[];
+  final List<int> removedTrackPlaylistIds = <int>[];
 
   @override
   Future<void> addTrackToFavorites({required int trackId}) async {}
@@ -61,7 +121,10 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   Future<void> addTrackToPlaylists({
     required int trackId,
     required List<int> playlistIds,
-  }) async {}
+  }) async {
+    addedTrackIds.add(trackId);
+    addedTrackPlaylistIds.add(playlistIds);
+  }
 
   @override
   Future<Playlist> createPlaylist(PlaylistUpsertInput input) async =>
@@ -90,7 +153,10 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   Future<void> removeTrackFromPlaylist({
     required int trackId,
     required int playlistId,
-  }) async {}
+  }) async {
+    removedTrackIds.add(trackId);
+    removedTrackPlaylistIds.add(playlistId);
+  }
 
   @override
   Future<void> reorderPlaylistTracks({

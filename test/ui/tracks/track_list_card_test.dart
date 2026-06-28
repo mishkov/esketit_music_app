@@ -75,9 +75,76 @@ void main() {
 
     playlistsStorage.completePlaylists([playlist]);
     await tester.pump();
+    await tester.pump();
 
     expect(find.text('Road'), findsOneWidget);
     expect(find.text('0 tracks'), findsOneWidget);
+  });
+
+  testWidgets('checks existing playlists and removes unchecked playlist', (
+    tester,
+  ) async {
+    final track = _track(1);
+    final playlist = _playlist(7, name: 'Road', trackCount: 1);
+    final playlistsStorage = _FakePlaylistsStorage(
+      playlists: [playlist],
+      playlistTracksById: {
+        playlist.id: [track],
+      },
+    );
+    final authBloc = AuthBloc(
+      authRepository: _FakeAuthRepository(),
+      errorReporter: _FakeErrorReporter(),
+    )..add(const AuthSessionRestoreRequested());
+    final playlistsBloc = PlaylistsBloc(
+      playlistsStorage: playlistsStorage,
+      errorReporter: _FakeErrorReporter(),
+    )..add(const LoadPlaylists());
+    final playerBloc = PlayerBloc(
+      initialState: const PlayerState(selectedTrack: null, isPlaying: false),
+      player: _FakeAudioPlayer(),
+      autoplayStorage: _FakeAutoplayStorage(),
+      errorReporter: _FakeErrorReporter(),
+    );
+
+    addTearDown(authBloc.close);
+    addTearDown(playlistsBloc.close);
+    addTearDown(playerBloc.close);
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TrackListCard(track: track, queue: [track]),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.playlist_add_rounded));
+    await tester.pumpAndSettle();
+
+    final checkbox = tester.widget<CheckboxListTile>(
+      find.byType(CheckboxListTile),
+    );
+    expect(checkbox.value, isTrue);
+
+    await tester.tap(find.byType(CheckboxListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(playlistsStorage.removedTrackPlaylistIds, [playlist.id]);
+    expect(playlistsStorage.removedTrackIds, [track.id]);
   });
 }
 
@@ -119,16 +186,31 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 class _FakePlaylistsStorage implements PlaylistsStorage {
+  _FakePlaylistsStorage({
+    List<Playlist> playlists = const [],
+    Map<int, List<Track>> playlistTracksById = const {},
+  }) : _playlists = playlists,
+       _playlistTracksById = playlistTracksById;
+
   Completer<List<Playlist>>? _playlistsCompleter;
+  List<Playlist> _playlists;
+  final Map<int, List<Track>> _playlistTracksById;
   int getPlaylistsCallCount = 0;
+  final List<int> removedTrackIds = <int>[];
+  final List<int> removedTrackPlaylistIds = <int>[];
 
   void completePlaylists(List<Playlist> playlists) {
+    _playlists = playlists;
     _playlistsCompleter?.complete(playlists);
   }
 
   @override
   Future<List<Playlist>> getPlaylists() {
     getPlaylistsCallCount++;
+    if (_playlists.isNotEmpty) {
+      return Future.value(_playlists);
+    }
+
     final completer = Completer<List<Playlist>>();
     _playlistsCompleter = completer;
 
@@ -153,11 +235,11 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 
   @override
   Future<Playlist> getPlaylist({required int playlistId}) async =>
-      throw UnimplementedError();
+      _playlists.singleWhere((playlist) => playlist.id == playlistId);
 
   @override
   Future<List<Track>> getPlaylistTracks({required int playlistId}) async =>
-      const [];
+      _playlistTracksById[playlistId] ?? const [];
 
   @override
   Future<void> removeTrackFromFavorites({required int trackId}) async {}
@@ -166,7 +248,10 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   Future<void> removeTrackFromPlaylist({
     required int trackId,
     required int playlistId,
-  }) async {}
+  }) async {
+    removedTrackIds.add(trackId);
+    removedTrackPlaylistIds.add(playlistId);
+  }
 
   @override
   Future<void> reorderPlaylistTracks({
@@ -257,7 +342,7 @@ class _FakeErrorReporter implements ErrorReporter {
   Future<void> setUserId(String? id) async {}
 }
 
-Playlist _playlist(int id, {required String name}) {
+Playlist _playlist(int id, {required String name, int trackCount = 0}) {
   return Playlist(
     id: id,
     userId: 1,
@@ -265,7 +350,7 @@ Playlist _playlist(int id, {required String name}) {
     description: '',
     coverImagePath: '',
     visibility: PlaylistVisibility.private,
-    trackCount: 0,
+    trackCount: trackCount,
     system: false,
     isFavorites: false,
   );

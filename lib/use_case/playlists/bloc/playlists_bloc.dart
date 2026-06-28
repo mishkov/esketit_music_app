@@ -92,6 +92,21 @@ final class AddTrackToPlaylistsRequested extends PlaylistsEvent {
   List<Object?> get props => [trackId, playlistIds];
 }
 
+final class UpdateTrackPlaylistsRequested extends PlaylistsEvent {
+  const UpdateTrackPlaylistsRequested({
+    required this.trackId,
+    required this.addPlaylistIds,
+    required this.removePlaylistIds,
+  });
+
+  final int trackId;
+  final List<int> addPlaylistIds;
+  final List<int> removePlaylistIds;
+
+  @override
+  List<Object?> get props => [trackId, addPlaylistIds, removePlaylistIds];
+}
+
 final class RemoveTrackFromPlaylistRequested extends PlaylistsEvent {
   const RemoveTrackFromPlaylistRequested({
     required this.trackId,
@@ -136,6 +151,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     on<DeletePlaylistRequested>(_onDeletePlaylistRequested);
     on<ToggleFavoriteRequested>(_onToggleFavoriteRequested);
     on<AddTrackToPlaylistsRequested>(_onAddTrackToPlaylistsRequested);
+    on<UpdateTrackPlaylistsRequested>(_onUpdateTrackPlaylistsRequested);
     on<RemoveTrackFromPlaylistRequested>(_onRemoveTrackFromPlaylistRequested);
     on<ReorderPlaylistTracksRequested>(_onReorderPlaylistTracksRequested);
     on<ClearPlaylists>((event, emit) => emit(const PlaylistsState.initial()));
@@ -508,6 +524,101 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       );
       await _reportError(
         'Failed to add track ${event.trackId} to playlists',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
+  Future<void> _onUpdateTrackPlaylistsRequested(
+    UpdateTrackPlaylistsRequested event,
+    Emitter<PlaylistsState> emit,
+  ) async {
+    if (event.addPlaylistIds.isEmpty && event.removePlaylistIds.isEmpty) {
+      return;
+    }
+
+    final pendingTrackPlaylistActionIds = Set<int>.of(
+      state.pendingTrackPlaylistActionIds,
+    )..add(event.trackId);
+    emit(
+      state.copyWith(
+        pendingTrackPlaylistActionIds: pendingTrackPlaylistActionIds,
+      ),
+    );
+
+    try {
+      if (event.addPlaylistIds.isNotEmpty) {
+        await _playlistsStorage.addTrackToPlaylists(
+          trackId: event.trackId,
+          playlistIds: event.addPlaylistIds,
+        );
+      }
+
+      for (final playlistId in event.removePlaylistIds) {
+        await _playlistsStorage.removeTrackFromPlaylist(
+          trackId: event.trackId,
+          playlistId: playlistId,
+        );
+      }
+
+      final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
+        ..remove(event.trackId);
+      final playlistTracksById = Map<int, List<Track>>.of(
+        state.playlistTracksById,
+      );
+      final cachedAddedPlaylistIds = event.addPlaylistIds
+          .where(playlistTracksById.containsKey)
+          .toList(growable: false);
+      for (final playlistId in cachedAddedPlaylistIds) {
+        playlistTracksById.remove(playlistId);
+      }
+      for (final playlistId in event.removePlaylistIds) {
+        final tracks = playlistTracksById[playlistId];
+        if (tracks == null) {
+          continue;
+        }
+        playlistTracksById[playlistId] = tracks
+            .where((track) => track.id != event.trackId)
+            .toList(growable: false);
+      }
+
+      emit(
+        state.copyWith(
+          pendingTrackPlaylistActionIds: updatedPendingIds,
+          playlistTracksById: playlistTracksById,
+          playlists: state.playlists
+              .map((playlist) {
+                if (event.addPlaylistIds.contains(playlist.id)) {
+                  return playlist.copyWith(trackCount: playlist.trackCount + 1);
+                }
+
+                if (event.removePlaylistIds.contains(playlist.id)) {
+                  return playlist.copyWith(
+                    trackCount: (playlist.trackCount - 1).clamp(0, 1 << 31),
+                  );
+                }
+
+                return playlist;
+              })
+              .toList(growable: false),
+        ),
+      );
+      _emitFeedback(emit, message: 'Playlists updated.');
+      for (final playlistId in cachedAddedPlaylistIds) {
+        add(LoadPlaylistDetails(playlistId, forceRefresh: true));
+      }
+    } catch (error, stackTrace) {
+      final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
+        ..remove(event.trackId);
+      emit(state.copyWith(pendingTrackPlaylistActionIds: updatedPendingIds));
+      _emitFeedback(
+        emit,
+        message: 'Failed to update playlists.',
+        isError: true,
+      );
+      await _reportError(
+        'Failed to update playlists for track ${event.trackId}',
         error,
         stackTrace,
       );

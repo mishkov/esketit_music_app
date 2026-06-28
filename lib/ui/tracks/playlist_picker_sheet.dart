@@ -2,14 +2,26 @@ import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:flutter/material.dart';
 
+class PlaylistPickerResult {
+  const PlaylistPickerResult({
+    required this.initialPlaylistIds,
+    required this.selectedPlaylistIds,
+  });
+
+  final Set<int> initialPlaylistIds;
+  final Set<int> selectedPlaylistIds;
+}
+
 class PlaylistPickerSheet extends StatefulWidget {
   const PlaylistPickerSheet({
     required this.playlists,
+    required this.initialSelectedPlaylistIds,
     this.isLoading = false,
     super.key,
   });
 
   final List<Playlist> playlists;
+  final Set<int> initialSelectedPlaylistIds;
   final bool isLoading;
 
   @override
@@ -18,6 +30,27 @@ class PlaylistPickerSheet extends StatefulWidget {
 
 class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
   final Set<int> _selectedPlaylistIds = <int>{};
+  bool _hasUserChangedSelection = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPlaylistIds.addAll(widget.initialSelectedPlaylistIds);
+  }
+
+  @override
+  void didUpdateWidget(covariant PlaylistPickerSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_hasUserChangedSelection ||
+        widget.initialSelectedPlaylistIds ==
+            oldWidget.initialSelectedPlaylistIds) {
+      return;
+    }
+
+    _selectedPlaylistIds
+      ..clear()
+      ..addAll(widget.initialSelectedPlaylistIds);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,10 +107,15 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
               child: FilledButton(
                 onPressed: widget.isLoading || widget.playlists.isEmpty
                     ? null
-                    : () => Navigator.of(
-                        context,
-                      ).pop(_selectedPlaylistIds.toList(growable: false)),
-                child: Text(l10n.addButton),
+                    : () => Navigator.of(context).pop(
+                        PlaylistPickerResult(
+                          initialPlaylistIds: widget.initialSelectedPlaylistIds,
+                          selectedPlaylistIds: Set<int>.of(
+                            _selectedPlaylistIds,
+                          ),
+                        ),
+                      ),
+                child: Text(l10n.saveButton),
               ),
             ),
           ],
@@ -88,6 +126,7 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
 
   void _onPlaylistSelectionChanged(Playlist playlist, bool? checked) {
     setState(() {
+      _hasUserChangedSelection = true;
       if (checked ?? false) {
         _selectedPlaylistIds.add(playlist.id);
       } else {
