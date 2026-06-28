@@ -1,6 +1,6 @@
 final class BaseUriConfiguration {
   static const String baseUrlEnvironmentKey = 'BASE_URL';
-  static const String defaultBaseUrl = 'http://46.101.162.92/api/';
+  static const String defaultBaseUrl = 'https://esketitmusic.online/api/';
 
   const BaseUriConfiguration._();
 

@@ -16,7 +16,7 @@ build_base_url() {
       echo "http://localhost:$port/api/"
       ;;
     production)
-      echo "http://46.101.162.92/api/"
+      echo "https://esketitmusic.online/api/"
       ;;
     current-device)
       resolve_current_device_base_url
