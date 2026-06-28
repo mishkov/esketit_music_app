@@ -5,7 +5,6 @@ import 'package:esketit_music_app/ui/library/playlist_card.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
-import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 
 // TODO: rename it because actaully this is a page used inside tabbed screen.
 class MyLibraryScreen extends StatelessWidget {
@@ -83,11 +82,13 @@ class MyLibraryScreen extends StatelessWidget {
       builder: (context) => const PlaylistEditorDialog(),
     );
 
-    if (input is! PlaylistUpsertInput || !context.mounted) {
+    if (input is! PlaylistEditorResult || !context.mounted) {
       return;
     }
 
-    context.read<PlaylistsBloc>().add(CreatePlaylistRequested(input));
+    context.read<PlaylistsBloc>().add(
+      CreatePlaylistRequested(input.input, coverFile: input.coverFile),
+    );
   }
 
   Future<void> _refreshPlaylists(BuildContext context) async {

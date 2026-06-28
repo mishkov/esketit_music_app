@@ -560,6 +560,24 @@ abstract class AppLocalizations {
   /// **'Cover image URL or path'**
   String get coverImageUrlOrPathLabel;
 
+  /// No description provided for @chooseCoverImageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose cover image'**
+  String get chooseCoverImageButton;
+
+  /// No description provided for @selectedCoverImageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover: {fileName}'**
+  String selectedCoverImageLabel(String fileName);
+
+  /// No description provided for @clearCoverImageSelectionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cover image selection'**
+  String get clearCoverImageSelectionTooltip;
+
   /// No description provided for @visibilityLabel.
   ///
   /// In en, this message translates to:

@@ -105,6 +105,16 @@
   "nameLabel": "Название",
   "descriptionLabel": "Описание",
   "coverImageUrlOrPathLabel": "URL или путь к обложке",
+  "chooseCoverImageButton": "Выбрать обложку",
+  "selectedCoverImageLabel": "Обложка: {fileName}",
+  "@selectedCoverImageLabel": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "clearCoverImageSelectionTooltip": "Очистить выбор обложки",
   "visibilityLabel": "Видимость",
   "nameRequired": "Название обязательно.",
   "descriptionRequired": "Описание обязательно.",

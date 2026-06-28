@@ -86,6 +86,25 @@ class EsketitRestApiPlaylistsStorage
   }
 
   @override
+  Future<Playlist> uploadPlaylistCover({
+    required int playlistId,
+    required PlaylistCoverUploadInput input,
+  }) async {
+    final path = '/playlists/$playlistId/cover';
+    final response = await _httpClient.postMultipart(
+      path,
+      file: MultipartFileData(
+        fieldName: 'file',
+        fileName: input.fileName,
+        bytes: input.bytes,
+      ),
+    );
+    _throwIfNotSuccess(response, path);
+
+    return _parsePlaylist(_decodeJsonMap(response.response, path: path));
+  }
+
+  @override
   Future<void> deletePlaylist({required int playlistId}) async {
     final path = '/playlists/$playlistId';
     final response = await _httpClient.delete(path);

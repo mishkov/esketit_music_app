@@ -271,6 +271,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get coverImageUrlOrPathLabel => 'URL или путь к обложке';
 
   @override
+  String get chooseCoverImageButton => 'Выбрать обложку';
+
+  @override
+  String selectedCoverImageLabel(String fileName) {
+    return 'Обложка: $fileName';
+  }
+
+  @override
+  String get clearCoverImageSelectionTooltip => 'Очистить выбор обложки';
+
+  @override
   String get visibilityLabel => 'Видимость';
 
   @override

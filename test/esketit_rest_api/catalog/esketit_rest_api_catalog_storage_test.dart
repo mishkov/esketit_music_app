@@ -158,6 +158,15 @@ class _FakeHttpClient implements HttpClient {
   }
 
   @override
+  Future<HttpResponse> postMultipart(
+    String path, {
+    Map<String, String>? headers,
+    required MultipartFileData file,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<HttpResponse> put(
     String path, {
     Map<String, String>? headers,

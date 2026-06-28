@@ -105,6 +105,16 @@
   "nameLabel": "Name",
   "descriptionLabel": "Description",
   "coverImageUrlOrPathLabel": "Cover image URL or path",
+  "chooseCoverImageButton": "Choose cover image",
+  "selectedCoverImageLabel": "Cover: {fileName}",
+  "@selectedCoverImageLabel": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "clearCoverImageSelectionTooltip": "Clear cover image selection",
   "visibilityLabel": "Visibility",
   "nameRequired": "Name is required.",
   "descriptionRequired": "Description is required.",

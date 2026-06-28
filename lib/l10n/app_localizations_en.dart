@@ -265,6 +265,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coverImageUrlOrPathLabel => 'Cover image URL or path';
 
   @override
+  String get chooseCoverImageButton => 'Choose cover image';
+
+  @override
+  String selectedCoverImageLabel(String fileName) {
+    return 'Cover: $fileName';
+  }
+
+  @override
+  String get clearCoverImageSelectionTooltip => 'Clear cover image selection';
+
+  @override
   String get visibilityLabel => 'Visibility';
 
   @override

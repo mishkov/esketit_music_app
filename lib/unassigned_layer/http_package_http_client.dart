@@ -44,6 +44,30 @@ class HttpPackageHttpClient implements HttpClient {
   }
 
   @override
+  Future<HttpResponse> postMultipart(
+    String path, {
+    Map<String, String>? headers,
+    required MultipartFileData file,
+  }) async {
+    final request = http.MultipartRequest('POST', _resolve(path))
+      ..headers.addAll({...?headers})
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          file.fieldName,
+          file.bytes,
+          filename: file.fileName,
+        ),
+      );
+
+    final response = await _client.send(request);
+
+    return HttpResponse(
+      statusCode: response.statusCode,
+      response: await response.stream.bytesToString(),
+    );
+  }
+
+  @override
   Future<HttpResponse> put(
     String path, {
     Map<String, String>? headers,

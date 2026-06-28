@@ -33,25 +33,28 @@ final class LoadPlaylistDetails extends PlaylistsEvent {
 }
 
 final class CreatePlaylistRequested extends PlaylistsEvent {
-  const CreatePlaylistRequested(this.input);
+  const CreatePlaylistRequested(this.input, {this.coverFile});
 
   final PlaylistUpsertInput input;
+  final PlaylistCoverUploadInput? coverFile;
 
   @override
-  List<Object?> get props => [input];
+  List<Object?> get props => [input, coverFile];
 }
 
 final class UpdatePlaylistRequested extends PlaylistsEvent {
   const UpdatePlaylistRequested({
     required this.playlistId,
     required this.input,
+    this.coverFile,
   });
 
   final int playlistId;
   final PlaylistUpsertInput input;
+  final PlaylistCoverUploadInput? coverFile;
 
   @override
-  List<Object?> get props => [playlistId, input];
+  List<Object?> get props => [playlistId, input, coverFile];
 }
 
 final class DeletePlaylistRequested extends PlaylistsEvent {
@@ -243,9 +246,33 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     emit(state.copyWith(isSubmittingPlaylist: true));
 
     try {
-      final createdPlaylist = await _playlistsStorage.createPlaylist(
-        event.input,
-      );
+      var createdPlaylist = await _playlistsStorage.createPlaylist(event.input);
+      if (event.coverFile != null) {
+        try {
+          createdPlaylist = await _playlistsStorage.uploadPlaylistCover(
+            playlistId: createdPlaylist.id,
+            input: event.coverFile!,
+          );
+        } catch (error, stackTrace) {
+          emit(
+            state.copyWith(
+              isSubmittingPlaylist: false,
+              playlists: _upsertPlaylist(state.playlists, createdPlaylist),
+            ),
+          );
+          _emitFeedback(
+            emit,
+            message: 'Playlist created, but cover upload failed.',
+            isError: true,
+          );
+          await _reportError(
+            'Failed to upload cover for playlist ${createdPlaylist.id}',
+            error,
+            stackTrace,
+          );
+          return;
+        }
+      }
       emit(
         state.copyWith(
           isSubmittingPlaylist: false,
@@ -267,10 +294,36 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     emit(state.copyWith(isSubmittingPlaylist: true));
 
     try {
-      final updatedPlaylist = await _playlistsStorage.updatePlaylist(
+      var updatedPlaylist = await _playlistsStorage.updatePlaylist(
         playlistId: event.playlistId,
         input: event.input,
       );
+      if (event.coverFile != null) {
+        try {
+          updatedPlaylist = await _playlistsStorage.uploadPlaylistCover(
+            playlistId: event.playlistId,
+            input: event.coverFile!,
+          );
+        } catch (error, stackTrace) {
+          emit(
+            state.copyWith(
+              isSubmittingPlaylist: false,
+              playlists: _upsertPlaylist(state.playlists, updatedPlaylist),
+            ),
+          );
+          _emitFeedback(
+            emit,
+            message: 'Playlist updated, but cover upload failed.',
+            isError: true,
+          );
+          await _reportError(
+            'Failed to upload cover for playlist ${event.playlistId}',
+            error,
+            stackTrace,
+          );
+          return;
+        }
+      }
       emit(
         state.copyWith(
           isSubmittingPlaylist: false,

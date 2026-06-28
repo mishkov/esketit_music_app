@@ -15,6 +15,13 @@ class PlaylistUpsertInput {
   final PlaylistVisibility visibility;
 }
 
+class PlaylistCoverUploadInput {
+  const PlaylistCoverUploadInput({required this.fileName, required this.bytes});
+
+  final String fileName;
+  final List<int> bytes;
+}
+
 class PlaylistDetailsSnapshot {
   const PlaylistDetailsSnapshot({required this.playlist, required this.tracks});
 
@@ -32,6 +39,11 @@ abstract class PlaylistsStorage {
   Future<Playlist> updatePlaylist({
     required int playlistId,
     required PlaylistUpsertInput input,
+  });
+
+  Future<Playlist> uploadPlaylistCover({
+    required int playlistId,
+    required PlaylistCoverUploadInput input,
   });
 
   Future<void> deletePlaylist({required int playlistId});

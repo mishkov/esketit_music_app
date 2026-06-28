@@ -2,7 +2,15 @@ import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+
+class PlaylistEditorResult {
+  const PlaylistEditorResult({required this.input, this.coverFile});
+
+  final PlaylistUpsertInput input;
+  final PlaylistCoverUploadInput? coverFile;
+}
 
 class PlaylistEditorDialog extends StatefulWidget {
   const PlaylistEditorDialog({
@@ -32,6 +40,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
   final TextEditingController _coverImagePathController =
       TextEditingController();
   PlaylistVisibility _visibility = PlaylistVisibility.private;
+  PlaylistCoverUploadInput? _selectedCoverFile;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -85,6 +94,16 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.coverImageUrlOrPathLabel,
                 ),
+              ),
+              const SizedBox(height: 12),
+              _CoverUploadPicker(
+                fileName: _selectedCoverFile?.fileName,
+                onPick: _pickCoverFile,
+                onClear: _selectedCoverFile == null
+                    ? null
+                    : () => setState(() {
+                        _selectedCoverFile = null;
+                      }),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<PlaylistVisibility>(
@@ -149,6 +168,26 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
     });
   }
 
+  Future<void> _pickCoverFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+      withData: true,
+    );
+    final file = result?.files.singleOrNull;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedCoverFile = PlaylistCoverUploadInput(
+        fileName: file.name,
+        bytes: bytes,
+      );
+    });
+  }
+
   void _cancel(BuildContext context) {
     Navigator.of(context).pop();
   }
@@ -159,12 +198,58 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
     }
 
     Navigator.of(context).pop(
-      PlaylistUpsertInput(
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        coverImagePath: _coverImagePathController.text.trim(),
-        visibility: _visibility,
+      PlaylistEditorResult(
+        input: PlaylistUpsertInput(
+          name: _nameController.text.trim(),
+          description: _descriptionController.text.trim(),
+          coverImagePath: _coverImagePathController.text.trim(),
+          visibility: _visibility,
+        ),
+        coverFile: _selectedCoverFile,
       ),
+    );
+  }
+}
+
+class _CoverUploadPicker extends StatelessWidget {
+  const _CoverUploadPicker({
+    required this.fileName,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  final String? fileName;
+  final VoidCallback onPick;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onPick,
+            icon: const Icon(Icons.upload_file_rounded),
+            label: Text(
+              fileName == null
+                  ? l10n.chooseCoverImageButton
+                  : l10n.selectedCoverImageLabel(fileName!),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        if (onClear != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: l10n.clearCoverImageSelectionTooltip,
+            onPressed: onClear,
+            icon: const Icon(Icons.close_rounded),
+          ),
+        ],
+      ],
     );
   }
 }

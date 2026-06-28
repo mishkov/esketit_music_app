@@ -3,6 +3,7 @@ import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
+import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -118,6 +119,48 @@ void main() {
       '/shared/playlists/token%20value/tracks?page=1&pageSize=100',
     ]);
   });
+
+  test('uploads playlist cover as multipart file field', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/playlists/7/cover': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 7,
+            'userId': 10,
+            'name': 'Road',
+            'description': 'Driving playlist',
+            'coverImagePath': '/api/album-covers/generated.jpg',
+            'visibility': 'private',
+            'trackCount': 0,
+            'system': false,
+            'isFavorites': false,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiPlaylistsStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final playlist = await storage.uploadPlaylistCover(
+      playlistId: 7,
+      input: const PlaylistCoverUploadInput(
+        fileName: 'cover.png',
+        bytes: [1, 2, 3],
+      ),
+    );
+
+    expect(
+      playlist.coverImagePath,
+      'http://localhost:8080/api/album-covers/generated.jpg',
+    );
+    expect(httpClient.requestedPaths, ['/playlists/7/cover']);
+    expect(httpClient.multipartFiles.single.fieldName, 'file');
+    expect(httpClient.multipartFiles.single.fileName, 'cover.png');
+    expect(httpClient.multipartFiles.single.bytes, [1, 2, 3]);
+  });
 }
 
 class _FakeHttpClient implements HttpClient {
@@ -125,6 +168,7 @@ class _FakeHttpClient implements HttpClient {
 
   final Map<String, HttpResponse> responses;
   final List<String> requestedPaths = <String>[];
+  final List<MultipartFileData> multipartFiles = <MultipartFileData>[];
 
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) async {
@@ -141,6 +185,19 @@ class _FakeHttpClient implements HttpClient {
     Object? body,
   }) {
     throw UnimplementedError();
+  }
+
+  @override
+  Future<HttpResponse> postMultipart(
+    String path, {
+    Map<String, String>? headers,
+    required MultipartFileData file,
+  }) async {
+    requestedPaths.add(path);
+    multipartFiles.add(file);
+
+    return responses[path] ??
+        const HttpResponse(statusCode: 404, response: 'not found');
   }
 
   @override

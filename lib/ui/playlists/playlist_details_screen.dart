@@ -9,7 +9,6 @@ import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
-import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
@@ -154,12 +153,16 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
       ),
     );
 
-    if (input is! PlaylistUpsertInput || !context.mounted) {
+    if (input is! PlaylistEditorResult || !context.mounted) {
       return;
     }
 
     context.read<PlaylistsBloc>().add(
-      UpdatePlaylistRequested(playlistId: playlist.id, input: input),
+      UpdatePlaylistRequested(
+        playlistId: playlist.id,
+        input: input.input,
+        coverFile: input.coverFile,
+      ),
     );
   }
 

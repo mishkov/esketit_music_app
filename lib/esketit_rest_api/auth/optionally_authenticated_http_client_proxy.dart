@@ -37,6 +37,20 @@ class OptionallyAuthenticatedHttpClientProxy implements HttpClient {
   }
 
   @override
+  Future<HttpResponse> postMultipart(
+    String path, {
+    Map<String, String>? headers,
+    required MultipartFileData file,
+  }) {
+    return _sendOptionallyAuthenticated(
+      path: path,
+      headers: headers,
+      send: (mergedHeaders) =>
+          _httpClient.postMultipart(path, headers: mergedHeaders, file: file),
+    );
+  }
+
+  @override
   Future<HttpResponse> put(
     String path, {
     Map<String, String>? headers,
