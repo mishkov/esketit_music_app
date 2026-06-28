@@ -91,10 +91,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 ),
                 Expanded(
                   child: showRecentSearchQueries
-                      ? RecentSearchQueriesSection(
-                          recentSearchQueries: state.recentSearchQueries,
-                          onQuerySelected: _applyRecentSearchQuery,
-                          selectedTrackExists: selectedTrackExists,
+                      ? TextFieldTapRegion(
+                          child: RecentSearchQueriesSection(
+                            recentSearchQueries: state.recentSearchQueries,
+                            onQuerySelected: _applyRecentSearchQuery,
+                            selectedTrackExists: selectedTrackExists,
+                          ),
                         )
                       : activeQuery.isEmpty
                       ? BrowseCatalogView(
