@@ -40,6 +40,14 @@
   "settingsThemeDarkOption": "Тёмная",
   "settingsThemeAutoOption": "Авто",
   "signOutButton": "Выйти",
+  "appVersionLabel": "Версия {version}",
+  "@appVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "signInToSeeYourPlaylists": "Войдите, чтобы увидеть свои плейлисты.",
   "yourPlaylistsTitle": "Ваши плейлисты",
   "newPlaylistButton": "Новый",

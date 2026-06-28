@@ -131,6 +131,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signOutButton => 'Выйти';
 
   @override
+  String appVersionLabel(String version) {
+    return 'Версия $version';
+  }
+
+  @override
   String get signInToSeeYourPlaylists =>
       'Войдите, чтобы увидеть свои плейлисты.';
 

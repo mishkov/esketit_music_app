@@ -131,6 +131,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutButton => 'Sign out';
 
   @override
+  String appVersionLabel(String version) {
+    return 'Version $version';
+  }
+
+  @override
   String get signInToSeeYourPlaylists => 'Sign in to see your playlists.';
 
   @override

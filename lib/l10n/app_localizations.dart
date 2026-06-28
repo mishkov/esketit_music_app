@@ -338,6 +338,12 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get signOutButton;
 
+  /// No description provided for @appVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String appVersionLabel(String version);
+
   /// No description provided for @signInToSeeYourPlaylists.
   ///
   /// In en, this message translates to:

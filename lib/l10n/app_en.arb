@@ -40,6 +40,14 @@
   "settingsThemeDarkOption": "Dark",
   "settingsThemeAutoOption": "Auto",
   "signOutButton": "Sign out",
+  "appVersionLabel": "Version {version}",
+  "@appVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "signInToSeeYourPlaylists": "Sign in to see your playlists.",
   "yourPlaylistsTitle": "Your playlists",
   "newPlaylistButton": "New",
