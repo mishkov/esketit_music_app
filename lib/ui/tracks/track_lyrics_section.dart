@@ -6,9 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TrackLyricsSection extends StatefulWidget {
-  const TrackLyricsSection({required this.trackId, super.key});
+  const TrackLyricsSection({
+    required this.trackId,
+    this.maxHeight = 300,
+    super.key,
+  });
 
   final int trackId;
+  final double maxHeight;
 
   @override
   State<TrackLyricsSection> createState() => _TrackLyricsSectionState();
@@ -59,7 +64,7 @@ class _TrackLyricsSectionState extends State<TrackLyricsSection> {
             ),
             const SizedBox(height: 12),
             ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: 300),
+              constraints: BoxConstraints(maxHeight: widget.maxHeight),
               child: BlocBuilder<LyricsBloc, LyricsState>(
                 buildWhen: (previous, current) =>
                     previous.trackId != current.trackId ||
