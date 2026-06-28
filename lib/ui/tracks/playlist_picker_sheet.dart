@@ -3,9 +3,14 @@ import 'package:esketit_music_app/l10n/app_localizations_build_context_extension
 import 'package:flutter/material.dart';
 
 class PlaylistPickerSheet extends StatefulWidget {
-  const PlaylistPickerSheet({required this.playlists, super.key});
+  const PlaylistPickerSheet({
+    required this.playlists,
+    this.isLoading = false,
+    super.key,
+  });
 
   final List<Playlist> playlists;
+  final bool isLoading;
 
   @override
   State<PlaylistPickerSheet> createState() => _PlaylistPickerSheetState();
@@ -30,7 +35,12 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            if (widget.playlists.isEmpty)
+            if (widget.isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (widget.playlists.isEmpty)
               Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(l10n.createCustomPlaylistFirst),
@@ -62,7 +72,7 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: widget.playlists.isEmpty
+                onPressed: widget.isLoading || widget.playlists.isEmpty
                     ? null
                     : () => Navigator.of(
                         context,

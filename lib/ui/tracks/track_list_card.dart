@@ -181,18 +181,28 @@ class TrackListCard extends StatelessWidget {
       return;
     }
 
+    final playlistsBloc = context.read<PlaylistsBloc>();
+    if (playlistsBloc.state.playlists.isEmpty &&
+        !playlistsBloc.state.isLoadingPlaylists) {
+      playlistsBloc.add(const LoadPlaylists());
+    }
+
     final selectedPlaylistIds = await showModalBottomSheet<List<int>>(
       context: context,
       showDragHandle: true,
       builder: (context) {
-        final playlists = context
-            .read<PlaylistsBloc>()
-            .state
-            .playlists
-            .where((playlist) => !playlist.isFavorites)
-            .toList(growable: false);
+        return BlocBuilder<PlaylistsBloc, PlaylistsState>(
+          builder: (context, state) {
+            final playlists = state.playlists
+                .where((playlist) => !playlist.isFavorites)
+                .toList(growable: false);
 
-        return PlaylistPickerSheet(playlists: playlists);
+            return PlaylistPickerSheet(
+              playlists: playlists,
+              isLoading: state.isLoadingPlaylists,
+            );
+          },
+        );
       },
     );
 
