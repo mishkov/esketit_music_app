@@ -468,9 +468,20 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
 
       final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
         ..remove(event.trackId);
+      final playlistTracksById = Map<int, List<Track>>.of(
+        state.playlistTracksById,
+      );
+      final cachedPlaylistIds = event.playlistIds
+          .where(playlistTracksById.containsKey)
+          .toList(growable: false);
+      for (final playlistId in cachedPlaylistIds) {
+        playlistTracksById.remove(playlistId);
+      }
+
       emit(
         state.copyWith(
           pendingTrackPlaylistActionIds: updatedPendingIds,
+          playlistTracksById: playlistTracksById,
           playlists: state.playlists
               .map((playlist) {
                 if (!event.playlistIds.contains(playlist.id)) {
@@ -483,6 +494,9 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
         ),
       );
       _emitFeedback(emit, message: 'Track added to playlists.');
+      for (final playlistId in cachedPlaylistIds) {
+        add(LoadPlaylistDetails(playlistId, forceRefresh: true));
+      }
     } catch (error, stackTrace) {
       final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
         ..remove(event.trackId);
