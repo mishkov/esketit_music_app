@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
@@ -59,11 +61,12 @@ class JustAudioAudioPlayer implements AudioPlayer {
 
     _queue = List<Track>.unmodifiable(tracks);
 
+    await _audioPlayer.pause();
     await _audioPlayer.setAudioSources(
       _queue.map(_buildAudioSource).toList(growable: false),
       initialIndex: initialIndex,
     );
-    await _audioPlayer.play();
+    _playInBackground();
   }
 
   @override
@@ -147,7 +150,11 @@ class JustAudioAudioPlayer implements AudioPlayer {
 
       return;
     }
-    await _audioPlayer.play();
+    _playInBackground();
+  }
+
+  void _playInBackground() {
+    unawaited(_audioPlayer.play());
   }
 
   just_audio.AudioSource _buildAudioSource(Track track) {
