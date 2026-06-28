@@ -155,5 +155,7 @@
   "removeFromFavoritesTooltip": "Remove from favorites",
   "addToFavoritesTooltip": "Add to favorites",
   "addToPlaylistsTooltip": "Add to playlists",
-  "removeFromPlaylistTooltip": "Remove from playlist"
+  "removeFromPlaylistTooltip": "Remove from playlist",
+  "saveTrackToDownloadsTooltip": "Save to downloads",
+  "saveTrackToDownloadsFailed": "Could not download this track."
 }

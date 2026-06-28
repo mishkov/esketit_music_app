@@ -155,5 +155,7 @@
   "removeFromFavoritesTooltip": "Убрать из избранного",
   "addToFavoritesTooltip": "Добавить в избранное",
   "addToPlaylistsTooltip": "Добавить в плейлисты",
-  "removeFromPlaylistTooltip": "Убрать из плейлиста"
+  "removeFromPlaylistTooltip": "Убрать из плейлиста",
+  "saveTrackToDownloadsTooltip": "Сохранить в загрузки",
+  "saveTrackToDownloadsFailed": "Не удалось скачать этот трек."
 }

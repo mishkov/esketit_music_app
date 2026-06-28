@@ -739,6 +739,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from playlist'**
   String get removeFromPlaylistTooltip;
+
+  /// No description provided for @saveTrackToDownloadsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to downloads'**
+  String get saveTrackToDownloadsTooltip;
+
+  /// No description provided for @saveTrackToDownloadsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download this track.'**
+  String get saveTrackToDownloadsFailed;
 }
 
 class _AppLocalizationsDelegate

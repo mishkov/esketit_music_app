@@ -5,6 +5,8 @@ import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
+import 'package:esketit_music_app/ui/tracks/track_download_launcher.dart';
+import 'package:esketit_music_app/ui/tracks/track_download_policy.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -12,13 +14,14 @@ import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class TrackListCard extends StatelessWidget {
+class TrackListCard extends StatefulWidget {
   const TrackListCard({
     required this.track,
     required this.queue,
     this.autoplayContext,
     this.playlistIdForRemoval,
     this.showAddToPlaylistsAction = true,
+    this.showSaveToDownloadsAction,
     this.showImage = false,
     super.key,
   });
@@ -28,7 +31,15 @@ class TrackListCard extends StatelessWidget {
   final AutoplayContext? autoplayContext;
   final int? playlistIdForRemoval;
   final bool showAddToPlaylistsAction;
+  final bool? showSaveToDownloadsAction;
   final bool showImage;
+
+  @override
+  State<TrackListCard> createState() => _TrackListCardState();
+}
+
+class _TrackListCardState extends State<TrackListCard> {
+  bool _isSavingToDownloads = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,19 +49,23 @@ class TrackListCard extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.selectedTrack != current.selectedTrack,
       builder: (context, playerState) {
-        final isSelected = playerState.selectedTrack == track;
+        final isSelected = playerState.selectedTrack == widget.track;
 
         return BlocBuilder<PlaylistsBloc, PlaylistsState>(
           builder: (context, playlistState) {
             final effectiveIsFavorite =
-                playlistState.favoriteOverrides[track.id] ?? track.isFavorite;
+                playlistState.favoriteOverrides[widget.track.id] ??
+                widget.track.isFavorite;
             final favoritePending = playlistState.pendingFavoriteTrackIds
-                .contains(track.id);
+                .contains(widget.track.id);
             final playlistsPending = playlistState.pendingTrackPlaylistActionIds
-                .contains(track.id);
+                .contains(widget.track.id);
+            final canShowSaveToDownloadsAction =
+                widget.showSaveToDownloadsAction ??
+                showTrackSaveToDownloadsActionByDefault;
 
             return Opacity(
-              opacity: track.isAvailable ? 1 : 0.6,
+              opacity: widget.track.isAvailable ? 1 : 0.6,
               child: Card.outlined(
                 color: isSelected
                     ? Theme.of(context).colorScheme.secondaryContainer
@@ -67,26 +82,31 @@ class TrackListCard extends StatelessWidget {
                     : null,
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  contentPadding: showImage ? const EdgeInsets.all(12) : null,
-                  leading: showImage
+                  contentPadding: widget.showImage
+                      ? const EdgeInsets.all(12)
+                      : null,
+                  leading: widget.showImage
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: SizedBox.square(
                             dimension: 56,
                             child: RemoteImage(
-                              imageUrl: _trackImageUrl(track),
+                              imageUrl: _trackImageUrl(widget.track),
                               icon: Icons.music_note_rounded,
                             ),
                           ),
                         )
                       : null,
-                  title: Text(track.name, overflow: TextOverflow.ellipsis),
+                  title: Text(
+                    widget.track.name,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   subtitle: Text(
                     [
-                      track.authors
+                      widget.track.authors
                           .map((author) => author.currentName)
                           .join(', '),
-                      if (!track.isAvailable) l10n.trackNotAvailable,
+                      if (!widget.track.isAvailable) l10n.trackNotAvailable,
                     ].where((part) => part.isNotEmpty).join(' • '),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -109,7 +129,7 @@ class TrackListCard extends StatelessWidget {
                               : Icons.favorite_border_rounded,
                         ),
                       ),
-                      if (showAddToPlaylistsAction)
+                      if (widget.showAddToPlaylistsAction)
                         IconButton(
                           tooltip: l10n.addToPlaylistsTooltip,
                           onPressed: playlistsPending
@@ -117,27 +137,43 @@ class TrackListCard extends StatelessWidget {
                               : () => _showAddToPlaylistsSheet(context),
                           icon: const Icon(Icons.playlist_add_rounded),
                         ),
-                      if (playlistIdForRemoval != null)
+                      if (widget.playlistIdForRemoval != null)
                         IconButton(
                           tooltip: l10n.removeFromPlaylistTooltip,
                           onPressed: playlistsPending
                               ? null
                               : () => context.read<PlaylistsBloc>().add(
                                   RemoveTrackFromPlaylistRequested(
-                                    trackId: track.id,
-                                    playlistId: playlistIdForRemoval!,
+                                    trackId: widget.track.id,
+                                    playlistId: widget.playlistIdForRemoval!,
                                   ),
                                 ),
                           icon: const Icon(Icons.remove_circle_outline_rounded),
                         ),
+                      if (canShowSaveToDownloadsAction &&
+                          canSaveTrackToDownloads(widget.track))
+                        IconButton(
+                          tooltip: l10n.saveTrackToDownloadsTooltip,
+                          onPressed: _isSavingToDownloads
+                              ? null
+                              : () => _saveToDownloads(context),
+                          icon: _isSavingToDownloads
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.download_rounded),
+                        ),
                     ],
                   ),
-                  onTap: track.isAvailable
+                  onTap: widget.track.isAvailable
                       ? () => context.read<PlayerBloc>().add(
                           PlayTrack(
-                            track,
-                            queue: queue,
-                            autoplayContext: autoplayContext,
+                            widget.track,
+                            queue: widget.queue,
+                            autoplayContext: widget.autoplayContext,
                           ),
                         )
                       : null,
@@ -169,7 +205,7 @@ class TrackListCard extends StatelessWidget {
 
     context.read<PlaylistsBloc>().add(
       ToggleFavoriteRequested(
-        trackId: track.id,
+        trackId: widget.track.id,
         shouldBeFavorite: shouldBeFavorite,
       ),
     );
@@ -204,7 +240,7 @@ class TrackListCard extends StatelessWidget {
             final selectedPlaylistIds = _playlistIdsContainingTrack(
               state,
               playlists,
-              track.id,
+              widget.track.id,
             );
 
             return PlaylistPickerSheet(
@@ -239,11 +275,35 @@ class TrackListCard extends StatelessWidget {
 
     context.read<PlaylistsBloc>().add(
       UpdateTrackPlaylistsRequested(
-        trackId: track.id,
+        trackId: widget.track.id,
         addPlaylistIds: playlistIdsToAdd,
         removePlaylistIds: playlistIdsToRemove,
       ),
     );
+  }
+
+  Future<void> _saveToDownloads(BuildContext context) async {
+    setState(() {
+      _isSavingToDownloads = true;
+    });
+
+    try {
+      await saveTrackToDownloads(widget.track);
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.saveTrackToDownloadsFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingToDownloads = false;
+        });
+      }
+    }
   }
 
   Set<int> _playlistIdsContainingTrack(

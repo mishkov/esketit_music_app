@@ -368,4 +368,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get removeFromPlaylistTooltip => 'Убрать из плейлиста';
+
+  @override
+  String get saveTrackToDownloadsTooltip => 'Сохранить в загрузки';
+
+  @override
+  String get saveTrackToDownloadsFailed => 'Не удалось скачать этот трек.';
 }

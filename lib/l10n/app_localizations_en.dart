@@ -361,4 +361,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removeFromPlaylistTooltip => 'Remove from playlist';
+
+  @override
+  String get saveTrackToDownloadsTooltip => 'Save to downloads';
+
+  @override
+  String get saveTrackToDownloadsFailed => 'Could not download this track.';
 }
