@@ -11,13 +11,26 @@ class TrackProgressSection extends StatefulWidget {
 
 class _TrackProgressSectionState extends State<TrackProgressSection> {
   Duration? _draggedPosition;
+  PlayerBloc? _playerBloc;
+  late Stream<PlayerPlaybackProgress> _playbackProgressStream;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final playerBloc = context.read<PlayerBloc>();
+    if (_playerBloc == playerBloc) {
+      return;
+    }
+
+    _playerBloc = playerBloc;
+    _playbackProgressStream = playerBloc.playbackProgressStream;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final playerBloc = context.read<PlayerBloc>();
-
     return StreamBuilder<PlayerPlaybackProgress>(
-      stream: playerBloc.playbackProgressStream,
+      stream: _playbackProgressStream,
       initialData: const PlayerPlaybackProgress(
         position: Duration.zero,
         duration: Duration.zero,

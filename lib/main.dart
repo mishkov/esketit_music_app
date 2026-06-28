@@ -11,12 +11,12 @@ import 'package:esketit_music_app/esketit_rest_api/player/esketit_rest_api_autop
 import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_lyrics_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
+import 'package:esketit_music_app/unassigned_layer/audio_player_factory.dart';
 import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
-import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
-import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
+import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/url_strategy.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
@@ -28,6 +28,7 @@ import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -47,11 +48,14 @@ Future<void> main() async {
 Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   WidgetsFlutterBinding.ensureInitialized();
   configureUrlStrategy();
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.example.esketit_music_app.channel.audio',
-    androidNotificationChannelName: 'Audio playback',
-    androidNotificationOngoing: true,
-  );
+  if (!kIsWeb) {
+    await JustAudioBackground.init(
+      androidNotificationChannelId:
+          'com.example.esketit_music_app.channel.audio',
+      androidNotificationChannelName: 'Audio playback',
+      androidNotificationOngoing: true,
+    );
+  }
 
   Bloc.observer = AppErrorsBlocObserver(reporter: errorReporter);
 
@@ -149,7 +153,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           BlocProvider(
             create: (context) => PlayerBloc(
               initialState: PlayerState(selectedTrack: null, isPlaying: false),
-              player: JustAudioAudioPlayer(baseUri: baseUri),
+              player: createAudioPlayer(baseUri: baseUri),
               autoplayStorage: autoplayStorage,
               errorReporter: errorReporter,
             ),
