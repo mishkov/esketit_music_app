@@ -3,6 +3,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
+import 'package:esketit_music_app/ui/playlists/playlist_routes.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
@@ -11,6 +12,7 @@ import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 class PlaylistDetailsScreen extends StatefulWidget {
   const PlaylistDetailsScreen({required this.playlistId, super.key});
@@ -48,6 +50,12 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
           appBar: AppBar(
             title: Text(playlist?.name ?? l10n.playlistFallbackTitle),
             actions: [
+              if (_shareUriForPlaylist(playlist) != null)
+                IconButton(
+                  tooltip: l10n.copyPlaylistLinkTooltip,
+                  onPressed: () => _copyPlaylistLink(context, playlist!),
+                  icon: const Icon(Icons.ios_share_rounded),
+                ),
               if (playlist != null && !playlist.system)
                 IconButton(
                   onPressed: state.isSubmittingPlaylist
@@ -153,6 +161,40 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
     context.read<PlaylistsBloc>().add(
       UpdatePlaylistRequested(playlistId: playlist.id, input: input),
     );
+  }
+
+  Future<void> _copyPlaylistLink(
+    BuildContext context,
+    Playlist playlist,
+  ) async {
+    final shareUri = _shareUriForPlaylist(playlist);
+    if (shareUri == null) {
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: shareUri.toString()));
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.playlistLinkCopied)));
+  }
+
+  Uri? _shareUriForPlaylist(Playlist? playlist) {
+    if (playlist == null) {
+      return null;
+    }
+
+    return switch (playlist.visibility) {
+      PlaylistVisibility.public => shareablePlaylistUri(
+        publicPlaylistRoutePath(playlist.id),
+      ),
+      PlaylistVisibility.shared when playlist.shareToken != null =>
+        shareablePlaylistUri(sharedPlaylistRoutePath(playlist.shareToken!)),
+      _ => null,
+    };
   }
 
   Future<void> _deletePlaylist(BuildContext context, Playlist playlist) async {

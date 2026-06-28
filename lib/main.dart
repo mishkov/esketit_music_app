@@ -18,12 +18,14 @@ import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queri
 import 'package:esketit_music_app/unassigned_layer/just_audio_audio_player.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
+import 'package:esketit_music_app/unassigned_layer/url_strategy.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
+import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +46,7 @@ Future<void> main() async {
 
 Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   WidgetsFlutterBinding.ensureInitialized();
+  configureUrlStrategy();
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.example.esketit_music_app.channel.audio',
     androidNotificationChannelName: 'Audio playback',
@@ -92,6 +95,10 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     httpClient: authenticatedHttpClient,
     baseUri: baseUri,
   );
+  final shareablePlaylistsStorage = EsketitRestApiPlaylistsStorage(
+    httpClient: unauthenticatedHttpClient,
+    baseUri: baseUri,
+  );
   final lyricsStorage = EsketitRestApiLyricsStorage(
     httpClient: optionallyAuthenticatedHttpClient,
   );
@@ -101,68 +108,71 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   );
 
   runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => AuthBloc(
-            authRepository: authRepository,
-            errorReporter: errorReporter,
-          )..add(const AuthSessionRestoreRequested()),
-        ),
-        BlocProvider(
-          create: (context) => CatalogBloc(
-            initialState: const CatalogState(
-              authors: [],
-              isLoadingAuthors: false,
-              authorsErrorMessage: null,
-              albumsByAuthorId: {},
-              loadingAuthorIds: {},
-              authorAlbumsErrorMessages: {},
-              tracksByAlbumId: {},
-              loadingAlbumIds: {},
-              albumTracksErrorMessages: {},
-              searchQuery: '',
-              recentSearchQueries: [],
-              searchPage: 1,
-              searchPageSize: CatalogBloc.searchPageSize,
-              searchResults: null,
-              isLoadingSearch: false,
-              searchErrorMessage: null,
+    RepositoryProvider<ShareablePlaylistsStorage>.value(
+      value: shareablePlaylistsStorage,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AuthBloc(
+              authRepository: authRepository,
+              errorReporter: errorReporter,
+            )..add(const AuthSessionRestoreRequested()),
+          ),
+          BlocProvider(
+            create: (context) => CatalogBloc(
+              initialState: const CatalogState(
+                authors: [],
+                isLoadingAuthors: false,
+                authorsErrorMessage: null,
+                albumsByAuthorId: {},
+                loadingAuthorIds: {},
+                authorAlbumsErrorMessages: {},
+                tracksByAlbumId: {},
+                loadingAlbumIds: {},
+                albumTracksErrorMessages: {},
+                searchQuery: '',
+                recentSearchQueries: [],
+                searchPage: 1,
+                searchPageSize: CatalogBloc.searchPageSize,
+                searchResults: null,
+                isLoadingSearch: false,
+                searchErrorMessage: null,
+              ),
+              errorReporter: errorReporter,
+              catalogStorage: catalogStorage,
+              recentSearchQueriesStorage: recentSearchQueriesStorage,
+            )..add(LoadRecentSearchQueries()),
+          ),
+          BlocProvider(
+            create: (context) => LyricsBloc(lyricsStorage: lyricsStorage),
+          ),
+          BlocProvider(
+            create: (context) => PlayerBloc(
+              initialState: PlayerState(selectedTrack: null, isPlaying: false),
+              player: JustAudioAudioPlayer(baseUri: baseUri),
+              autoplayStorage: autoplayStorage,
+              errorReporter: errorReporter,
             ),
-            errorReporter: errorReporter,
-            catalogStorage: catalogStorage,
-            recentSearchQueriesStorage: recentSearchQueriesStorage,
-          )..add(LoadRecentSearchQueries()),
-        ),
-        BlocProvider(
-          create: (context) => LyricsBloc(lyricsStorage: lyricsStorage),
-        ),
-        BlocProvider(
-          create: (context) => PlayerBloc(
-            initialState: PlayerState(selectedTrack: null, isPlaying: false),
-            player: JustAudioAudioPlayer(baseUri: baseUri),
-            autoplayStorage: autoplayStorage,
-            errorReporter: errorReporter,
           ),
-        ),
-        BlocProvider(
-          create: (context) => PlaylistsBloc(
-            playlistsStorage: playlistsStorage,
-            errorReporter: errorReporter,
-          ),
-        ),
-        BlocProvider(
-          create: (context) => SettingsBloc(
-            initialState: SettingsState(
-              serverUri: baseUri,
-              locale: selectedLocale,
-              themeMode: selectedThemeMode,
+          BlocProvider(
+            create: (context) => PlaylistsBloc(
+              playlistsStorage: playlistsStorage,
+              errorReporter: errorReporter,
             ),
-            settingsStorage: settingsStorage,
           ),
-        ),
-      ],
-      child: const EsketitApp(),
+          BlocProvider(
+            create: (context) => SettingsBloc(
+              initialState: SettingsState(
+                serverUri: baseUri,
+                locale: selectedLocale,
+                themeMode: selectedThemeMode,
+              ),
+              settingsStorage: settingsStorage,
+            ),
+          ),
+        ],
+        child: const EsketitApp(),
+      ),
     ),
   );
 }

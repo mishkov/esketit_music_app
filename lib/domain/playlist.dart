@@ -13,6 +13,7 @@ class Playlist extends Equatable {
     required this.trackCount,
     required this.system,
     required this.isFavorites,
+    this.shareToken,
   });
 
   final int id;
@@ -24,6 +25,7 @@ class Playlist extends Equatable {
   final int trackCount;
   final bool system;
   final bool isFavorites;
+  final String? shareToken;
 
   Playlist copyWith({
     int? id,
@@ -35,6 +37,7 @@ class Playlist extends Equatable {
     int? trackCount,
     bool? system,
     bool? isFavorites,
+    String? shareToken,
   }) {
     return Playlist(
       id: id ?? this.id,
@@ -46,6 +49,7 @@ class Playlist extends Equatable {
       trackCount: trackCount ?? this.trackCount,
       system: system ?? this.system,
       isFavorites: isFavorites ?? this.isFavorites,
+      shareToken: shareToken ?? this.shareToken,
     );
   }
 
@@ -60,5 +64,6 @@ class Playlist extends Equatable {
     trackCount,
     system,
     isFavorites,
+    shareToken,
   ];
 }

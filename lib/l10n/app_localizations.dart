@@ -413,7 +413,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search authors, albums, tracks'**
+  /// **'Search authors, albums, tracks, playlists'**
   String get searchHint;
 
   /// No description provided for @clearSearchTooltip.
@@ -595,6 +595,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This playlist has no tracks yet.'**
   String get playlistHasNoTracksYet;
+
+  /// No description provided for @copyPlaylistLinkTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy playlist link'**
+  String get copyPlaylistLinkTooltip;
+
+  /// No description provided for @playlistLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist link copied.'**
+  String get playlistLinkCopied;
 
   /// No description provided for @deletePlaylistTitle.
   ///

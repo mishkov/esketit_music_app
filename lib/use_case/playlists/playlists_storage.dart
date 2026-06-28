@@ -15,6 +15,13 @@ class PlaylistUpsertInput {
   final PlaylistVisibility visibility;
 }
 
+class PlaylistDetailsSnapshot {
+  const PlaylistDetailsSnapshot({required this.playlist, required this.tracks});
+
+  final Playlist playlist;
+  final List<Track> tracks;
+}
+
 abstract class PlaylistsStorage {
   Future<List<Playlist>> getPlaylists();
 
@@ -49,4 +56,14 @@ abstract class PlaylistsStorage {
   Future<void> addTrackToFavorites({required int trackId});
 
   Future<void> removeTrackFromFavorites({required int trackId});
+}
+
+abstract class ShareablePlaylistsStorage {
+  Future<PlaylistDetailsSnapshot> getPublicPlaylistDetails({
+    required int playlistId,
+  });
+
+  Future<PlaylistDetailsSnapshot> getSharedPlaylistDetails({
+    required String shareToken,
+  });
 }

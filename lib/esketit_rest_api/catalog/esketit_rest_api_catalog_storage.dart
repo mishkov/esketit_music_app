@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/catalog_search_result.dart';
+import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
 import 'package:esketit_music_app/domain/track_info/track_info.dart';
@@ -256,6 +257,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       'author' => _parseAuthorSearchResult(item['author']),
       'album' => _parseAlbumSearchResult(item['album']),
       'track' => _parseTrackSearchResult(item['track']),
+      'playlist' => _parsePlaylistSearchResult(item['playlist']),
       _ => null,
     };
   }
@@ -288,6 +290,16 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     final track = _parseTrack(value);
 
     return track.id > 0 ? CatalogSearchResultItem.track(track) : null;
+  }
+
+  CatalogSearchResultItem? _parsePlaylistSearchResult(Object? value) {
+    if (value is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final playlist = _parsePlaylist(value);
+
+    return playlist.id > 0 ? CatalogSearchResultItem.playlist(playlist) : null;
   }
 
   Author _parseAuthor(Map<String, dynamic> item) {
@@ -330,6 +342,23 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       image: HttpFile(uri: _resolveTrackImageUri(item)),
       isFavorite: (item['isFavorite'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
+    );
+  }
+
+  Playlist _parsePlaylist(Map<String, dynamic> item) {
+    return Playlist(
+      id: _asInt(item['id']) ?? 0,
+      userId: _asInt(item['userId']) ?? 0,
+      name: (item['name'] as String?) ?? '',
+      description: (item['description'] as String?) ?? '',
+      coverImagePath: _resolvePlaylistCoverPath(
+        (item['coverImagePath'] as String?) ?? '',
+      ),
+      visibility: _parseVisibility(item['visibility'] as String?),
+      trackCount: _asInt(item['trackCount']) ?? 0,
+      system: (item['system'] as bool?) ?? false,
+      isFavorites: (item['isFavorites'] as bool?) ?? false,
+      shareToken: item['shareToken'] as String?,
     );
   }
 
@@ -380,6 +409,19 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     return _resolveAlbumCoverUri(rawPath);
   }
 
+  String _resolvePlaylistCoverPath(String value) {
+    if (value.isEmpty) {
+      return value;
+    }
+
+    final parsed = Uri.tryParse(value);
+    if (parsed != null && parsed.hasScheme) {
+      return value;
+    }
+
+    return _baseUri.resolve(value).toString();
+  }
+
   Uri _resolveSongUri(String audioFilePath) {
     final parsed = Uri.tryParse(audioFilePath);
     if (parsed != null && parsed.hasScheme) {
@@ -388,8 +430,18 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
     if (audioFilePath.isEmpty) {
       return Uri();
     }
+    if (audioFilePath.startsWith('/')) {
+      return _baseUri.resolve(audioFilePath);
+    }
 
     return _baseUri.resolve('songs/${Uri.encodeComponent(audioFilePath)}');
+  }
+
+  PlaylistVisibility _parseVisibility(String? value) {
+    return PlaylistVisibility.values.firstWhere(
+      (visibility) => visibility.name == value,
+      orElse: () => PlaylistVisibility.private,
+    );
   }
 
   static void _throwIfNotSuccess(HttpResponse response, String path) {

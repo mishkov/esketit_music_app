@@ -1,21 +1,24 @@
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 
-enum CatalogSearchResultType { author, album, track }
+enum CatalogSearchResultType { author, album, track, playlist }
 
 class CatalogSearchResultItem extends Equatable {
   final CatalogSearchResultType type;
   final Author? author;
   final Album? album;
   final Track? track;
+  final Playlist? playlist;
 
   const CatalogSearchResultItem._({
     required this.type,
     this.author,
     this.album,
     this.track,
+    this.playlist,
   });
 
   const CatalogSearchResultItem.author(Author author)
@@ -27,8 +30,11 @@ class CatalogSearchResultItem extends Equatable {
   const CatalogSearchResultItem.track(Track track)
     : this._(type: CatalogSearchResultType.track, track: track);
 
+  const CatalogSearchResultItem.playlist(Playlist playlist)
+    : this._(type: CatalogSearchResultType.playlist, playlist: playlist);
+
   @override
-  List<Object?> get props => [type, author, album, track];
+  List<Object?> get props => [type, author, album, track, playlist];
 }
 
 class PaginatedCatalogSearchResults extends Equatable {

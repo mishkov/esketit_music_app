@@ -11,6 +11,15 @@ nginx `/api/`:
 flutter build web --release --base-href / --dart-define BASE_URL=/api/
 ```
 
+Make sure nginx serves the Flutter app for direct client-side routes such as
+`/playlists/7` and `/playlists/shared/<token>`:
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+}
+```
+
 Copy the build output to the server:
 
 ```bash

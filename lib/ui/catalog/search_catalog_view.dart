@@ -2,6 +2,7 @@ import 'package:esketit_music_app/l10n/app_localizations_build_context_extension
 import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/ui/catalog/album_search_tile.dart';
 import 'package:esketit_music_app/ui/catalog/author_search_tile.dart';
+import 'package:esketit_music_app/ui/catalog/playlist_search_tile.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
@@ -67,6 +68,9 @@ class SearchCatalogView extends StatelessWidget {
                 sourceType: AutoplaySourceType.track,
                 sourceId: item.track!.id,
               ),
+            ),
+            CatalogSearchResultType.playlist => PlaylistSearchTile(
+              playlist: item.playlist!,
             ),
           };
         }),

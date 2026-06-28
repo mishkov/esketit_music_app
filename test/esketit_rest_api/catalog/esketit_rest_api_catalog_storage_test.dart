@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_catalog_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
+import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -88,6 +89,49 @@ void main() {
       );
     },
   );
+
+  test('search parses playlist results from response', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/search?query=Road&page=1&pageSize=20': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'items': [
+              {
+                'type': 'playlist',
+                'playlist': {
+                  'id': 7,
+                  'userId': 10,
+                  'name': 'Road',
+                  'description': 'Driving playlist',
+                  'coverImagePath': '/covers/road.jpg',
+                  'visibility': 'public',
+                  'trackCount': 12,
+                  'system': false,
+                  'isFavorites': false,
+                },
+              },
+            ],
+            'page': 1,
+            'pageSize': 20,
+            'totalItems': 1,
+            'totalPages': 1,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiCatalogStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final results = await storage.search(query: 'Road', page: 1, pageSize: 20);
+    final playlist = results.items.single.playlist!;
+
+    expect(playlist.name, 'Road');
+    expect(playlist.visibility, PlaylistVisibility.public);
+    expect(playlist.coverImagePath, 'http://localhost:8080/covers/road.jpg');
+  });
 }
 
 class _FakeHttpClient implements HttpClient {

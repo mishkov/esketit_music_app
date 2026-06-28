@@ -52,7 +52,7 @@
   "featuredAuthorsTitle": "Featured Authors",
   "playMyVibeButton": "Play my vibe",
   "noPublishedAuthorsYet": "No published authors yet.",
-  "searchHint": "Search authors, albums, tracks",
+  "searchHint": "Search authors, albums, tracks, playlists",
   "clearSearchTooltip": "Clear search",
   "recentSearchQueriesTitle": "Recent searches",
   "searchResultsCount": "{count, plural, =0{0 results} =1{1 result} other{{count} results}}",
@@ -111,6 +111,8 @@
   "playlistFallbackTitle": "Playlist",
   "playlistNotFound": "Playlist not found.",
   "playlistHasNoTracksYet": "This playlist has no tracks yet.",
+  "copyPlaylistLinkTooltip": "Copy playlist link",
+  "playlistLinkCopied": "Playlist link copied.",
   "deletePlaylistTitle": "Delete playlist?",
   "deletePlaylistMessage": "Delete \"{name}\"? This cannot be undone.",
   "@deletePlaylistMessage": {

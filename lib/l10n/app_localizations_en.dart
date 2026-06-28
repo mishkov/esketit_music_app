@@ -168,7 +168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPublishedAuthorsYet => 'No published authors yet.';
 
   @override
-  String get searchHint => 'Search authors, albums, tracks';
+  String get searchHint => 'Search authors, albums, tracks, playlists';
 
   @override
   String get clearSearchTooltip => 'Clear search';
@@ -281,6 +281,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistHasNoTracksYet => 'This playlist has no tracks yet.';
+
+  @override
+  String get copyPlaylistLinkTooltip => 'Copy playlist link';
+
+  @override
+  String get playlistLinkCopied => 'Playlist link copied.';
 
   @override
   String get deletePlaylistTitle => 'Delete playlist?';

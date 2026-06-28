@@ -169,7 +169,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noPublishedAuthorsYet => 'Опубликованных авторов пока нет.';
 
   @override
-  String get searchHint => 'Искать авторов, альбомы, треки';
+  String get searchHint => 'Искать авторов, альбомы, треки, плейлисты';
 
   @override
   String get clearSearchTooltip => 'Очистить поиск';
@@ -287,6 +287,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playlistHasNoTracksYet => 'В этом плейлисте пока нет треков.';
+
+  @override
+  String get copyPlaylistLinkTooltip => 'Скопировать ссылку на плейлист';
+
+  @override
+  String get playlistLinkCopied => 'Ссылка на плейлист скопирована.';
 
   @override
   String get deletePlaylistTitle => 'Удалить плейлист?';

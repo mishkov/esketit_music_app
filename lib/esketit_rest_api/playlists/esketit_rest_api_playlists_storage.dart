@@ -9,7 +9,8 @@ import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 
-class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
+class EsketitRestApiPlaylistsStorage
+    implements PlaylistsStorage, ShareablePlaylistsStorage {
   const EsketitRestApiPlaylistsStorage({
     required HttpClient httpClient,
     required Uri baseUri,
@@ -93,6 +94,42 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
 
   @override
   Future<List<Track>> getPlaylistTracks({required int playlistId}) async {
+    return _getPlaylistTracksFromPath('/playlists/$playlistId/tracks');
+  }
+
+  @override
+  Future<PlaylistDetailsSnapshot> getPublicPlaylistDetails({
+    required int playlistId,
+  }) async {
+    final playlistPath = '/public/playlists/$playlistId';
+    final playlist = await _getPlaylistFromPath(playlistPath);
+    final tracks = await _getPlaylistTracksFromPath('$playlistPath/tracks');
+
+    return PlaylistDetailsSnapshot(playlist: playlist, tracks: tracks);
+  }
+
+  @override
+  Future<PlaylistDetailsSnapshot> getSharedPlaylistDetails({
+    required String shareToken,
+  }) async {
+    final encodedToken = Uri.encodeComponent(shareToken);
+    final playlistPath = '/shared/playlists/$encodedToken';
+    final playlist = await _getPlaylistFromPath(playlistPath);
+    final tracks = await _getPlaylistTracksFromPath('$playlistPath/tracks');
+
+    return PlaylistDetailsSnapshot(playlist: playlist, tracks: tracks);
+  }
+
+  Future<Playlist> _getPlaylistFromPath(String path) async {
+    final response = await _httpClient.get(path);
+    _throwIfNotSuccess(response, path);
+
+    return _parsePlaylist(_decodeJsonMap(response.response, path: path));
+  }
+
+  Future<List<Track>> _getPlaylistTracksFromPath(
+    String playlistTracksPath,
+  ) async {
     final authorsResponse = await _httpClient.get('/authors');
     _throwIfNotSuccess(authorsResponse, '/authors');
     final authorsById = _parseAuthorsById(authorsResponse.response);
@@ -102,12 +139,11 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
     var totalPages = 1;
 
     do {
-      final path = Uri(
-        path: '/playlists/$playlistId/tracks',
-        queryParameters: {'page': '$page', 'pageSize': '100'},
-      ).toString();
+      final path = Uri.parse(playlistTracksPath)
+          .replace(queryParameters: {'page': '$page', 'pageSize': '100'})
+          .toString();
       final response = await _httpClient.get(path);
-      _throwIfNotSuccess(response, '/playlists/$playlistId/tracks');
+      _throwIfNotSuccess(response, playlistTracksPath);
 
       final body = _decodeJsonMap(response.response, path: path);
       tracks.addAll(
@@ -182,6 +218,7 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
       trackCount: _asInt(item['trackCount']) ?? 0,
       system: (item['system'] as bool?) ?? false,
       isFavorites: (item['isFavorites'] as bool?) ?? false,
+      shareToken: item['shareToken'] as String?,
     );
   }
 
@@ -253,6 +290,9 @@ class EsketitRestApiPlaylistsStorage implements PlaylistsStorage {
     }
     if (audioFilePath.isEmpty) {
       return Uri();
+    }
+    if (audioFilePath.startsWith('/')) {
+      return _baseUri.resolve(audioFilePath);
     }
 
     return _baseUri.resolve('songs/${Uri.encodeComponent(audioFilePath)}');
