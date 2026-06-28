@@ -61,7 +61,6 @@ class SearchCatalogView extends StatelessWidget {
               album: item.album!,
             ),
             CatalogSearchResultType.track => TrackListCard(
-              key: ValueKey('search-track-${item.track!.id}'),
               track: item.track!,
               queue: [item.track!],
               showImage: true,

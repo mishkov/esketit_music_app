@@ -4,40 +4,6 @@ PODS:
     - FlutterMacOS
   - audio_session (0.0.1):
     - Flutter
-  - DKImagePickerController/Core (4.3.9):
-    - DKImagePickerController/ImageDataManager
-    - DKImagePickerController/Resource
-  - DKImagePickerController/ImageDataManager (4.3.9)
-  - DKImagePickerController/PhotoGallery (4.3.9):
-    - DKImagePickerController/Core
-    - DKPhotoGallery
-  - DKImagePickerController/Resource (4.3.9)
-  - DKPhotoGallery (0.0.19):
-    - DKPhotoGallery/Core (= 0.0.19)
-    - DKPhotoGallery/Model (= 0.0.19)
-    - DKPhotoGallery/Preview (= 0.0.19)
-    - DKPhotoGallery/Resource (= 0.0.19)
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Core (0.0.19):
-    - DKPhotoGallery/Model
-    - DKPhotoGallery/Preview
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Model (0.0.19):
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Preview (0.0.19):
-    - DKPhotoGallery/Model
-    - DKPhotoGallery/Resource
-    - SDWebImage
-    - SwiftyGif
-  - DKPhotoGallery/Resource (0.0.19):
-    - SDWebImage
-    - SwiftyGif
-  - file_picker (0.0.1):
-    - DKImagePickerController/PhotoGallery
-    - Flutter
   - Flutter (1.0.0)
   - flutter_secure_storage (6.0.0):
     - Flutter
@@ -46,9 +12,6 @@ PODS:
     - FlutterMacOS
   - package_info_plus (0.4.5):
     - Flutter
-  - SDWebImage (5.21.7):
-    - SDWebImage/Core (= 5.21.7)
-  - SDWebImage/Core (5.21.7)
   - Sentry/HybridSDK (8.56.2)
   - sentry_flutter (9.14.0):
     - Flutter
@@ -60,12 +23,10 @@ PODS:
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
-  - SwiftyGif (5.4.5)
 
 DEPENDENCIES:
   - audio_service (from `.symlinks/plugins/audio_service/darwin`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
-  - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
@@ -76,19 +37,13 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - DKImagePickerController
-    - DKPhotoGallery
-    - SDWebImage
     - Sentry
-    - SwiftyGif
 
 EXTERNAL SOURCES:
   audio_service:
     :path: ".symlinks/plugins/audio_service/darwin"
   audio_session:
     :path: ".symlinks/plugins/audio_session/ios"
-  file_picker:
-    :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
   flutter_secure_storage:
@@ -107,19 +62,14 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   audio_service: cab6c1a0eaf01b5a35b567e11fa67d3cc1956910
   audio_session: 19e9480dbdd4e5f6c4543826b2e8b0e4ab6145fe
-  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
-  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
-  file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_secure_storage: d33dac7ae2ea08509be337e775f6b59f1ff45f12
   just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
-  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
   sentry_flutter: a9f60d84bfddcae9a0ebf834547702f8854766a1
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
-  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
 
 PODFILE CHECKSUM: 57f7429380aab56118a4d05550418474894b56a2
 
