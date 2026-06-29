@@ -1,0 +1,96 @@
+name: Build iOS and Upload to TestFlight
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'ios-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    runs-on: macos-latest
+
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID || 'HXKMZK959F' }}
+      IOS_APP_IDENTIFIER: ${{ vars.IOS_APP_IDENTIFIER || 'com.mishkov.esketitMusicApp' }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Install Ruby dependencies
+        working-directory: ios
+        run: bundle install
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: bundle exec pod install
+
+      - name: Install Apple signing assets
+        env:
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/distribution.p12"
+          PROVISIONING_PROFILE_PATH="$RUNNER_TEMP/app-store.mobileprovision"
+          PROVISIONING_PROFILE_PLIST="$RUNNER_TEMP/app-store-profile.plist"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          ruby -e 'require "base64"; File.binwrite(ARGV[1], Base64.decode64(ENV.fetch(ARGV[0])))' IOS_DISTRIBUTION_CERTIFICATE_BASE64 "$CERTIFICATE_PATH"
+          ruby -e 'require "base64"; File.binwrite(ARGV[1], Base64.decode64(ENV.fetch(ARGV[0])))' IOS_PROVISIONING_PROFILE_BASE64 "$PROVISIONING_PROFILE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          security cms -D -i "$PROVISIONING_PROFILE_PATH" > "$PROVISIONING_PROFILE_PLIST"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print UUID' "$PROVISIONING_PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print Name' "$PROVISIONING_PROFILE_PLIST")
+          cp "$PROVISIONING_PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          echo "IOS_PROVISIONING_PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+
+      - name: Build and upload to TestFlight
+        working-directory: ios
+        run: bundle exec fastlane ios testflight
+
+      - name: Clean up signing keychain
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true

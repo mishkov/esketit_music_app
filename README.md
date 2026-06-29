@@ -2,6 +2,14 @@
 
 A new Flutter project.
 
+## Deploy iOS to TestFlight
+
+The iOS app is built and uploaded to TestFlight with Fastlane through
+`.github/workflows/ios-testflight.yml`. See
+[docs/ios-testflight.md](docs/ios-testflight.md) for the required Apple
+Developer, App Store Connect, certificate, provisioning profile, and GitHub
+secret setup.
+
 ## Deploy to own server
 
 Build the web app for serving from the domain root and route API calls through

@@ -1,0 +1,60 @@
+require "shellwords"
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build the iOS app and upload it to TestFlight"
+  lane :testflight do
+    ensure_env_vars(
+      env_vars: [
+        "APPLE_TEAM_ID",
+        "IOS_APP_IDENTIFIER",
+        "IOS_PROVISIONING_PROFILE_NAME",
+        "APP_STORE_CONNECT_API_KEY_ID",
+        "APP_STORE_CONNECT_ISSUER_ID",
+        "APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64",
+      ],
+    )
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64"),
+      is_key_content_base64: true,
+      duration: 1200,
+      in_house: false,
+    )
+
+    ipa_path = build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      clean: true,
+      export_method: "app-store",
+      output_directory: "../build/ios/fastlane",
+      output_name: "EsketitMusic.ipa",
+      export_options: {
+        method: "app-store",
+        signingStyle: "manual",
+        teamID: ENV.fetch("APPLE_TEAM_ID"),
+        provisioningProfiles: {
+          ENV.fetch("IOS_APP_IDENTIFIER") => ENV.fetch("IOS_PROVISIONING_PROFILE_NAME"),
+        },
+      },
+      xcargs: [
+        "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID").shellescape}",
+        "PRODUCT_BUNDLE_IDENTIFIER=#{ENV.fetch("IOS_APP_IDENTIFIER").shellescape}",
+        "CODE_SIGN_STYLE=Manual",
+        "CODE_SIGN_IDENTITY=#{'Apple Distribution'.shellescape}",
+        "PROVISIONING_PROFILE_SPECIFIER=#{ENV.fetch("IOS_PROVISIONING_PROFILE_NAME").shellescape}",
+      ].join(" "),
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      app_identifier: ENV.fetch("IOS_APP_IDENTIFIER"),
+      ipa: ipa_path,
+      skip_waiting_for_build_processing: true,
+    )
+  end
+end
