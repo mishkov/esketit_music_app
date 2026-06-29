@@ -123,5 +123,5 @@ IOS_PROVISIONING_PROFILE_NAME='Your App Store profile name' \
 APP_STORE_CONNECT_API_KEY_ID=KEYID \
 APP_STORE_CONNECT_ISSUER_ID=ISSUER_ID \
 APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64="$(base64 -i AuthKey_KEYID.p8 | tr -d '\n')" \
-bundle exec fastlane ios testflight
+bundle exec fastlane ios upload_testflight
 ```

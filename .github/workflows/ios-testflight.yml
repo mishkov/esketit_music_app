@@ -87,7 +87,7 @@ jobs:
 
       - name: Build and upload to TestFlight
         working-directory: ios
-        run: bundle exec fastlane ios testflight
+        run: bundle exec fastlane ios upload_testflight
 
       - name: Clean up signing keychain
         if: ${{ always() }}

@@ -1,10 +1,10 @@
-require "shellwords"
+opt_out_usage
 
 default_platform(:ios)
 
 platform :ios do
   desc "Build the iOS app and upload it to TestFlight"
-  lane :testflight do
+  lane :upload_testflight do
     ensure_env_vars(
       env_vars: [
         "APPLE_TEAM_ID",
@@ -41,13 +41,6 @@ platform :ios do
           ENV.fetch("IOS_APP_IDENTIFIER") => ENV.fetch("IOS_PROVISIONING_PROFILE_NAME"),
         },
       },
-      xcargs: [
-        "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID").shellescape}",
-        "PRODUCT_BUNDLE_IDENTIFIER=#{ENV.fetch("IOS_APP_IDENTIFIER").shellescape}",
-        "CODE_SIGN_STYLE=Manual",
-        "CODE_SIGN_IDENTITY=#{'Apple Distribution'.shellescape}",
-        "PROVISIONING_PROFILE_SPECIFIER=#{ENV.fetch("IOS_PROVISIONING_PROFILE_NAME").shellescape}",
-      ].join(" "),
     )
 
     upload_to_testflight(
