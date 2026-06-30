@@ -48,9 +48,14 @@ jobs:
         working-directory: ios
         run: bundle install
 
+      - name: Prepare iOS Flutter project
+        run: flutter build ios --release --no-codesign --config-only
+
       - name: Install CocoaPods dependencies
         working-directory: ios
-        run: bundle exec pod install
+        run: |
+          bundle exec pod install
+          grep -q 'audio_service' Podfile.lock
 
       - name: Install Apple signing assets
         env:

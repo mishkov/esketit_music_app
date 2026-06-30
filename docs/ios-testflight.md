@@ -116,6 +116,9 @@ are installed in a local keychain, then run:
 ```bash
 cd ios
 bundle install
+cd ..
+flutter build ios --release --no-codesign --config-only
+cd ios
 bundle exec pod install
 APPLE_TEAM_ID=HXKMZK959F \
 IOS_APP_IDENTIFIER=com.mishkov.esketitMusicApp \
