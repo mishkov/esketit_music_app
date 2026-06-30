@@ -32,17 +32,33 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.41.9'
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
 
+      - name: Configure Flutter
+        run: |
+          flutter --version
+          flutter config --no-enable-swift-package-manager
+          flutter config --list
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Run tests
         run: flutter test
+
+      - name: Validate iOS Flutter plugin metadata
+        run: |
+          ruby -rjson -e '
+            plugins = JSON.parse(File.read(".flutter-plugins-dependencies")).fetch("plugins").fetch("ios").map { |plugin| plugin.fetch("name") }
+            expected = %w[audio_service audio_session file_picker flutter_secure_storage just_audio package_info_plus sentry_flutter shared_preferences_foundation sqflite_darwin]
+            missing = expected - plugins
+            abort("Missing iOS Flutter plugins: #{missing.join(", ")}") unless missing.empty?
+          '
 
       - name: Install Ruby dependencies
         working-directory: ios
@@ -55,7 +71,9 @@ jobs:
         working-directory: ios
         run: |
           bundle exec pod install
-          grep -q 'audio_service' Podfile.lock
+          for pod in audio_service audio_session file_picker flutter_secure_storage just_audio package_info_plus sentry_flutter shared_preferences_foundation sqflite_darwin; do
+            grep -q "$pod" Podfile.lock || { echo "Missing $pod in ios/Podfile.lock"; exit 1; }
+          done
 
       - name: Install Apple signing assets
         env:

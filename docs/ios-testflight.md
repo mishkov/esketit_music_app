@@ -114,6 +114,9 @@ make sure your Apple Distribution certificate and App Store provisioning profile
 are installed in a local keychain, then run:
 
 ```bash
+flutter --version # CI currently pins Flutter 3.41.9.
+flutter config --no-enable-swift-package-manager
+flutter pub get
 cd ios
 bundle install
 cd ..
