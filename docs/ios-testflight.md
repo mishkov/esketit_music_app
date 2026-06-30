@@ -90,7 +90,7 @@ Add these in Repository Settings > Secrets and variables > Actions > Secrets:
 | `IOS_DISTRIBUTION_CERTIFICATE_BASE64` | Base64-encoded `.p12` Apple Distribution certificate |
 | `IOS_DISTRIBUTION_CERTIFICATE_PASSWORD` | Password used when exporting the `.p12` |
 | `IOS_PROVISIONING_PROFILE_BASE64` | Base64-encoded App Store `.mobileprovision` profile |
-| `KEYCHAIN_PASSWORD` | Any strong random password for the temporary CI keychain |
+| `KEYCHAIN_PASSWORD` | Optional strong random password for the temporary CI keychain. The workflow falls back to the GitHub run id when this is not set. |
 
 Use these commands on macOS to copy base64 values without line breaks:
 
@@ -125,3 +125,8 @@ APP_STORE_CONNECT_ISSUER_ID=ISSUER_ID \
 APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64="$(base64 -i AuthKey_KEYID.p8 | tr -d '\n')" \
 bundle exec fastlane ios upload_testflight
 ```
+
+The Fastlane lane updates the local `Runner` Release signing settings before
+building. On CI this happens in a temporary checkout. If you run it locally and
+do not want to keep that generated signing change, discard the local
+`ios/Runner.xcodeproj/project.pbxproj` change afterward.
