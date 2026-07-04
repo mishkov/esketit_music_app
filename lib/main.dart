@@ -40,12 +40,6 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 Future<void> main() async {
-
-
-
-
-
-  
   final errorReporter = SentryErrorReporter(encrypter: EncrypterStub());
   await errorReporter.init(
     // TODO: move it to move safe place.
