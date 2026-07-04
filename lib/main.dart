@@ -18,21 +18,21 @@ import 'package:esketit_music_app/unassigned_layer/audio_player_factory.dart';
 import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
-import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
+import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/url_strategy.dart';
 import 'package:esketit_music_app/use_case/analytics/analytics_collecting.dart';
 import 'package:esketit_music_app/use_case/analytics/analytics_queue_storage.dart';
-import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
+import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
-import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
+import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,6 +40,12 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 Future<void> main() async {
+
+
+
+
+
+  
   final errorReporter = SentryErrorReporter(encrypter: EncrypterStub());
   await errorReporter.init(
     // TODO: move it to move safe place.
