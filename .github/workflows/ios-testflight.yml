@@ -3,8 +3,8 @@ name: Build iOS and Upload to TestFlight
 on:
   workflow_dispatch:
   push:
-    tags:
-      - 'ios-v*'
+    branches:
+      - main
 
 permissions:
   contents: read
