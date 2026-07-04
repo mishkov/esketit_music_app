@@ -6,9 +6,10 @@ import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:flutter/material.dart';
 
 class AlbumSearchTile extends StatelessWidget {
-  const AlbumSearchTile({required this.album, super.key});
+  const AlbumSearchTile({required this.album, this.onTap, super.key});
 
   final Album album;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,10 @@ class AlbumSearchTile extends StatelessWidget {
                 ),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => openAlbumDetails(context, album),
+        onTap: () {
+          onTap?.call();
+          openAlbumDetails(context, album);
+        },
       ),
     );
   }

@@ -12,7 +12,8 @@
       "flutterMode": "debug",
       "args": ["--web-port=8081"],
       "toolArgs": [
-        "--dart-define-from-file=.vscode/launch_defines.json"
+        "--dart-define-from-file=.vscode/launch_defines.json",
+        "--dart-define=ANALYTICS_FLUSH_IMMEDIATELY=true"
       ]
     },
     {

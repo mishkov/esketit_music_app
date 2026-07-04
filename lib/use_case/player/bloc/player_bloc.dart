@@ -7,6 +7,8 @@ import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/category.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/use_case/analytics/analytics_collecting.dart';
+import 'package:esketit_music_app/use_case/analytics/analytics_event.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
@@ -103,6 +105,24 @@ final class _HasNextTrackChanged extends PlayerEvent {
   List<Object?> get props => [hasNextTrack];
 }
 
+final class _PlaybackPositionChanged extends PlayerEvent {
+  const _PlaybackPositionChanged(this.position);
+
+  final Duration position;
+
+  @override
+  List<Object?> get props => [position];
+}
+
+final class _PlaybackDurationChanged extends PlayerEvent {
+  const _PlaybackDurationChanged(this.duration);
+
+  final Duration? duration;
+
+  @override
+  List<Object?> get props => [duration];
+}
+
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   static const int autoplayBatchSize = 10;
   static const int autoplayRecentTracksLimit = 30;
@@ -111,19 +131,29 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final AudioPlayer _player;
   final AutoplayStorage _autoplayStorage;
   final ErrorReporter _errorReporter;
+  final AnalyticsCollecting _analytics;
   final List<Track> _queue = <Track>[];
   final List<int> _recentTrackIds = <int>[];
   final Set<int> _excludedTrackIds = <int>{};
 
   AutoplayContext? _autoplayContext;
+  Track? _previousAnalyticsTrack;
+  String? _pendingTrackChangeReason;
+  Duration _latestPosition = Duration.zero;
+  Duration? _latestDuration;
+  int? _completedAnalyticsTrackId;
   bool _isAutoplayRequestInProgress = false;
   bool _isAutoplayExhausted = false;
   bool _skipNextSelectedTrackAutoplayPrefetch = false;
+  bool _suppressNextResumeAnalyticsEvent = false;
+  bool _hasSeenPlaybackState = false;
 
   StreamSubscription<bool>? _isPlayingSubscription;
   StreamSubscription<Track?>? _selectedTrackSubscription;
   StreamSubscription<bool>? _hasPreviousTrackSubscription;
   StreamSubscription<bool>? _hasNextTrackSubscription;
+  StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<Duration?>? _durationSubscription;
 
   Duration get currentPosition => _player.currentPosition;
   Stream<Duration> get positionStream => _player.positionStream;
@@ -165,9 +195,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required AudioPlayer player,
     required AutoplayStorage autoplayStorage,
     required ErrorReporter errorReporter,
+    AnalyticsCollecting analytics = const NoopAnalyticsCollector(),
   }) : _player = player,
        _autoplayStorage = autoplayStorage,
        _errorReporter = errorReporter,
+       _analytics = analytics,
        super(initialState) {
     _isPlayingSubscription = _player.isPlayingStream.listen((isPlaying) {
       add(_PlaybackStateChanged(isPlaying));
@@ -185,6 +217,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     ) {
       add(_HasNextTrackChanged(hasNextTrack));
     });
+    _positionSubscription = _player.positionStream.listen((position) {
+      add(_PlaybackPositionChanged(position));
+    });
+    _durationSubscription = _player.durationStream.listen((duration) {
+      add(_PlaybackDurationChanged(duration));
+    });
 
     on<PlayTrack>(_onPlayTrack);
     on<StartAutoplayPlaybackRequested>(_onStartAutoplayPlaybackRequested);
@@ -200,11 +238,25 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             stackTrace: stackTrace,
           ),
         );
+        await _collectPlaybackError(
+          state.selectedTrack,
+          error: error,
+          stackTrace: stackTrace,
+          fatal: false,
+        );
       }
     });
 
     on<SkipToPreviousTrackRequested>((event, emit) async {
       try {
+        if (state.hasPreviousTrack) {
+          await _collectTrackSkip(
+            reason: 'manual_previous',
+            skipDirection: 'backward',
+            nextTrack: _previousTrackBefore(state.selectedTrack),
+          );
+          _pendingTrackChangeReason = 'manual_previous';
+        }
         await _player.skipToPreviousTrack();
       } catch (error, stackTrace) {
         await _errorReporter.reportError(
@@ -214,12 +266,27 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             stackTrace: stackTrace,
           ),
         );
+        await _collectPlaybackError(
+          state.selectedTrack,
+          error: error,
+          stackTrace: stackTrace,
+          fatal: false,
+        );
       }
     });
 
     on<SkipToNextTrackRequested>((event, emit) async {
       try {
         await _ensureAutoplayQueuePrefilled();
+        if (state.hasNextTrack ||
+            _nextTrackAfter(state.selectedTrack) != null) {
+          await _collectTrackSkip(
+            reason: 'manual_next',
+            skipDirection: 'forward',
+            nextTrack: _nextTrackAfter(state.selectedTrack),
+          );
+          _pendingTrackChangeReason = 'manual_next';
+        }
         await _player.skipToNextTrack();
       } catch (error, stackTrace) {
         await _errorReporter.reportError(
@@ -229,12 +296,35 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             stackTrace: stackTrace,
           ),
         );
+        await _collectPlaybackError(
+          state.selectedTrack,
+          error: error,
+          stackTrace: stackTrace,
+          fatal: false,
+        );
       }
     });
 
     on<SeekToPositionRequested>((event, emit) async {
       try {
+        final fromPosition = _latestPosition;
         await _player.seekTo(event.position);
+        final selectedTrack = state.selectedTrack;
+        if (selectedTrack != null) {
+          await _collectAnalytics(
+            AnalyticsEvent(
+              type: AnalyticsEventType.seek,
+              trackId: selectedTrack.id,
+              positionMs: event.position.inMilliseconds,
+              durationMs: _durationMs,
+              metadata: {
+                'fromPositionMs': fromPosition.inMilliseconds,
+                'toPositionMs': event.position.inMilliseconds,
+                'method': 'scrubber',
+              },
+            ),
+          );
+        }
       } catch (error, stackTrace) {
         await _errorReporter.reportError(
           AppError(
@@ -243,14 +333,47 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             stackTrace: stackTrace,
           ),
         );
+        await _collectPlaybackError(
+          state.selectedTrack,
+          error: error,
+          stackTrace: stackTrace,
+          fatal: false,
+        );
       }
     });
 
-    on<_PlaybackStateChanged>((event, emit) {
+    on<_PlaybackStateChanged>((event, emit) async {
+      final wasPlaying = state.isPlaying;
       emit(state.copyWith(isPlaying: event.isPlaying));
+
+      if (!_hasSeenPlaybackState) {
+        _hasSeenPlaybackState = true;
+
+        return;
+      }
+      if (event.isPlaying && !wasPlaying && state.selectedTrack != null) {
+        if (_suppressNextResumeAnalyticsEvent) {
+          _suppressNextResumeAnalyticsEvent = false;
+
+          return;
+        }
+        await _collectAnalytics(
+          AnalyticsEvent(
+            type: AnalyticsEventType.resume,
+            trackId: state.selectedTrack!.id,
+            positionMs: _latestPosition.inMilliseconds,
+            durationMs: _durationMs,
+            metadata: {'reason': 'user'},
+          ),
+        );
+      }
+      if (!event.isPlaying && wasPlaying && state.selectedTrack != null) {
+        await _collectPause(reason: 'user');
+      }
     });
 
     on<_SelectedTrackChanged>((event, emit) async {
+      final previousTrack = state.selectedTrack ?? _previousAnalyticsTrack;
       emit(
         state.copyWith(
           selectedTrack: event.track == null
@@ -261,8 +384,29 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
       final selectedTrack = event.track;
       if (selectedTrack == null) {
+        _previousAnalyticsTrack = null;
+        _completedAnalyticsTrackId = null;
         return;
       }
+
+      if (previousTrack != null && previousTrack.id != selectedTrack.id) {
+        await _collectAnalytics(
+          AnalyticsEvent(
+            type: AnalyticsEventType.trackChange,
+            trackId: selectedTrack.id,
+            positionMs: 0,
+            durationMs: _durationMs,
+            metadata: {
+              'previousTrackId': previousTrack.id,
+              'reason': _pendingTrackChangeReason ?? 'autoplay',
+            },
+          ),
+        );
+      }
+      _previousAnalyticsTrack = selectedTrack;
+      _pendingTrackChangeReason = null;
+      _latestPosition = Duration.zero;
+      _completedAnalyticsTrackId = null;
 
       _recordRecentlyPlayedTrack(selectedTrack.id);
       if (_skipNextSelectedTrackAutoplayPrefetch) {
@@ -281,6 +425,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<_HasNextTrackChanged>((event, emit) {
       emit(state.copyWith(hasNextTrack: event.hasNextTrack));
     });
+    on<_PlaybackPositionChanged>(_onPlaybackPositionChanged);
+    on<_PlaybackDurationChanged>(_onPlaybackDurationChanged);
   }
 
   @override
@@ -289,6 +435,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     await _selectedTrackSubscription?.cancel();
     await _hasPreviousTrackSubscription?.cancel();
     await _hasNextTrackSubscription?.cancel();
+    await _positionSubscription?.cancel();
+    await _durationSubscription?.cancel();
 
     return super.close();
   }
@@ -306,6 +454,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         queue: event.queue,
         initialIndex: initialIndex,
         autoplayContext: event.autoplayContext,
+        reason: 'user_selected_track',
         shouldPrefetchAutoplayAfterStart: true,
       );
     } catch (error, stackTrace) {
@@ -316,6 +465,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           cause: error,
           stackTrace: stackTrace,
         ),
+      );
+      await _collectPlaybackError(
+        event.track,
+        error: error,
+        stackTrace: stackTrace,
+        fatal: true,
       );
     }
   }
@@ -352,6 +507,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         queue: availableTracks,
         initialIndex: 0,
         autoplayContext: event.autoplayContext,
+        reason: 'autoplay',
         shouldPrefetchAutoplayAfterStart: false,
       );
     } catch (error, stackTrace) {
@@ -359,6 +515,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         message: 'Failed to start autoplay playback',
         error: error,
         stackTrace: stackTrace,
+      );
+      await _collectPlaybackError(
+        state.selectedTrack,
+        error: error,
+        stackTrace: stackTrace,
+        fatal: false,
       );
     }
   }
@@ -369,6 +531,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required List<Track> queue,
     required int initialIndex,
     required AutoplayContext? autoplayContext,
+    required String reason,
     required bool shouldPrefetchAutoplayAfterStart,
   }) async {
     _replaceManagedQueue(queue);
@@ -377,7 +540,24 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     emit(state.copyWith(selectedTrack: NullableOption.value(track)));
 
+    _suppressNextResumeAnalyticsEvent = true;
     await _player.beginPlayingQueue(queue, initialIndex: initialIndex);
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: AnalyticsEventType.play,
+        trackId: track.id,
+        playlistId: _playlistIdFrom(autoplayContext),
+        albumId: _albumIdFrom(autoplayContext),
+        positionMs: 0,
+        durationMs: _durationMs,
+        metadata: {
+          ..._playbackSourceMetadata(autoplayContext),
+          'queueIndex': initialIndex,
+          'autoplay': reason == 'autoplay',
+          'reason': reason,
+        },
+      ),
+    );
     if (!shouldPrefetchAutoplayAfterStart) {
       return;
     }
@@ -514,6 +694,211 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     await _errorReporter.reportError(
       AppError(message, cause: error, stackTrace: stackTrace),
     );
+  }
+
+  void _onPlaybackPositionChanged(
+    _PlaybackPositionChanged event,
+    Emitter<PlayerState> emit,
+  ) {
+    _latestPosition = event.position;
+    unawaited(_collectTrackCompleteIfNeeded());
+  }
+
+  void _onPlaybackDurationChanged(
+    _PlaybackDurationChanged event,
+    Emitter<PlayerState> emit,
+  ) {
+    _latestDuration = event.duration;
+    unawaited(_collectTrackCompleteIfNeeded());
+  }
+
+  Future<void> _collectTrackCompleteIfNeeded() async {
+    final selectedTrack = state.selectedTrack;
+    final duration = _latestDuration;
+    if (selectedTrack == null ||
+        duration == null ||
+        duration == Duration.zero ||
+        _completedAnalyticsTrackId == selectedTrack.id) {
+      return;
+    }
+
+    final completionPercent = _completionPercent(
+      position: _latestPosition,
+      duration: duration,
+    );
+    if (completionPercent < 98) {
+      return;
+    }
+
+    _completedAnalyticsTrackId = selectedTrack.id;
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: AnalyticsEventType.trackComplete,
+        trackId: selectedTrack.id,
+        positionMs: _latestPosition.inMilliseconds,
+        durationMs: duration.inMilliseconds,
+        metadata: {
+          'completionPercent': completionPercent,
+          if (_nextTrackAfter(selectedTrack) != null)
+            'nextTrackId': _nextTrackAfter(selectedTrack)!.id,
+        },
+      ),
+    );
+  }
+
+  Future<void> _collectPause({required String reason}) async {
+    final selectedTrack = state.selectedTrack;
+    if (selectedTrack == null) {
+      return;
+    }
+
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: AnalyticsEventType.pause,
+        trackId: selectedTrack.id,
+        positionMs: _latestPosition.inMilliseconds,
+        durationMs: _durationMs,
+        metadata: {'reason': reason},
+      ),
+    );
+  }
+
+  Future<void> _collectTrackSkip({
+    required String reason,
+    required String skipDirection,
+    required Track? nextTrack,
+  }) async {
+    final selectedTrack = state.selectedTrack;
+    if (selectedTrack == null) {
+      return;
+    }
+
+    final duration = _latestDuration;
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: AnalyticsEventType.trackSkip,
+        trackId: selectedTrack.id,
+        positionMs: _latestPosition.inMilliseconds,
+        durationMs: _durationMs,
+        metadata: {
+          'reason': reason,
+          'skipDirection': skipDirection,
+          'playedMs': _latestPosition.inMilliseconds,
+          if (duration != null && duration != Duration.zero)
+            'playedPercent': _completionPercent(
+              position: _latestPosition,
+              duration: duration,
+            ),
+          if (nextTrack != null) 'nextTrackId': nextTrack.id,
+        },
+      ),
+    );
+  }
+
+  Future<void> _collectPlaybackError(
+    Track? track, {
+    required Object error,
+    required StackTrace stackTrace,
+    required bool fatal,
+  }) async {
+    if (track == null) {
+      return;
+    }
+
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: AnalyticsEventType.playbackError,
+        trackId: track.id,
+        positionMs: _latestPosition.inMilliseconds,
+        durationMs: _durationMs,
+        metadata: {
+          'errorCode': error.runtimeType.toString(),
+          'errorMessage': error.toString(),
+          'fatal': fatal,
+          'retryable': !fatal,
+        },
+      ),
+    );
+  }
+
+  Future<void> _collectAnalytics(AnalyticsEvent event) async {
+    try {
+      await _analytics.collect(event);
+    } catch (error, stackTrace) {
+      await _errorReporter.reportError(
+        AppError(
+          'Analytics collector leaked an error into player logic',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
+  Map<String, Object?> _playbackSourceMetadata(
+    AutoplayContext? autoplayContext,
+  ) {
+    if (autoplayContext == null) {
+      return const {'sourceType': 'unknown'};
+    }
+
+    return {
+      'sourceType': autoplayContext.sourceType.name,
+      'sourceId': autoplayContext.sourceId,
+    };
+  }
+
+  int? _playlistIdFrom(AutoplayContext? autoplayContext) {
+    if (autoplayContext?.sourceType != AutoplaySourceType.playlist) {
+      return null;
+    }
+
+    return autoplayContext?.sourceId;
+  }
+
+  int? _albumIdFrom(AutoplayContext? autoplayContext) {
+    if (autoplayContext?.sourceType != AutoplaySourceType.album) {
+      return null;
+    }
+
+    return autoplayContext?.sourceId;
+  }
+
+  Track? _nextTrackAfter(Track? track) {
+    if (track == null) {
+      return null;
+    }
+    final currentIndex = _queue.indexWhere((item) => item.id == track.id);
+    if (currentIndex < 0 || currentIndex >= _queue.length - 1) {
+      return null;
+    }
+
+    return _queue[currentIndex + 1];
+  }
+
+  Track? _previousTrackBefore(Track? track) {
+    if (track == null) {
+      return null;
+    }
+    final currentIndex = _queue.indexWhere((item) => item.id == track.id);
+    if (currentIndex <= 0) {
+      return null;
+    }
+
+    return _queue[currentIndex - 1];
+  }
+
+  int? get _durationMs => _latestDuration?.inMilliseconds;
+
+  double _completionPercent({
+    required Duration position,
+    required Duration duration,
+  }) {
+    if (duration == Duration.zero) {
+      return 0;
+    }
+
+    return position.inMilliseconds / duration.inMilliseconds * 100;
   }
 
   Map<String, Object?> _autoplayBreadcrumbData(

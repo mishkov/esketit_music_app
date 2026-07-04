@@ -23,6 +23,7 @@ class TrackListCard extends StatefulWidget {
     this.showAddToPlaylistsAction = true,
     this.showSaveToDownloadsAction,
     this.showImage = false,
+    this.onTap,
     super.key,
   });
 
@@ -33,6 +34,7 @@ class TrackListCard extends StatefulWidget {
   final bool showAddToPlaylistsAction;
   final bool? showSaveToDownloadsAction;
   final bool showImage;
+  final VoidCallback? onTap;
 
   @override
   State<TrackListCard> createState() => _TrackListCardState();
@@ -169,13 +171,16 @@ class _TrackListCardState extends State<TrackListCard> {
                     ],
                   ),
                   onTap: widget.track.isAvailable
-                      ? () => context.read<PlayerBloc>().add(
-                          PlayTrack(
-                            widget.track,
-                            queue: widget.queue,
-                            autoplayContext: widget.autoplayContext,
-                          ),
-                        )
+                      ? () {
+                          widget.onTap?.call();
+                          context.read<PlayerBloc>().add(
+                            PlayTrack(
+                              widget.track,
+                              queue: widget.queue,
+                              autoplayContext: widget.autoplayContext,
+                            ),
+                          );
+                        }
                       : null,
                 ),
               ),

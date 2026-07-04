@@ -5,9 +5,10 @@ import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:flutter/material.dart';
 
 class AuthorSearchTile extends StatelessWidget {
-  const AuthorSearchTile({required this.author, super.key});
+  const AuthorSearchTile({required this.author, this.onTap, super.key});
 
   final Author author;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,10 @@ class AuthorSearchTile extends StatelessWidget {
         title: Text(author.currentName),
         subtitle: Text(l10n.authorTypeLabel),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => openAuthorDetails(context, author),
+        onTap: () {
+          onTap?.call();
+          openAuthorDetails(context, author);
+        },
       ),
     );
   }

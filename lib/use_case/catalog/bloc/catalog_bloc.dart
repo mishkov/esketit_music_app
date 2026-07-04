@@ -5,6 +5,8 @@ import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
+import 'package:esketit_music_app/use_case/analytics/analytics_collecting.dart';
+import 'package:esketit_music_app/use_case/analytics/analytics_event.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +29,16 @@ final class LoadCatalogSearchResults extends CatalogEvent {
 
   @override
   List<Object?> get props => [page];
+}
+
+final class SearchResultClicked extends CatalogEvent {
+  final CatalogSearchResultItem result;
+  final int resultRank;
+
+  SearchResultClicked({required this.result, required this.resultRank});
+
+  @override
+  List<Object?> get props => [result, resultRank];
 }
 
 final class LoadRecentSearchQueries extends CatalogEvent {
@@ -61,18 +73,22 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   final CatalogStorage _catalogStorage;
   final RecentSearchQueriesStorage _recentSearchQueriesStorage;
   final ErrorReporter _errorReporter;
+  final AnalyticsCollecting _analytics;
 
   CatalogBloc({
     required CatalogState initialState,
     required CatalogStorage catalogStorage,
     required RecentSearchQueriesStorage recentSearchQueriesStorage,
     required ErrorReporter errorReporter,
+    AnalyticsCollecting analytics = const NoopAnalyticsCollector(),
   }) : _catalogStorage = catalogStorage,
        _recentSearchQueriesStorage = recentSearchQueriesStorage,
        _errorReporter = errorReporter,
+       _analytics = analytics,
        super(initialState) {
     on<CatalogSearchQueryChanged>(_onCatalogSearchQueryChanged);
     on<LoadCatalogSearchResults>(_onLoadCatalogSearchResults);
+    on<SearchResultClicked>(_onSearchResultClicked);
     on<LoadRecentSearchQueries>(_onLoadRecentSearchQueries);
     on<LoadPublishedAuthors>(_onLoadPublishedAuthors);
     on<LoadPublishedAlbumsByAuthor>(_onLoadPublishedAlbumsByAuthor);
@@ -227,6 +243,20 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           clearSearchError: true,
         ),
       );
+
+      if (requestedPage == 1) {
+        await _collectAnalytics(
+          AnalyticsEvent(
+            type: AnalyticsEventType.search,
+            searchQuery: query,
+            metadata: {
+              'resultCount': results.totalItems,
+              'filters': const <String, Object?>{},
+              'sourceScreen': 'search',
+            },
+          ),
+        );
+      }
     } catch (error, stackTrace) {
       if (state.searchQuery.trim() != query ||
           state.searchPage != requestedPage) {
@@ -247,6 +277,38 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         ),
       );
     }
+  }
+
+  Future<void> _onSearchResultClicked(
+    SearchResultClicked event,
+    Emitter<CatalogState> emit,
+  ) async {
+    final query = state.searchQuery.trim();
+    if (query.isEmpty) {
+      return;
+    }
+
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: AnalyticsEventType.searchResultClick,
+        trackId: event.result.track?.id,
+        albumId: event.result.album?.id,
+        searchQuery: query,
+        metadata: {
+          'resultType': event.result.type.name,
+          'resultId': _resultId(event.result),
+          'resultRank': event.resultRank,
+          if (event.result.track != null)
+            'resultTrackId': event.result.track!.id,
+          if (event.result.album != null)
+            'resultAlbumId': event.result.album!.id,
+          if (event.result.author != null)
+            'resultAuthorId': event.result.author!.id,
+          if (event.result.playlist != null)
+            'resultPlaylistId': event.result.playlist!.id,
+        },
+      ),
+    );
   }
 
   Future<void> _onLoadPublishedAuthors(
@@ -391,6 +453,29 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         ),
       );
     }
+  }
+
+  Future<void> _collectAnalytics(AnalyticsEvent event) async {
+    try {
+      await _analytics.collect(event);
+    } catch (error, stackTrace) {
+      await _errorReporter.reportError(
+        AppError(
+          'Analytics collector leaked an error into catalog logic',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
+  int? _resultId(CatalogSearchResultItem item) {
+    return switch (item.type) {
+      CatalogSearchResultType.author => item.author?.id,
+      CatalogSearchResultType.album => item.album?.id,
+      CatalogSearchResultType.track => item.track?.id,
+      CatalogSearchResultType.playlist => item.playlist?.id,
+    };
   }
 }
 

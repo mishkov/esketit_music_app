@@ -7,6 +7,7 @@ import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SearchCatalogView extends StatelessWidget {
   const SearchCatalogView({
@@ -52,18 +53,27 @@ class SearchCatalogView extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 12),
-        ...items.map((item) {
+        ...items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          void onTap() => context.read<CatalogBloc>().add(
+            SearchResultClicked(result: item, resultRank: index + 1),
+          );
+
           return switch (item.type) {
             CatalogSearchResultType.author => AuthorSearchTile(
               author: item.author!,
+              onTap: onTap,
             ),
             CatalogSearchResultType.album => AlbumSearchTile(
               album: item.album!,
+              onTap: onTap,
             ),
             CatalogSearchResultType.track => TrackListCard(
               track: item.track!,
               queue: [item.track!],
               showImage: true,
+              onTap: onTap,
               autoplayContext: AutoplayContext(
                 sourceType: AutoplaySourceType.track,
                 sourceId: item.track!.id,
@@ -71,6 +81,7 @@ class SearchCatalogView extends StatelessWidget {
             ),
             CatalogSearchResultType.playlist => PlaylistSearchTile(
               playlist: item.playlist!,
+              onTap: onTap,
             ),
           };
         }),

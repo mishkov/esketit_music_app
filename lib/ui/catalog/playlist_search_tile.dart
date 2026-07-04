@@ -6,9 +6,10 @@ import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistSearchTile extends StatelessWidget {
-  const PlaylistSearchTile({required this.playlist, super.key});
+  const PlaylistSearchTile({required this.playlist, this.onTap, super.key});
 
   final Playlist playlist;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,10 @@ class PlaylistSearchTile extends StatelessWidget {
           '${context.playlistVisibilityLabel(playlist.visibility)}',
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => openPlaylistDetails(context, playlist),
+        onTap: () {
+          onTap?.call();
+          openPlaylistDetails(context, playlist);
+        },
       ),
     );
   }

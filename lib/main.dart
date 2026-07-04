@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:esketit_music_app/errors/error_reporter/app_errors_bloc_observer.dart';
 import 'package:esketit_music_app/errors/error_reporter/encrypter_stub.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter_console_logger_proxy.dart';
 import 'package:esketit_music_app/errors/error_reporter/sentry_error_reporter.dart';
+import 'package:esketit_music_app/esketit_rest_api/analytics/server_analytics_collector.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/authenticated_http_client_proxy.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/esketit_rest_api_auth_repository.dart';
 import 'package:esketit_music_app/esketit_rest_api/auth/optionally_authenticated_http_client_proxy.dart';
@@ -19,6 +22,8 @@ import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.da
 import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/url_strategy.dart';
+import 'package:esketit_music_app/use_case/analytics/analytics_collecting.dart';
+import 'package:esketit_music_app/use_case/analytics/analytics_queue_storage.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
@@ -32,6 +37,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 Future<void> main() async {
   final errorReporter = SentryErrorReporter(encrypter: EncrypterStub());
@@ -70,6 +76,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   final selectedLocale = await settingsStorage.getLocale();
   final selectedThemeMode =
       await settingsStorage.getThemeMode() ?? AppThemeMode.auto;
+  final packageInfo = await PackageInfo.fromPlatform();
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
   final sessionRefresher = DelegatingAuthSessionRefresher();
@@ -110,10 +117,32 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     httpClient: authenticatedHttpClient,
     baseUri: baseUri,
   );
+  final analyticsCollector = ServerAnalyticsCollector(
+    httpClient: optionallyAuthenticatedHttpClient,
+    queueStorage: KeyValueAnalyticsQueueStorage(
+      keyValueStorage: keyValueStorage,
+    ),
+    keyValueStorage: keyValueStorage,
+    errorReporter: errorReporter,
+    platform: _analyticsPlatform(),
+    appVersion: _appVersion(packageInfo),
+    flushInterval: _analyticsFlushInterval(),
+    flushImmediatelyAfterCollect: const bool.fromEnvironment(
+      'ANALYTICS_FLUSH_IMMEDIATELY',
+    ),
+  )..start();
 
   runApp(
-    RepositoryProvider<ShareablePlaylistsStorage>.value(
-      value: shareablePlaylistsStorage,
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<AnalyticsCollecting>(
+          create: (context) => analyticsCollector,
+          dispose: (collector) => unawaited(collector.dispose()),
+        ),
+        RepositoryProvider<ShareablePlaylistsStorage>.value(
+          value: shareablePlaylistsStorage,
+        ),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -145,6 +174,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
               errorReporter: errorReporter,
               catalogStorage: catalogStorage,
               recentSearchQueriesStorage: recentSearchQueriesStorage,
+              analytics: analyticsCollector,
             )..add(LoadRecentSearchQueries()),
           ),
           BlocProvider(
@@ -156,6 +186,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
               player: createAudioPlayer(baseUri: baseUri),
               autoplayStorage: autoplayStorage,
               errorReporter: errorReporter,
+              analytics: analyticsCollector,
             ),
           ),
           BlocProvider(
@@ -179,6 +210,39 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       ),
     ),
   );
+}
+
+Duration _analyticsFlushInterval() {
+  const minutes = int.fromEnvironment(
+    'ANALYTICS_FLUSH_INTERVAL_MINUTES',
+    defaultValue: 10,
+  );
+
+  return Duration(minutes: minutes <= 0 ? 10 : minutes);
+}
+
+String _appVersion(PackageInfo packageInfo) {
+  final buildNumber = packageInfo.buildNumber;
+  if (buildNumber.isEmpty) {
+    return packageInfo.version;
+  }
+
+  return '${packageInfo.version}+$buildNumber';
+}
+
+String _analyticsPlatform() {
+  if (kIsWeb) {
+    return 'web';
+  }
+
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.android => 'android',
+    TargetPlatform.iOS => 'ios',
+    TargetPlatform.macOS => 'macos',
+    TargetPlatform.windows => 'windows',
+    TargetPlatform.linux => 'linux',
+    TargetPlatform.fuchsia => 'fuchsia',
+  };
 }
 
 // class Song {
