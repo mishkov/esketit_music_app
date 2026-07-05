@@ -261,9 +261,6 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
     }
 
     final completer = Completer<void>();
-    late final StreamSubscription<Event> metadataSubscription;
-    late final StreamSubscription<Event> canPlaySubscription;
-    late final StreamSubscription<Event> errorSubscription;
 
     void complete() {
       if (!completer.isCompleted && generation == _loadGeneration) {
@@ -277,13 +274,13 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
       }
     }
 
-    metadataSubscription = _audioElement.onLoadedMetadata.listen((_) {
+    final metadataSubscription = _audioElement.onLoadedMetadata.listen((_) {
       complete();
     });
-    canPlaySubscription = _audioElement.onCanPlay.listen((_) {
+    final canPlaySubscription = _audioElement.onCanPlay.listen((_) {
       complete();
     });
-    errorSubscription = _audioElement.onError.listen((_) {
+    final errorSubscription = _audioElement.onError.listen((_) {
       completeError();
     });
 
