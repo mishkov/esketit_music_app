@@ -19,7 +19,7 @@ enum AnalyticsEventType {
   final String value;
 }
 
-class AnalyticsEvent extends Equatable {
+final class AnalyticsEvent extends Equatable {
   AnalyticsEvent({
     String? eventId,
     required this.type,

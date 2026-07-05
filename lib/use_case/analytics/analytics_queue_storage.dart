@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/key_value_storage/shared/key_value_storage.dart';
 import 'package:esketit_music_app/use_case/analytics/analytics_event.dart';
 
-class QueuedAnalyticsEvent extends Equatable {
+final class QueuedAnalyticsEvent extends Equatable {
   const QueuedAnalyticsEvent({
     required this.event,
     required this.queuedAt,
