@@ -1,8 +1,82 @@
 opt_out_usage
 
+require "yaml"
+require "rubygems"
+
 default_platform(:ios)
 
+def app_store_connect_api_key_from_env
+  app_store_connect_api_key(
+    key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+    issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+    key_content: ENV.fetch("APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64"),
+    is_key_content_base64: true,
+    duration: 1200,
+    in_house: false,
+  )
+end
+
+def pubspec_version
+  pubspec = YAML.load_file(File.expand_path("../../pubspec.yaml", __dir__))
+  version = pubspec.fetch("version")
+  match = version.match(/\A(?<name>\d+(?:\.\d+){1,2})(?:\+(?<build>\d+))?\z/)
+  UI.user_error!("pubspec.yaml version must look like 1.2.3+45, got #{version.inspect}") unless match
+
+  {
+    raw: version,
+    name: match[:name],
+    build: Integer(match[:build] || "0"),
+  }
+end
+
 platform :ios do
+  desc "Verify pubspec.yaml version is newer than the latest TestFlight build"
+  lane :verify_pubspec_version_for_testflight do
+    ensure_env_vars(
+      env_vars: [
+        "IOS_APP_IDENTIFIER",
+        "APP_STORE_CONNECT_API_KEY_ID",
+        "APP_STORE_CONNECT_ISSUER_ID",
+        "APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64",
+      ],
+    )
+
+    current = pubspec_version
+    latest_build_number = latest_testflight_build_number(
+      api_key: app_store_connect_api_key_from_env,
+      app_identifier: ENV.fetch("IOS_APP_IDENTIFIER"),
+      initial_build_number: 0,
+    )
+    latest_version = lane_context[SharedValues::LATEST_TESTFLIGHT_VERSION]
+
+    if latest_version.nil? || latest_build_number.to_i.zero?
+      UI.success("No previous TestFlight build found. pubspec.yaml version #{current[:raw]} can be uploaded.")
+      next
+    end
+
+    latest_name_version = Gem::Version.new(latest_version)
+    current_name_version = Gem::Version.new(current[:name])
+
+    if current_name_version < latest_name_version
+      UI.user_error!(
+        "pubspec.yaml version #{current[:raw]} is older than latest TestFlight version " \
+        "#{latest_version}+#{latest_build_number}. Increase the version in pubspec.yaml.",
+      )
+    end
+
+    if current[:build] <= latest_build_number.to_i
+      UI.user_error!(
+        "pubspec.yaml build number #{current[:build]} is not higher than latest TestFlight " \
+        "build number #{latest_build_number} for version #{latest_version}. Increase the +build in pubspec.yaml.",
+      )
+    end
+
+    UI.success(
+      "pubspec.yaml version #{current[:raw]} is newer than latest TestFlight build " \
+      "#{latest_version}+#{latest_build_number}.",
+    )
+  end
+
   desc "Build the iOS app and upload it to TestFlight"
   lane :upload_testflight do
     ensure_env_vars(
@@ -16,14 +90,7 @@ platform :ios do
       ],
     )
 
-    api_key = app_store_connect_api_key(
-      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
-      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
-      key_content: ENV.fetch("APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64"),
-      is_key_content_base64: true,
-      duration: 1200,
-      in_house: false,
-    )
+    api_key = app_store_connect_api_key_from_env
 
     update_code_signing_settings(
       use_automatic_signing: false,

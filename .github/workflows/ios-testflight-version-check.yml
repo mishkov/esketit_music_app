@@ -1,0 +1,45 @@
+name: Check iOS TestFlight Version
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight-version-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ios-version-check:
+    runs-on: ubuntu-latest
+
+    env:
+      IOS_APP_IDENTIFIER: ${{ vars.IOS_APP_IDENTIFIER || 'com.mishkov.esketitMusicApp' }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install Ruby dependencies
+        working-directory: ios
+        run: bundle install
+
+      - name: Verify pubspec version is newer than TestFlight
+        working-directory: ios
+        run: bundle exec fastlane ios verify_pubspec_version_for_testflight
