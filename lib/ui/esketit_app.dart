@@ -60,7 +60,7 @@ class EsketitApp extends StatelessWidget {
     }
 
     if (segments.length == 3 &&
-        segments[0] == 'playlists' &&
+        segments.first == 'playlists' &&
         segments[1] == 'shared' &&
         segments[2].isNotEmpty) {
       return MaterialPageRoute<void>(
