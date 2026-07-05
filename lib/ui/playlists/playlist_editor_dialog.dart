@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/playlists/cover_upload_picker.dart';
 import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:file_picker/file_picker.dart';
@@ -96,7 +97,7 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              _CoverUploadPicker(
+              CoverUploadPicker(
                 fileName: _selectedCoverFile?.fileName,
                 onPick: _pickCoverFile,
                 onClear: _selectedCoverFile == null
@@ -207,49 +208,6 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
         ),
         coverFile: _selectedCoverFile,
       ),
-    );
-  }
-}
-
-class _CoverUploadPicker extends StatelessWidget {
-  const _CoverUploadPicker({
-    required this.fileName,
-    required this.onPick,
-    required this.onClear,
-  });
-
-  final String? fileName;
-  final VoidCallback onPick;
-  final VoidCallback? onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onPick,
-            icon: const Icon(Icons.upload_file_rounded),
-            label: Text(
-              fileName == null
-                  ? l10n.chooseCoverImageButton
-                  : l10n.selectedCoverImageLabel(fileName!),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-        if (onClear != null) ...[
-          const SizedBox(width: 8),
-          IconButton(
-            tooltip: l10n.clearCoverImageSelectionTooltip,
-            onPressed: onClear,
-            icon: const Icon(Icons.close_rounded),
-          ),
-        ],
-      ],
     );
   }
 }
