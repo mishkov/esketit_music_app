@@ -1,7 +1,1 @@
-enum Category {
-  generic,
-  uiClick,
-  uiInput,
-  http,
-  navigation,
-}
+enum Category { generic, uiClick, uiInput, http, navigation }
