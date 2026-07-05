@@ -39,7 +39,7 @@ final class BaseUriConfiguration {
     final directoryPath = path.endsWith('/') ? path : '$path/';
     final apiPath = directoryPath.endsWith('/api/')
         ? directoryPath
-        : '${directoryPath == '/' ? '/' : directoryPath}api/';
+        : '${directoryPath}api/';
 
     return uri.replace(path: apiPath);
   }
