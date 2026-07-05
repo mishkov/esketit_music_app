@@ -36,10 +36,10 @@ class EsketitApp extends StatelessWidget {
     );
   }
 
-  Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+  Route<void>? _onGenerateRoute(RouteSettings settings) {
     final name = settings.name;
     if (name == null || name == Navigator.defaultRouteName) {
-      return MaterialPageRoute(
+      return MaterialPageRoute<void>(
         settings: settings,
         builder: (context) => const AppShell(),
       );
@@ -51,7 +51,7 @@ class EsketitApp extends StatelessWidget {
     if (segments.length == 2 && segments.first == 'playlists') {
       final playlistId = int.tryParse(segments[1]);
       if (playlistId != null) {
-        return MaterialPageRoute(
+        return MaterialPageRoute<void>(
           settings: settings,
           builder: (context) =>
               ShareablePlaylistDetailsScreen.public(playlistId: playlistId),
@@ -63,7 +63,7 @@ class EsketitApp extends StatelessWidget {
         segments[0] == 'playlists' &&
         segments[1] == 'shared' &&
         segments[2].isNotEmpty) {
-      return MaterialPageRoute(
+      return MaterialPageRoute<void>(
         settings: settings,
         builder: (context) => ShareablePlaylistDetailsScreen.shared(
           shareToken: Uri.decodeComponent(segments[2]),
