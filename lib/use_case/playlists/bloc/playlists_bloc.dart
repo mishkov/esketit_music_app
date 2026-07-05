@@ -286,6 +286,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
             error,
             stackTrace,
           );
+
           return;
         }
       }
@@ -337,6 +338,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
             error,
             stackTrace,
           );
+
           return;
         }
       }

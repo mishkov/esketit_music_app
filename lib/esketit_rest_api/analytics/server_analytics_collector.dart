@@ -315,6 +315,7 @@ class ServerAnalyticsCollector implements AnalyticsCollecting {
             }
 
             final nextAttemptCount = failedEvent.attemptCount + 1;
+
             return failedEvent.copyWith(
               attemptCount: nextAttemptCount,
               nextAttemptAt: DateTime.now().toUtc().add(

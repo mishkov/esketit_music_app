@@ -136,6 +136,7 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   @override
   Future<Playlist> getPlaylist({required int playlistId}) async {
     loadedPlaylistIds.add(playlistId);
+
     return playlists.singleWhere((playlist) => playlist.id == playlistId);
   }
 
