@@ -35,11 +35,13 @@ class PlaylistSearchTile extends StatelessWidget {
           '${context.playlistVisibilityLabel(playlist.visibility)}',
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () {
-          onTap?.call();
-          openPlaylistDetails(context, playlist);
-        },
+        onTap: () => _openDetails(context),
       ),
     );
+  }
+
+  void _openDetails(BuildContext context) {
+    onTap?.call();
+    openPlaylistDetails(context, playlist);
   }
 }

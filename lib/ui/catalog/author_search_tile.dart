@@ -31,11 +31,13 @@ class AuthorSearchTile extends StatelessWidget {
         title: Text(author.currentName),
         subtitle: Text(l10n.authorTypeLabel),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () {
-          onTap?.call();
-          openAuthorDetails(context, author);
-        },
+        onTap: () => _openDetails(context),
       ),
     );
+  }
+
+  void _openDetails(BuildContext context) {
+    onTap?.call();
+    openAuthorDetails(context, author);
   }
 }
