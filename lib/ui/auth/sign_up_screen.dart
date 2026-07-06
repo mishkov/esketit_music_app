@@ -157,7 +157,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _onAuthStateChanged(BuildContext context, AuthState state) {
     if (state.isAuthenticated) {
-      // TODO: again, consider more universal navigation to successfull screen.
       Navigator.of(context).popUntil((route) => route.isFirst);
 
       return;

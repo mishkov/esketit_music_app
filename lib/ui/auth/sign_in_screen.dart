@@ -164,7 +164,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   void _onAuthStateChanged(BuildContext context, AuthState state) {
     if (state.isAuthenticated) {
-      // TODO: make this navigation more universal so we don't accidentally navigate to some infinity-loading screen.
       Navigator.of(context).popUntil((route) => route.isFirst);
 
       return;
