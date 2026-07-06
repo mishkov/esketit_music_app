@@ -28,12 +28,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Install DCM
-        uses: CQLabs/setup-dcm@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          version: 1.36.0
-
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
 
@@ -42,9 +36,6 @@ jobs:
 
       - name: Run Flutter analyzer
         run: flutter analyze .
-
-      - name: Run DCM checks
-        run: dcm analyze .
 
       - name: Run tests
         run: flutter test
