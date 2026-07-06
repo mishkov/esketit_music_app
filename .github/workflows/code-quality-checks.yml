@@ -31,5 +31,11 @@ jobs:
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
 
+      - name: Run Dart analyzer
+        run: dart analyze .
+
+      - name: Run Flutter analyzer
+        run: flutter analyze .
+
       - name: Run tests
         run: flutter test

@@ -43,13 +43,14 @@ String _extensionFromUri(Uri uri) {
     return '';
   }
 
-  final fileName = uri.pathSegments.last;
-  final dotIndex = fileName.lastIndexOf('.');
-  if (dotIndex <= 0 || dotIndex == fileName.length - 1) {
+  final fileNameParts = uri.pathSegments.last.split('.');
+  if (fileNameParts.length < 2 ||
+      fileNameParts.first.isEmpty ||
+      fileNameParts.last.isEmpty) {
     return '';
   }
 
-  final extension = fileName.substring(dotIndex);
+  final extension = '.${fileNameParts.last}';
   if (extension.length > 8 || extension.contains('/')) {
     return '';
   }

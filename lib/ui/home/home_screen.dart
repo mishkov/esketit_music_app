@@ -4,7 +4,7 @@ import 'package:esketit_music_app/ui/bottom_navigation_bar/esketit_bottom_naviga
 import 'package:esketit_music_app/ui/catalog/catalog_browse_screen.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_screen.dart';
 import 'package:esketit_music_app/ui/drawer/esketit_drawer.dart';
-import 'package:esketit_music_app/ui/library/my_library_screen.dart';
+import 'package:esketit_music_app/ui/library/my_library_page.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: [
           const CatalogBrowseScreen(),
           const CatalogScreen(),
-          const MyLibraryScreen(),
+          const MyLibraryPage(),
         ][_currentTabIndex],
       ),
     );

@@ -38,11 +38,13 @@ class AlbumSearchTile extends StatelessWidget {
                 ),
         ),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () {
-          onTap?.call();
-          openAlbumDetails(context, album);
-        },
+        onTap: () => _openDetails(context),
       ),
     );
+  }
+
+  void _openDetails(BuildContext context) {
+    onTap?.call();
+    openAlbumDetails(context, album);
   }
 }

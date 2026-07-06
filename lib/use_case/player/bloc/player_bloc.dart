@@ -386,6 +386,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       if (selectedTrack == null) {
         _previousAnalyticsTrack = null;
         _completedAnalyticsTrackId = null;
+
         return;
       }
 

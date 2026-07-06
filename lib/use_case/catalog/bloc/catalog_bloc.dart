@@ -10,25 +10,37 @@ import 'package:esketit_music_app/use_case/analytics/analytics_event.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rxdart/rxdart.dart';
 
 sealed class CatalogEvent extends Equatable {}
 
 final class CatalogSearchQueryChanged extends CatalogEvent {
   final String query;
+  final bool loadSearchResults;
+  final bool debounceSearchResultsLoading;
 
-  CatalogSearchQueryChanged(this.query);
+  CatalogSearchQueryChanged(
+    this.query, {
+    this.loadSearchResults = false,
+    this.debounceSearchResultsLoading = false,
+  });
 
   @override
-  List<Object?> get props => [query];
+  List<Object?> get props => [
+    query,
+    loadSearchResults,
+    debounceSearchResultsLoading,
+  ];
 }
 
 final class LoadCatalogSearchResults extends CatalogEvent {
   final int? page;
+  final bool debounce;
 
-  LoadCatalogSearchResults({this.page});
+  LoadCatalogSearchResults({this.page, this.debounce = false});
 
   @override
-  List<Object?> get props => [page];
+  List<Object?> get props => [page, debounce];
 }
 
 final class SearchResultClicked extends CatalogEvent {
@@ -87,7 +99,10 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
        _analytics = analytics,
        super(initialState) {
     on<CatalogSearchQueryChanged>(_onCatalogSearchQueryChanged);
-    on<LoadCatalogSearchResults>(_onLoadCatalogSearchResults);
+    on<LoadCatalogSearchResults>(
+      _onLoadCatalogSearchResults,
+      transformer: _debounceSearchResultsLoading(_searchDebounceDuration),
+    );
     on<SearchResultClicked>(_onSearchResultClicked);
     on<LoadRecentSearchQueries>(_onLoadRecentSearchQueries);
     on<LoadPublishedAuthors>(_onLoadPublishedAuthors);
@@ -96,6 +111,17 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   }
 
   static const int searchPageSize = 20;
+  static const Duration _searchDebounceDuration = Duration(milliseconds: 400);
+
+  static EventTransformer<LoadCatalogSearchResults>
+  _debounceSearchResultsLoading(Duration duration) {
+    return (events, mapper) => events
+        .switchMap(
+          (event) =>
+              event.debounce ? Rx.timer(event, duration) : Stream.value(event),
+        )
+        .asyncExpand(mapper);
+  }
 
   Future<void> _onLoadRecentSearchQueries(
     LoadRecentSearchQueries event,
@@ -155,15 +181,23 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
     CatalogSearchQueryChanged event,
     Emitter<CatalogState> emit,
   ) {
+    final query = event.query.trim();
+
     emit(
       state.copyWith(
         searchQuery: event.query,
         searchPage: 1,
         isLoadingSearch: false,
         clearSearchError: true,
-        clearSearchResults: event.query.trim().isEmpty,
+        clearSearchResults: query.isEmpty,
       ),
     );
+
+    if (query.isEmpty || !event.loadSearchResults) {
+      return;
+    }
+
+    add(LoadCatalogSearchResults(debounce: event.debounceSearchResultsLoading));
   }
 
   Future<void> _onLoadCatalogSearchResults(

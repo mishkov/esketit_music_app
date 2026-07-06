@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/domain/auth/auth_credentials_validator.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
@@ -108,29 +109,25 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  // TODO: better to move this validator to some shared class and domain layer.
   String? _validateEmail(String? value) {
     final l10n = context.l10n;
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return l10n.enterYourEmail;
-    }
-    if (!text.contains('@')) {
-      return l10n.enterValidEmail;
-    }
+    final error = AuthCredentialsValidator.validateEmail(value);
 
-    return null;
+    return switch (error) {
+      EmailValidationError.empty => l10n.enterYourEmail,
+      EmailValidationError.invalid => l10n.enterValidEmail,
+      null => null,
+    };
   }
 
-  // TODO: better to move this validator to some shared class and domain layer.
   String? _validatePassword(String? value) {
     final l10n = context.l10n;
-    final text = value ?? '';
-    if (text.isEmpty) {
-      return l10n.enterYourPassword;
-    }
 
-    return null;
+    return switch (AuthCredentialsValidator.validateSignInPassword(value)) {
+      PasswordValidationError.empty => l10n.enterYourPassword,
+      PasswordValidationError.tooShort => l10n.passwordMinLength,
+      null => null,
+    };
   }
 
   String? _toFailureMessage(AppError? error) {
@@ -167,7 +164,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   void _onAuthStateChanged(BuildContext context, AuthState state) {
     if (state.isAuthenticated) {
-      // TODO: make this navigation more universal so we don't accidentally navigate to some infinity-loading screen.
       Navigator.of(context).popUntil((route) => route.isFirst);
 
       return;

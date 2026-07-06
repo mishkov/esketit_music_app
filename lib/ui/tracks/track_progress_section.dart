@@ -12,7 +12,7 @@ class TrackProgressSection extends StatefulWidget {
 class _TrackProgressSectionState extends State<TrackProgressSection> {
   Duration? _draggedPosition;
   PlayerBloc? _playerBloc;
-  late Stream<PlayerPlaybackProgress> _playbackProgressStream;
+  Stream<PlayerPlaybackProgress>? _playbackProgressStream;
 
   @override
   void didChangeDependencies() {

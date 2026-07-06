@@ -35,7 +35,6 @@ class SentryErrorReporter implements ErrorReporter {
       Category.generic => 'info',
       Category.uiClick => 'ui.click',
       Category.uiInput => 'ui.input',
-      Category.stateHandler => 'state.handler',
       Category.navigation => 'navigation',
     };
 
