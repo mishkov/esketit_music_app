@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/domain/auth/auth_credentials_validator.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
@@ -101,29 +102,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // TODO: again, consider to move this validator to domain layer
   String? _validateEmail(String? value) {
     final l10n = context.l10n;
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return l10n.enterYourEmail;
-    }
-    if (!text.contains('@')) {
-      return l10n.enterValidEmail;
-    }
+    final error = AuthCredentialsValidator.validateEmail(value);
 
-    return null;
+    return switch (error) {
+      EmailValidationError.empty => l10n.enterYourEmail,
+      EmailValidationError.invalid => l10n.enterValidEmail,
+      null => null,
+    };
   }
 
-  // TODO: again, consider to move this validator to domain layer
   String? _validatePassword(String? value) {
     final l10n = context.l10n;
-    final text = value ?? '';
-    if (text.length < 8) {
-      return l10n.passwordMinLength;
-    }
 
-    return null;
+    return switch (AuthCredentialsValidator.validateSignUpPassword(value)) {
+      PasswordValidationError.empty => l10n.enterYourPassword,
+      PasswordValidationError.tooShort => l10n.passwordMinLength,
+      null => null,
+    };
   }
 
   String? _toFailureMessage(AppError? error) {
