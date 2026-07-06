@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/browse_catalog_view.dart';
 import 'package:esketit_music_app/ui/catalog/recent_search_queries_section.dart';
@@ -17,13 +15,11 @@ class CatalogScreen extends StatefulWidget {
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
-  static const Duration _searchDebounceDuration = Duration(milliseconds: 400);
   static const double _lazyLoadTriggerOffset = 240;
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -37,7 +33,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
     _searchController.dispose();
     _searchFocusNode
       ..removeListener(_onSearchFocusChanged)
@@ -118,16 +113,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   void _onSearchQueryChanged(String value) {
     final catalogBloc = context.read<CatalogBloc>();
-    catalogBloc.add(CatalogSearchQueryChanged(value));
-
-    _searchDebounce?.cancel();
-
-    if (value.trim().isEmpty) {
-      return;
-    }
-
-    // TODO: bloc have built-in support for debounce with evenet transformer.
-    _searchDebounce = Timer(_searchDebounceDuration, _loadSearchResults);
+    catalogBloc.add(
+      CatalogSearchQueryChanged(
+        value,
+        loadSearchResults: value.trim().isNotEmpty,
+        debounceSearchResultsLoading: true,
+      ),
+    );
   }
 
   void _clearSearch() {
@@ -140,9 +132,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _searchController.selection = TextSelection.collapsed(
       offset: _searchController.text.length,
     );
-    _onSearchQueryChanged(query);
-    _searchDebounce?.cancel();
-    _loadSearchResults();
+    context.read<CatalogBloc>().add(
+      CatalogSearchQueryChanged(query, loadSearchResults: true),
+    );
   }
 
   void _onSearchFocusChanged() {
@@ -173,13 +165,5 @@ class _CatalogScreenState extends State<CatalogScreen> {
     context.read<CatalogBloc>().add(
       LoadCatalogSearchResults(page: state.searchPage + 1),
     );
-  }
-
-  void _loadSearchResults() {
-    if (!mounted) {
-      return;
-    }
-
-    context.read<CatalogBloc>().add(LoadCatalogSearchResults());
   }
 }
