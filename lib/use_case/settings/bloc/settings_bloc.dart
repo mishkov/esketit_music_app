@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
+import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
@@ -36,18 +38,21 @@ final class SetThemeMode extends SettingsEvent {
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsStorage _settingsStorage;
+  final ErrorReporter _errorReporter;
 
   SettingsBloc({
     required SettingsState initialState,
     required SettingsStorage settingsStorage,
+    required ErrorReporter errorReporter,
   }) : _settingsStorage = settingsStorage,
+       _errorReporter = errorReporter,
        super(initialState) {
     on<SetServerUri>((event, emit) async {
       try {
         await _settingsStorage.setServerUri(event.uri);
         emit(state.copyWith(serverUri: event.uri));
-      } catch (error) {
-        // TODO: report error.
+      } catch (error, stackTrace) {
+        await _reportError('Failed to set server URI', error, stackTrace);
       }
     });
     on<SetLocale>((event, emit) async {
@@ -60,18 +65,28 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
                 : NullableOption.value(event.locale!),
           ),
         );
-      } catch (error) {
-        // TODO: report error.
+      } catch (error, stackTrace) {
+        await _reportError('Failed to set locale', error, stackTrace);
       }
     });
     on<SetThemeMode>((event, emit) async {
       try {
         await _settingsStorage.setThemeMode(event.themeMode);
         emit(state.copyWith(themeMode: event.themeMode));
-      } catch (error) {
-        // TODO: report error.
+      } catch (error, stackTrace) {
+        await _reportError('Failed to set theme mode', error, stackTrace);
       }
     });
+  }
+
+  Future<void> _reportError(
+    String message,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    return _errorReporter.reportError(
+      AppError(message, cause: error, stackTrace: stackTrace),
+    );
   }
 }
 

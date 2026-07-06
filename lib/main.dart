@@ -202,6 +202,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
                 themeMode: selectedThemeMode,
               ),
               settingsStorage: settingsStorage,
+              errorReporter: errorReporter,
             ),
           ),
         ],
