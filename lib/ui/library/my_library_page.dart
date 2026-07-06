@@ -6,9 +6,8 @@ import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 
-// TODO: rename it because actaully this is a page used inside tabbed screen.
-class MyLibraryScreen extends StatelessWidget {
-  const MyLibraryScreen({super.key});
+class MyLibraryPage extends StatelessWidget {
+  const MyLibraryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
