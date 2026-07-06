@@ -48,15 +48,21 @@ class TracksListBloc extends Bloc<TracksListEvent, TracksListState> {
           ),
         );
       } catch (error, stackTrace) {
-        // TODO: emit error tracks.
+        final appError = AppError(
+          'Failed to load tracks list',
+          cause: error,
+          stackTrace: stackTrace,
+        );
 
-        await _errorReporter.reportError(
-          AppError(
-            'Failed to load tracks list',
-            cause: error,
-            stackTrace: stackTrace,
+        emit(
+          state.copyWith(
+            tracks: state.tracks
+                .map((track) => Snapshot.error(appError, data: track.data))
+                .toList(growable: false),
           ),
         );
+
+        await _errorReporter.reportError(appError);
       }
     });
   }
