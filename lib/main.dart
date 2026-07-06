@@ -42,7 +42,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 Future<void> main() async {
   final errorReporter = SentryErrorReporter(encrypter: EncrypterStub());
   await errorReporter.init(
-    // TODO: move it to move safe place.
     dsn:
         'https://0a6197a22adaf0913a6a7b0ddd853210@o4504197551554560.ingest.us.sentry.io/4511020270419968',
     appRunner: () async => await _runEsketitApp(
