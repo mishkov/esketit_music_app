@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
@@ -73,9 +74,9 @@ class EsketitRestApiTracksStorage implements TracksStorage {
   static Map<int, Author> _parseAuthorsById(Object? responseBody) {
     final body = _coerceJson(responseBody);
     if (body is! List) {
-      // TODO: throw AppError or it's custom subclass
-      throw const FormatException(
+      throw AppError(
         'Expected /authors response to be a JSON list',
+        cause: body,
       );
     }
 
@@ -106,9 +107,9 @@ class EsketitRestApiTracksStorage implements TracksStorage {
   ) {
     final body = _coerceJson(responseBody);
     if (body is! List) {
-      // TODO: throw AppError or it's custom subclass
-      throw const FormatException(
+      throw AppError(
         'Expected /tracks response to be a JSON list',
+        cause: body,
       );
     }
 
