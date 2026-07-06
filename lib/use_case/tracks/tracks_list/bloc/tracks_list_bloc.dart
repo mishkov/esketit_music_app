@@ -26,7 +26,13 @@ class TracksListBloc extends Bloc<TracksListEvent, TracksListState> {
        super(initialState) {
     on<LoadMoreTracks>((event, emit) async {
       try {
-        // TODO: emit loading tracks.
+        emit(
+          state.copyWith(
+            tracks: state.tracks
+                .map((track) => Snapshot.loading(track.data))
+                .toList(growable: false),
+          ),
+        );
 
         final tracks = await _tracksStorage.getTracks(
           tracksPerPage: state.tracksPerPage,
@@ -35,7 +41,10 @@ class TracksListBloc extends Bloc<TracksListEvent, TracksListState> {
 
         emit(
           state.copyWith(
-            tracks: [...state.tracks, ...tracks.map(Snapshot.done)],
+            tracks: [
+              ...state.tracks.map((track) => Snapshot.done(track.data)),
+              ...tracks.map(Snapshot.done),
+            ],
           ),
         );
       } catch (error, stackTrace) {
