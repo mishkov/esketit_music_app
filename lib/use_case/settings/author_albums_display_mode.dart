@@ -1,0 +1,1 @@
+enum AuthorAlbumsDisplayMode { expanded, compact }

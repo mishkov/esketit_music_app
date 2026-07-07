@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/key_value_storage/shared/key_value_storage.dart';
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
+import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
 import 'package:esketit_music_app/use_case/settings/settings_storage.dart';
 
 class KeyValueSettingsStorage implements SettingsStorage {
@@ -10,10 +11,14 @@ class KeyValueSettingsStorage implements SettingsStorage {
   static const String _serverUriKey = 'settings.server_uri';
   static const String _localeKey = 'settings.locale';
   static const String _themeModeKey = 'settings.theme_mode';
+  static const String _authorAlbumsDisplayModeKey =
+      'settings.author_albums_display_mode';
   static const String _autoLocaleStorageValue = 'auto';
   static const String _lightThemeModeStorageValue = 'light';
   static const String _darkThemeModeStorageValue = 'dark';
   static const String _autoThemeModeStorageValue = 'auto';
+  static const String _expandedAuthorAlbumsDisplayModeStorageValue = 'expanded';
+  static const String _compactAuthorAlbumsDisplayModeStorageValue = 'compact';
 
   final KeyValueStorage _keyValueStorage;
 
@@ -75,5 +80,36 @@ class KeyValueSettingsStorage implements SettingsStorage {
       AppThemeMode.dark => _darkThemeModeStorageValue,
       AppThemeMode.auto => _autoThemeModeStorageValue,
     });
+  }
+
+  @override
+  Future<AuthorAlbumsDisplayMode?> getAuthorAlbumsDisplayMode() async {
+    final displayModeStorageValue = await _keyValueStorage.getString(
+      _authorAlbumsDisplayModeKey,
+    );
+    if (displayModeStorageValue == null || displayModeStorageValue.isEmpty) {
+      return null;
+    }
+
+    return switch (displayModeStorageValue) {
+      _expandedAuthorAlbumsDisplayModeStorageValue =>
+        AuthorAlbumsDisplayMode.expanded,
+      _compactAuthorAlbumsDisplayModeStorageValue =>
+        AuthorAlbumsDisplayMode.compact,
+      _ => null,
+    };
+  }
+
+  @override
+  Future<void> setAuthorAlbumsDisplayMode(AuthorAlbumsDisplayMode displayMode) {
+    return _keyValueStorage.setString(
+      _authorAlbumsDisplayModeKey,
+      switch (displayMode) {
+        AuthorAlbumsDisplayMode.expanded =>
+          _expandedAuthorAlbumsDisplayModeStorageValue,
+        AuthorAlbumsDisplayMode.compact =>
+          _compactAuthorAlbumsDisplayModeStorageValue,
+      },
+    );
   }
 }

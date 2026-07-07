@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
+import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
 
 abstract class SettingsStorage {
   Future<Uri?> getServerUri();
@@ -13,4 +14,8 @@ abstract class SettingsStorage {
   Future<AppThemeMode?> getThemeMode();
 
   Future<void> setThemeMode(AppThemeMode themeMode);
+
+  Future<AuthorAlbumsDisplayMode?> getAuthorAlbumsDisplayMode();
+
+  Future<void> setAuthorAlbumsDisplayMode(AuthorAlbumsDisplayMode displayMode);
 }

@@ -32,6 +32,7 @@ import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
+import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -75,6 +76,9 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   final selectedLocale = await settingsStorage.getLocale();
   final selectedThemeMode =
       await settingsStorage.getThemeMode() ?? AppThemeMode.auto;
+  final selectedAuthorAlbumsDisplayMode =
+      await settingsStorage.getAuthorAlbumsDisplayMode() ??
+      AuthorAlbumsDisplayMode.expanded;
   final packageInfo = await PackageInfo.fromPlatform();
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
@@ -200,6 +204,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
                 serverUri: baseUri,
                 locale: selectedLocale,
                 themeMode: selectedThemeMode,
+                authorAlbumsDisplayMode: selectedAuthorAlbumsDisplayMode,
               ),
               settingsStorage: settingsStorage,
               errorReporter: errorReporter,

@@ -2,8 +2,10 @@ import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/ui/authors/author_albums_section.dart';
 import 'package:esketit_music_app/ui/authors/author_desktop_layout.dart';
+import 'package:esketit_music_app/ui/authors/author_expanded_albums_section.dart';
 import 'package:esketit_music_app/ui/authors/author_mobile_layout.dart';
 import 'package:esketit_music_app/ui/authors/author_summary_card.dart';
+import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
 import 'package:flutter/material.dart';
 
 class AuthorDetailsContent extends StatelessWidget {
@@ -11,12 +13,14 @@ class AuthorDetailsContent extends StatelessWidget {
     required this.author,
     required this.albums,
     required this.selectedTrackExists,
+    required this.albumsDisplayMode,
     super.key,
   });
 
   final Author author;
   final List<Album> albums;
   final bool selectedTrackExists;
+  final AuthorAlbumsDisplayMode albumsDisplayMode;
 
   static const _desktopLayoutBreakpoint = 900.0;
   static const _contentMaxWidth = 1200.0;
@@ -27,15 +31,23 @@ class AuthorDetailsContent extends StatelessWidget {
       builder: (context, constraints) {
         final useDesktopLayout =
             constraints.maxWidth >= _desktopLayoutBreakpoint;
+        final albumsSection = switch (albumsDisplayMode) {
+          AuthorAlbumsDisplayMode.expanded => AuthorExpandedAlbumsSection(
+            albums: albums,
+          ),
+          AuthorAlbumsDisplayMode.compact => AuthorAlbumsSection(
+            albums: albums,
+          ),
+        };
 
         Widget content = useDesktopLayout
             ? AuthorDesktopLayout(
                 summary: AuthorSummaryCard(author: author),
-                albumsSection: AuthorAlbumsSection(albums: albums),
+                albumsSection: albumsSection,
               )
             : AuthorMobileLayout(
                 summary: AuthorSummaryCard(author: author),
-                albumsSection: AuthorAlbumsSection(albums: albums),
+                albumsSection: albumsSection,
               );
 
         content = Align(
