@@ -13,11 +13,10 @@ class ExpandedAuthorAlbumHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useVerticalLayout = constraints.maxWidth < 520;
         final cover = ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: SizedBox.square(
-            dimension: false ? 180 : 132,
+            dimension: 132,
             child: RemoteImage(
               imageUrl: _albumCoverUrl(album),
               icon: Icons.album_rounded,
@@ -25,13 +24,6 @@ class ExpandedAuthorAlbumHeader extends StatelessWidget {
           ),
         );
         final info = ExpandedAuthorAlbumInfo(album: album);
-
-        if (false) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [cover, const SizedBox(height: 16), info],
-          );
-        }
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
