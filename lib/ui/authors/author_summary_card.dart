@@ -9,30 +9,25 @@ class AuthorSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card.outlined(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: RemoteImage(
-                  imageUrl: author.primaryPhotoUrl,
-                  icon: Icons.person_rounded,
-                ),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: RemoteImage(
+              imageUrl: author.primaryPhotoUrl,
+              icon: Icons.person_rounded,
             ),
-            const SizedBox(height: 16),
-            Text(
-              author.currentName,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 16),
+        Text(
+          author.currentName,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+      ],
     );
   }
 }
