@@ -398,6 +398,24 @@ abstract class AppLocalizations {
   /// **'No published albums yet.'**
   String get noPublishedAlbumsYet;
 
+  /// No description provided for @authorAlbumsDisplayModeMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Album display'**
+  String get authorAlbumsDisplayModeMenu;
+
+  /// No description provided for @authorAlbumsDisplayModeExpandedOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Expanded'**
+  String get authorAlbumsDisplayModeExpandedOption;
+
+  /// No description provided for @authorAlbumsDisplayModeCompactOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get authorAlbumsDisplayModeCompactOption;
+
   /// No description provided for @featuredAuthorsTitle.
   ///
   /// In en, this message translates to:

@@ -165,6 +165,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noPublishedAlbumsYet => 'Опубликованных альбомов пока нет.';
 
   @override
+  String get authorAlbumsDisplayModeMenu => 'Отображение альбомов';
+
+  @override
+  String get authorAlbumsDisplayModeExpandedOption => 'Развернуто';
+
+  @override
+  String get authorAlbumsDisplayModeCompactOption => 'Компактно';
+
+  @override
   String get featuredAuthorsTitle => 'Избранные авторы';
 
   @override

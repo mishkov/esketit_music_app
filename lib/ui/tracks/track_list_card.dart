@@ -1,12 +1,12 @@
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_download_launcher.dart';
 import 'package:esketit_music_app/ui/tracks/track_download_policy.dart';
+import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -68,7 +68,7 @@ class _TrackListCardState extends State<TrackListCard> {
 
             return Opacity(
               opacity: widget.track.isAvailable ? 1 : 0.6,
-              child: Card.outlined(
+              child: Card(
                 color: isSelected
                     ? Theme.of(context).colorScheme.secondaryContainer
                     : null,

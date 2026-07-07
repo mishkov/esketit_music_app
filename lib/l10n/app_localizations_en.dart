@@ -164,6 +164,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPublishedAlbumsYet => 'No published albums yet.';
 
   @override
+  String get authorAlbumsDisplayModeMenu => 'Album display';
+
+  @override
+  String get authorAlbumsDisplayModeExpandedOption => 'Expanded';
+
+  @override
+  String get authorAlbumsDisplayModeCompactOption => 'Compact';
+
+  @override
   String get featuredAuthorsTitle => 'Featured Authors';
 
   @override
