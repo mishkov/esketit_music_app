@@ -8,6 +8,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
 import 'package:esketit_music_app/domain/track_info/track_info.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/esketit_rest_api/esketit_rest_api_url_resolver.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -134,6 +135,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
             currentName: (item['currentName'] as String?) ?? '',
             photos: ((item['photos'] as List?) ?? const [])
                 .whereType<String>()
+                .map(_resolveAuthorPhotoUrl)
                 .toList(growable: false),
           );
         })
@@ -308,6 +310,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       currentName: (item['currentName'] as String?) ?? '',
       photos: ((item['photos'] as List?) ?? const [])
           .whereType<String>()
+          .map(_resolveAuthorPhotoUrl)
           .toList(growable: false),
     );
   }
@@ -386,16 +389,10 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
   }
 
   Uri _resolveAlbumCoverUri(String coverImagePath) {
-    final parsed = Uri.tryParse(coverImagePath);
-    if (parsed != null && parsed.hasScheme) {
-      return parsed;
-    }
-    if (coverImagePath.isEmpty) {
-      return Uri();
-    }
-
-    return _baseUri.resolve(
-      'album-covers/${Uri.encodeComponent(coverImagePath)}',
+    return resolveEsketitRestApiUrl(
+      _baseUri,
+      coverImagePath,
+      fallbackDirectory: 'album-covers',
     );
   }
 
@@ -410,31 +407,23 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
   }
 
   String _resolvePlaylistCoverPath(String value) {
-    if (value.isEmpty) {
-      return value;
-    }
+    return resolveEsketitRestApiUrlString(_baseUri, value);
+  }
 
-    final parsed = Uri.tryParse(value);
-    if (parsed != null && parsed.hasScheme) {
-      return value;
-    }
-
-    return _baseUri.resolve(value).toString();
+  String _resolveAuthorPhotoUrl(String value) {
+    return resolveEsketitRestApiUrlString(
+      _baseUri,
+      value,
+      fallbackDirectory: 'author-photos',
+    );
   }
 
   Uri _resolveSongUri(String audioFilePath) {
-    final parsed = Uri.tryParse(audioFilePath);
-    if (parsed != null && parsed.hasScheme) {
-      return parsed;
-    }
-    if (audioFilePath.isEmpty) {
-      return Uri();
-    }
-    if (audioFilePath.startsWith('/')) {
-      return _baseUri.resolve(audioFilePath);
-    }
-
-    return _baseUri.resolve('songs/${Uri.encodeComponent(audioFilePath)}');
+    return resolveEsketitRestApiUrl(
+      _baseUri,
+      audioFilePath,
+      fallbackDirectory: 'songs',
+    );
   }
 
   PlaylistVisibility _parseVisibility(String? value) {

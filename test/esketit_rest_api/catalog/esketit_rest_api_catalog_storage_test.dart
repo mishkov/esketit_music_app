@@ -53,7 +53,7 @@ void main() {
                       {
                         'id': 1,
                         'currentName': 'Artist Name',
-                        'photos': ['artist.jpg'],
+                        'photos': ['/api/author-photos/artist.jpg'],
                       },
                     ],
                     'coverImagePath': 'album-cover.jpg',
@@ -83,6 +83,10 @@ void main() {
       final track = results.items.single.track!;
 
       expect(track.authors.single.currentName, 'Artist Name');
+      expect(
+        track.authors.single.primaryPhotoUrl,
+        'http://localhost:8080/api/author-photos/artist.jpg',
+      );
       expect(
         (track.image as HttpFile).uri,
         Uri.parse('http://localhost:8080/album-covers/album-cover.jpg'),
@@ -132,6 +136,50 @@ void main() {
     expect(playlist.visibility, PlaylistVisibility.public);
     expect(playlist.coverImagePath, 'http://localhost:8080/covers/road.jpg');
   });
+
+  test(
+    'resolves legacy bare author photo file names under author photos',
+    () async {
+      final httpClient = _FakeHttpClient(
+        responses: {
+          '/search?query=Artist&page=1&pageSize=20': const HttpResponse(
+            statusCode: 200,
+            response: {
+              'items': [
+                {
+                  'type': 'author',
+                  'author': {
+                    'id': 1,
+                    'currentName': 'Artist Name',
+                    'photos': ['artist.jpg'],
+                  },
+                },
+              ],
+              'page': 1,
+              'pageSize': 20,
+              'totalItems': 1,
+              'totalPages': 1,
+            },
+          ),
+        },
+      );
+      final storage = EsketitRestApiCatalogStorage(
+        httpClient: httpClient,
+        baseUri: Uri.parse('http://localhost:8080/api/'),
+      );
+
+      final results = await storage.search(
+        query: 'Artist',
+        page: 1,
+        pageSize: 20,
+      );
+
+      expect(
+        results.items.single.author!.primaryPhotoUrl,
+        'http://localhost:8080/api/author-photos/artist.jpg',
+      );
+    },
+  );
 }
 
 class _FakeHttpClient implements HttpClient {

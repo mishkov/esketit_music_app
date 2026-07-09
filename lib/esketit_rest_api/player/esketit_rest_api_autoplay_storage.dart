@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/esketit_rest_api/esketit_rest_api_url_resolver.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -103,6 +104,7 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
       currentName: (item['currentName'] as String?) ?? '',
       photos: ((item['photos'] as List?) ?? const [])
           .whereType<String>()
+          .map(_resolveAuthorPhotoUrl)
           .toList(growable: false),
     );
   }
@@ -126,16 +128,10 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
   }
 
   Uri _resolveAlbumCoverUri(String coverImagePath) {
-    final parsed = Uri.tryParse(coverImagePath);
-    if (parsed != null && parsed.hasScheme) {
-      return parsed;
-    }
-    if (coverImagePath.isEmpty) {
-      return Uri();
-    }
-
-    return _baseUri.resolve(
-      'album-covers/${Uri.encodeComponent(coverImagePath)}',
+    return resolveEsketitRestApiUrl(
+      _baseUri,
+      coverImagePath,
+      fallbackDirectory: 'album-covers',
     );
   }
 
@@ -177,15 +173,15 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
   }
 
   Uri _resolveSongUri(String audioFilePath) {
-    final parsed = Uri.tryParse(audioFilePath);
-    if (parsed != null && parsed.hasScheme) {
-      return parsed;
-    }
-    if (audioFilePath.isEmpty) {
-      return Uri();
-    }
+    return resolveEsketitRestApiUrl(_baseUri, audioFilePath);
+  }
 
-    return _baseUri.resolve(audioFilePath);
+  String _resolveAuthorPhotoUrl(String value) {
+    return resolveEsketitRestApiUrlString(
+      _baseUri,
+      value,
+      fallbackDirectory: 'author-photos',
+    );
   }
 
   static void _throwIfNotSuccess(HttpResponse response, String path) {
@@ -228,7 +224,7 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
     return body;
   }
 
-  static Map<int, Author> _parseAuthorsById(Object? responseBody) {
+  Map<int, Author> _parseAuthorsById(Object? responseBody) {
     final body = _coerceJson(responseBody);
     if (body is! List) {
       throw const FormatException(
@@ -248,6 +244,7 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
         currentName: (item['currentName'] as String?) ?? '',
         photos: ((item['photos'] as List?) ?? const [])
             .whereType<String>()
+            .map(_resolveAuthorPhotoUrl)
             .toList(growable: false),
       );
     }
