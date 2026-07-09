@@ -161,6 +161,70 @@ void main() {
     expect(httpClient.multipartFiles.single.fileName, 'cover.png');
     expect(httpClient.multipartFiles.single.bytes, [1, 2, 3]);
   });
+
+  test(
+    'resolves playlist track author photo URLs from authors response',
+    () async {
+      final httpClient = _FakeHttpClient(
+        responses: {
+          '/public/playlists/7': const HttpResponse(
+            statusCode: 200,
+            response: {
+              'id': 7,
+              'userId': 10,
+              'name': 'Road',
+              'description': 'Driving playlist',
+              'coverImagePath': '',
+              'visibility': 'public',
+              'trackCount': 1,
+              'system': false,
+              'isFavorites': false,
+            },
+          ),
+          '/authors': const HttpResponse(
+            statusCode: 200,
+            response: [
+              {
+                'id': 1,
+                'currentName': 'Artist Name',
+                'photos': ['/api/author-photos/artist.jpg'],
+              },
+            ],
+          ),
+          '/public/playlists/7/tracks?page=1&pageSize=100': const HttpResponse(
+            statusCode: 200,
+            response: {
+              'items': [
+                {
+                  'id': 123,
+                  'name': 'Track name',
+                  'authorIds': [1],
+                  'audioFilePath': '/api/songs/file.mp3',
+                  'isFavorite': false,
+                  'isAvailable': true,
+                },
+              ],
+              'page': 1,
+              'pageSize': 100,
+              'totalItems': 1,
+              'totalPages': 1,
+            },
+          ),
+        },
+      );
+      final storage = EsketitRestApiPlaylistsStorage(
+        httpClient: httpClient,
+        baseUri: Uri.parse('http://localhost:8080/api/'),
+      );
+
+      final details = await storage.getPublicPlaylistDetails(playlistId: 7);
+
+      expect(
+        details.tracks.single.authors.single.primaryPhotoUrl,
+        'http://localhost:8080/api/author-photos/artist.jpg',
+      );
+    },
+  );
 }
 
 class _FakeHttpClient implements HttpClient {

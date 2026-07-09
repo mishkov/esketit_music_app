@@ -4,6 +4,7 @@ import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/esketit_rest_api/esketit_rest_api_url_resolver.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -290,31 +291,23 @@ class EsketitRestApiPlaylistsStorage
   }
 
   String _resolveImagePath(String value) {
-    if (value.isEmpty) {
-      return value;
-    }
+    return resolveEsketitRestApiUrlString(_baseUri, value);
+  }
 
-    final parsed = Uri.tryParse(value);
-    if (parsed != null && parsed.hasScheme) {
-      return value;
-    }
-
-    return _baseUri.resolve(value).toString();
+  String _resolveAuthorPhotoUrl(String value) {
+    return resolveEsketitRestApiUrlString(
+      _baseUri,
+      value,
+      fallbackDirectory: 'author-photos',
+    );
   }
 
   Uri _resolveSongUri(String audioFilePath) {
-    final parsed = Uri.tryParse(audioFilePath);
-    if (parsed != null && parsed.hasScheme) {
-      return parsed;
-    }
-    if (audioFilePath.isEmpty) {
-      return Uri();
-    }
-    if (audioFilePath.startsWith('/')) {
-      return _baseUri.resolve(audioFilePath);
-    }
-
-    return _baseUri.resolve('songs/${Uri.encodeComponent(audioFilePath)}');
+    return resolveEsketitRestApiUrl(
+      _baseUri,
+      audioFilePath,
+      fallbackDirectory: 'songs',
+    );
   }
 
   static void _throwIfNotSuccess(HttpResponse response, String path) {
@@ -357,7 +350,7 @@ class EsketitRestApiPlaylistsStorage
     return body;
   }
 
-  static Map<int, Author> _parseAuthorsById(Object? responseBody) {
+  Map<int, Author> _parseAuthorsById(Object? responseBody) {
     final body = _coerceJson(responseBody);
     if (body is! List) {
       throw const FormatException(
@@ -377,6 +370,7 @@ class EsketitRestApiPlaylistsStorage
         currentName: (item['currentName'] as String?) ?? '',
         photos: ((item['photos'] as List?) ?? const [])
             .whereType<String>()
+            .map(_resolveAuthorPhotoUrl)
             .toList(growable: false),
       );
     }
