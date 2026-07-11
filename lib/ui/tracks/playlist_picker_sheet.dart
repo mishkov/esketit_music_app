@@ -16,12 +16,14 @@ class PlaylistPickerSheet extends StatefulWidget {
   const PlaylistPickerSheet({
     required this.playlists,
     required this.initialSelectedPlaylistIds,
+    this.onCreatePlaylist,
     this.isLoading = false,
     super.key,
   });
 
   final List<Playlist> playlists;
   final Set<int> initialSelectedPlaylistIds;
+  final Future<String?> Function()? onCreatePlaylist;
   final bool isLoading;
 
   @override
@@ -30,6 +32,7 @@ class PlaylistPickerSheet extends StatefulWidget {
 
 class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
   final Set<int> _selectedPlaylistIds = <int>{};
+  final Set<String> _playlistNamesPendingSelection = <String>{};
   bool _hasUserChangedSelection = false;
 
   @override
@@ -41,15 +44,16 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
   @override
   void didUpdateWidget(covariant PlaylistPickerSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_hasUserChangedSelection ||
-        widget.initialSelectedPlaylistIds ==
+
+    if (!_hasUserChangedSelection &&
+        widget.initialSelectedPlaylistIds !=
             oldWidget.initialSelectedPlaylistIds) {
-      return;
+      _selectedPlaylistIds
+        ..clear()
+        ..addAll(widget.initialSelectedPlaylistIds);
     }
 
-    _selectedPlaylistIds
-      ..clear()
-      ..addAll(widget.initialSelectedPlaylistIds);
+    _selectCreatedPlaylists(oldWidget.playlists);
   }
 
   @override
@@ -66,6 +70,17 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
             Text(
               l10n.addToPlaylistsTitle,
               style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: widget.onCreatePlaylist == null
+                    ? null
+                    : _createPlaylist,
+                icon: const Icon(Icons.add_rounded),
+                label: Text(l10n.newPlaylistTitle),
+              ),
             ),
             const SizedBox(height: 12),
             if (widget.isLoading)
@@ -133,5 +148,43 @@ class _PlaylistPickerSheetState extends State<PlaylistPickerSheet> {
         _selectedPlaylistIds.remove(playlist.id);
       }
     });
+  }
+
+  Future<void> _createPlaylist() async {
+    final playlistName = await widget.onCreatePlaylist!();
+    if (playlistName == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _playlistNamesPendingSelection.add(playlistName);
+    });
+  }
+
+  void _selectCreatedPlaylists(List<Playlist> previousPlaylists) {
+    if (_playlistNamesPendingSelection.isEmpty) {
+      return;
+    }
+
+    final previousPlaylistIds = previousPlaylists
+        .map((playlist) => playlist.id)
+        .toSet();
+    final createdPlaylists = widget.playlists
+        .where(
+          (playlist) =>
+              !previousPlaylistIds.contains(playlist.id) &&
+              _playlistNamesPendingSelection.contains(playlist.name),
+        )
+        .toList(growable: false);
+    if (createdPlaylists.isEmpty) {
+      return;
+    }
+
+    _selectedPlaylistIds.addAll(
+      createdPlaylists.map((playlist) => playlist.id),
+    );
+    _playlistNamesPendingSelection.removeAll(
+      createdPlaylists.map((playlist) => playlist.name),
+    );
   }
 }

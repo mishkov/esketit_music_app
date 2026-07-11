@@ -98,6 +98,96 @@ void main() {
     expect(playlistsStorage.addedTrackIds, [track.id]);
     expect(playlistsStorage.addedTrackPlaylistIds, [playlist.id]);
   });
+
+  testWidgets('creates playlist while adding selected track to playlists', (
+    tester,
+  ) async {
+    final track = _track(1);
+    final existingPlaylist = _playlist(7, name: 'Gym');
+    final errorReporter = _FakeErrorReporter();
+    final authBloc = AuthBloc(
+      authRepository: _FakeAuthRepository(),
+      errorReporter: errorReporter,
+    )..add(const AuthSessionRestoreRequested());
+    final playlistsStorage = _FakePlaylistsStorage(
+      playlists: [existingPlaylist],
+    );
+    final playlistsBloc = PlaylistsBloc(
+      playlistsStorage: playlistsStorage,
+      errorReporter: errorReporter,
+    )..add(const LoadPlaylists());
+    final playerBloc = PlayerBloc(
+      initialState: PlayerState(selectedTrack: track, isPlaying: false),
+      player: _FakeAudioPlayer(),
+      autoplayStorage: _FakeAutoplayStorage(),
+      errorReporter: errorReporter,
+    );
+    final catalogBloc = CatalogBloc(
+      initialState: _emptyCatalogState(),
+      catalogStorage: _FakeCatalogStorage(),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      errorReporter: errorReporter,
+    );
+    final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+
+    addTearDown(authBloc.close);
+    addTearDown(playlistsBloc.close);
+    addTearDown(playerBloc.close);
+    addTearDown(catalogBloc.close);
+    addTearDown(lyricsBloc.close);
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<CatalogBloc>.value(value: catalogBloc),
+          BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const TrackScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add to playlists'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'New playlist'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.bySemanticsLabel('Name'), 'Road');
+    await tester.enterText(
+      find.bySemanticsLabel('Description'),
+      'Driving playlist',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+    await tester.pumpAndSettle();
+
+    final createdPlaylistTile = tester.widget<CheckboxListTile>(
+      find.widgetWithText(CheckboxListTile, 'Road'),
+    );
+    final existingPlaylistTile = tester.widget<CheckboxListTile>(
+      find.widgetWithText(CheckboxListTile, 'Gym'),
+    );
+    expect(createdPlaylistTile.value, isTrue);
+    expect(existingPlaylistTile.value, isFalse);
+
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Gym'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(playlistsStorage.createdPlaylistNames, ['Road']);
+    expect(playlistsStorage.addedTrackIds, [track.id]);
+    expect(playlistsStorage.addedTrackPlaylistIds, unorderedEquals([2, 7]));
+  });
 }
 
 class _FakeAuthRepository implements AuthRepository {
@@ -184,9 +274,10 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   _FakePlaylistsStorage({required List<Playlist> playlists})
     : _playlists = playlists;
 
-  final List<Playlist> _playlists;
+  List<Playlist> _playlists;
   final List<int> addedTrackIds = <int>[];
   final List<int> addedTrackPlaylistIds = <int>[];
+  final List<String> createdPlaylistNames = <String>[];
 
   @override
   Future<List<Playlist>> getPlaylists() async => _playlists;
@@ -204,8 +295,22 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   }
 
   @override
-  Future<Playlist> createPlaylist(PlaylistUpsertInput input) {
-    throw UnimplementedError();
+  Future<Playlist> createPlaylist(PlaylistUpsertInput input) async {
+    createdPlaylistNames.add(input.name);
+    final playlist = Playlist(
+      id: _playlists.length + 1,
+      userId: 1,
+      name: input.name,
+      description: input.description,
+      coverImagePath: input.coverImagePath,
+      visibility: input.visibility,
+      trackCount: 0,
+      system: false,
+      isFavorites: false,
+    );
+    _playlists = [..._playlists, playlist];
+
+    return playlist;
   }
 
   @override

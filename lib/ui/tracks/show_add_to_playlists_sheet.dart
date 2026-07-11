@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
+import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
@@ -45,6 +46,9 @@ Future<void> showAddToPlaylistsSheet({
           return PlaylistPickerSheet(
             playlists: playlists,
             initialSelectedPlaylistIds: selectedPlaylistIds,
+            onCreatePlaylist: state.isSubmittingPlaylist
+                ? null
+                : () => _createPlaylistFromPicker(context),
             isLoading:
                 state.isLoadingPlaylists ||
                 _isLoadingPlaylistMembership(state, playlists),
@@ -75,6 +79,23 @@ Future<void> showAddToPlaylistsSheet({
       removePlaylistIds: playlistIdsToRemove,
     ),
   );
+}
+
+Future<String?> _createPlaylistFromPicker(BuildContext context) async {
+  final input = await showDialog<PlaylistEditorResult>(
+    context: context,
+    builder: (context) => const PlaylistEditorDialog(),
+  );
+
+  if (input == null || !context.mounted) {
+    return null;
+  }
+
+  context.read<PlaylistsBloc>().add(
+    CreatePlaylistRequested(input.input, coverFile: input.coverFile),
+  );
+
+  return input.input.name;
 }
 
 Set<int> _playlistIdsContainingTrack(
