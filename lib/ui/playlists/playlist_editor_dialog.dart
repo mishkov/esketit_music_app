@@ -87,7 +87,6 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
                 maxLength: 1000,
                 minLines: 2,
                 maxLines: 4,
-                validator: _validateDescription,
               ),
               TextFormField(
                 controller: _coverImagePathController,
@@ -144,16 +143,6 @@ class _PlaylistEditorDialogState extends State<PlaylistEditorDialog> {
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) {
       return l10n.nameRequired;
-    }
-
-    return null;
-  }
-
-  String? _validateDescription(String? value) {
-    final l10n = context.l10n;
-    final trimmed = value?.trim() ?? '';
-    if (trimmed.isEmpty) {
-      return l10n.descriptionRequired;
     }
 
     return null;

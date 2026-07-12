@@ -277,7 +277,7 @@ class EsketitRestApiPlaylistsStorage
   Map<String, Object?> _serializeUpsertInput(PlaylistUpsertInput input) {
     return {
       'name': input.name,
-      'description': input.description,
+      if (input.description.trim().isNotEmpty) 'description': input.description,
       'coverImagePath': input.coverImagePath,
       'visibility': input.visibility.name,
     };
