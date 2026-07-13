@@ -155,6 +155,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tracksTitle => 'Tracks';
 
   @override
+  String get lastAddedTracksTitle => 'Last added';
+
+  @override
+  String get viewMoreButton => 'View more';
+
+  @override
+  String get noTracksYet => 'No tracks yet.';
+
+  @override
+  String get lastAddedTracksLoadFailed => 'Failed to load last added tracks.';
+
+  @override
   String get noTracksInAlbumYet => 'No tracks in this album yet.';
 
   @override

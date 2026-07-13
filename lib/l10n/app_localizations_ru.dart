@@ -156,6 +156,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get tracksTitle => 'Треки';
 
   @override
+  String get lastAddedTracksTitle => 'Последние добавленные';
+
+  @override
+  String get viewMoreButton => 'Показать ещё';
+
+  @override
+  String get noTracksYet => 'Треков пока нет.';
+
+  @override
+  String get lastAddedTracksLoadFailed =>
+      'Не удалось загрузить последние добавленные треки.';
+
+  @override
   String get noTracksInAlbumYet => 'В этом альбоме пока нет треков.';
 
   @override

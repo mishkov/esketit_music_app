@@ -380,6 +380,30 @@ abstract class AppLocalizations {
   /// **'Tracks'**
   String get tracksTitle;
 
+  /// No description provided for @lastAddedTracksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last added'**
+  String get lastAddedTracksTitle;
+
+  /// No description provided for @viewMoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View more'**
+  String get viewMoreButton;
+
+  /// No description provided for @noTracksYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracks yet.'**
+  String get noTracksYet;
+
+  /// No description provided for @lastAddedTracksLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load last added tracks.'**
+  String get lastAddedTracksLoadFailed;
+
   /// No description provided for @noTracksInAlbumYet.
   ///
   /// In en, this message translates to:
