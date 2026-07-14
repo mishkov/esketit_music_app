@@ -166,6 +166,7 @@ void main() {
                   'name': 'Track name',
                   'authorIds': [],
                   'audioFilePath': '/api/songs/file.mp3',
+                  'coverImagePath': '/api/album-covers/cover.jpg',
                   'isFavorite': false,
                   'isAvailable': true,
                 },
@@ -191,6 +192,10 @@ void main() {
       expect(
         (details.tracks.single.file as HttpFile).uri,
         Uri.parse('http://localhost:8080/api/songs/file.mp3'),
+      );
+      expect(
+        (details.tracks.single.image as HttpFile).uri,
+        Uri.parse('http://localhost:8080/api/album-covers/cover.jpg'),
       );
       expect(httpClient.requestedPaths, [
         '/public/playlists/7',

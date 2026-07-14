@@ -128,6 +128,7 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                         : playlist.id,
                                     showAddToPlaylistsAction:
                                         !playlist.isFavorites,
+                                    showImage: true,
                                   );
                                 },
                               ),
