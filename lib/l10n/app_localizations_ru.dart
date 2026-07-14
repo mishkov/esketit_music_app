@@ -187,6 +187,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authorAlbumsDisplayModeCompactOption => 'Компактно';
 
   @override
+  String get authorsTitle => 'Авторы';
+
+  @override
   String get featuredAuthorsTitle => 'Избранные авторы';
 
   @override

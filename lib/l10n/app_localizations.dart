@@ -440,6 +440,12 @@ abstract class AppLocalizations {
   /// **'Compact'**
   String get authorAlbumsDisplayModeCompactOption;
 
+  /// No description provided for @authorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Authors'**
+  String get authorsTitle;
+
   /// No description provided for @featuredAuthorsTitle.
   ///
   /// In en, this message translates to:

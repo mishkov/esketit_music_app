@@ -185,6 +185,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authorAlbumsDisplayModeCompactOption => 'Compact';
 
   @override
+  String get authorsTitle => 'Authors';
+
+  @override
   String get featuredAuthorsTitle => 'Featured Authors';
 
   @override
