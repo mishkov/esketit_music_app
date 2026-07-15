@@ -97,6 +97,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get bottomPlayerUnknownArtist => 'Неизвестный исполнитель';
 
   @override
+  String get bottomPlayerOpenFullscreenTooltip => 'Открыть плеер на весь экран';
+
+  @override
+  String get fullscreenPlayerCloseTooltip => 'Закрыть полноэкранный плеер';
+
+  @override
   String get guestModeLabel => 'Гостевой режим';
 
   @override

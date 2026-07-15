@@ -272,6 +272,18 @@ abstract class AppLocalizations {
   /// **'Unknown artist'**
   String get bottomPlayerUnknownArtist;
 
+  /// No description provided for @bottomPlayerOpenFullscreenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open fullscreen player'**
+  String get bottomPlayerOpenFullscreenTooltip;
+
+  /// No description provided for @fullscreenPlayerCloseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close fullscreen player'**
+  String get fullscreenPlayerCloseTooltip;
+
   /// No description provided for @guestModeLabel.
   ///
   /// In en, this message translates to:

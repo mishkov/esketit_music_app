@@ -29,6 +29,8 @@
   "goToLoginButton": "Go to login",
   "bottomPlayerNoTrackSelected": "No track selected",
   "bottomPlayerUnknownArtist": "Unknown artist",
+  "bottomPlayerOpenFullscreenTooltip": "Open fullscreen player",
+  "fullscreenPlayerCloseTooltip": "Close fullscreen player",
   "guestModeLabel": "Guest mode",
   "signInToUnlockProtectedFeatures": "Sign in to unlock protected features",
   "nativeLanguageName": "English",

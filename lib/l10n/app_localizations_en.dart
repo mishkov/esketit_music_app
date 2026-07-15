@@ -97,6 +97,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bottomPlayerUnknownArtist => 'Unknown artist';
 
   @override
+  String get bottomPlayerOpenFullscreenTooltip => 'Open fullscreen player';
+
+  @override
+  String get fullscreenPlayerCloseTooltip => 'Close fullscreen player';
+
+  @override
   String get guestModeLabel => 'Guest mode';
 
   @override

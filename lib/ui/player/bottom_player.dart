@@ -1,5 +1,12 @@
+import 'dart:async';
+
+import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
+import 'package:esketit_music_app/errors/error_reporter/category.dart';
+import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/player/bottom_player_progress_border.dart';
+import 'package:esketit_music_app/ui/player/fullscreen_player_platform.dart';
+import 'package:esketit_music_app/ui/player/fullscreen_player_screen.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -70,6 +77,15 @@ class BottomPlayer extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSecondaryContainer,
                   ),
                 ),
+                if (selectedTrack != null && isFullscreenPlayerSupported)
+                  IconButton(
+                    tooltip: l10n.bottomPlayerOpenFullscreenTooltip,
+                    onPressed: () => _openFullscreenPlayer(context),
+                    icon: Icon(
+                      Icons.fullscreen_rounded,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -99,6 +115,41 @@ class BottomPlayer extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (context) => const TrackScreen()));
+  }
+
+  Future<void> _openFullscreenPlayer(BuildContext context) async {
+    final errorReporter = context.read<ErrorReporter>();
+    unawaited(
+      errorReporter.addBreadcrumb(
+        Breadcrumb(
+          message: 'Open fullscreen player',
+          category: Category.uiClick,
+        ),
+      ),
+    );
+
+    try {
+      await enterAppFullscreen();
+    } catch (error) {
+      unawaited(
+        errorReporter.addBreadcrumb(
+          Breadcrumb(
+            message: 'Fullscreen platform request failed',
+            data: {'error': error.toString()},
+          ),
+        ),
+      );
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => const FullscreenPlayerScreen(),
+      ),
+    );
   }
 
   void _togglePlay(BuildContext context) {

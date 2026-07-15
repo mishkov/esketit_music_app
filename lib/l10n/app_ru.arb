@@ -29,6 +29,8 @@
   "goToLoginButton": "Перейти ко входу",
   "bottomPlayerNoTrackSelected": "Трек не выбран",
   "bottomPlayerUnknownArtist": "Неизвестный исполнитель",
+  "bottomPlayerOpenFullscreenTooltip": "Открыть плеер на весь экран",
+  "fullscreenPlayerCloseTooltip": "Закрыть полноэкранный плеер",
   "guestModeLabel": "Гостевой режим",
   "signInToUnlockProtectedFeatures": "Войдите, чтобы открыть защищенные функции",
   "nativeLanguageName": "Русский",
