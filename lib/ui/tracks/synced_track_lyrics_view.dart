@@ -6,16 +6,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SyncedTrackLyricsView extends StatefulWidget {
-  const SyncedTrackLyricsView({required this.lyrics, super.key});
+  const SyncedTrackLyricsView({
+    required this.lyrics,
+    this.activeLineAlignment = 0.35,
+    this.activeLineScale = 1.3,
+    this.inactiveLineOpacity = 0.3,
+    this.lineSpacing = 10,
+    this.padding = const EdgeInsets.fromLTRB(48, 24, 48, 100),
+    this.showLeadingBeatIndicator = false,
+    this.textStyle,
+    super.key,
+  });
 
   final TrackLyrics lyrics;
+  final double activeLineAlignment;
+  final double activeLineScale;
+  final double inactiveLineOpacity;
+  final double lineSpacing;
+  final EdgeInsetsGeometry padding;
+  final bool showLeadingBeatIndicator;
+  final TextStyle? textStyle;
 
   @override
   State<SyncedTrackLyricsView> createState() => _SyncedTrackLyricsViewState();
 }
 
 class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
-  static const _activeLineAlignment = 0.35;
   static const _lineSwitchDuration = Duration(milliseconds: 300);
   static const _autoScrollResumeDelay = Duration(seconds: 2);
 
@@ -117,7 +133,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
       _isProgrammaticScrollInProgress = true;
       Scrollable.ensureVisible(
         lineContext,
-        alignment: _activeLineAlignment,
+        alignment: widget.activeLineAlignment,
         duration: _lineSwitchDuration,
         curve: Curves.easeInOut,
       ).whenComplete(() {
@@ -134,12 +150,13 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
       onNotification: _handleScrollNotification,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(
-          vertical: 24,
-          horizontal: 48,
-        ).copyWith(bottom: 100),
+        padding: widget.padding,
         child: Column(
           children: [
+            if (_shouldShowLeadingBeatIndicator) ...[
+              _buildLeadingBeatIndicator(context),
+              SizedBox(height: widget.lineSpacing * 4),
+            ],
             for (
               var index = 0;
               index < widget.lyrics.lines.length;
@@ -147,7 +164,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
             ) ...[
               _buildLyricsLine(context: context, theme: theme, index: index),
               if (index + 1 < widget.lyrics.lines.length)
-                const SizedBox(height: 10),
+                SizedBox(height: widget.lineSpacing),
             ],
           ],
         ),
@@ -208,13 +225,14 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
     final lineText = line.text.trim();
     final isActiveLine = index == _activeLineIndex;
     final textStyle =
+        widget.textStyle ??
         theme.textTheme.titleLarge?.copyWith(height: 1.35) ??
         const TextStyle(fontSize: 24);
 
     return AnimatedOpacity(
       key: _lineKeys[index],
       duration: _lineSwitchDuration,
-      opacity: isActiveLine ? 1 : 0.3,
+      opacity: isActiveLine ? 1 : widget.inactiveLineOpacity,
       child: InkWell(
         onTap: _createLyricsLineTapCallback(line),
         borderRadius: BorderRadius.circular(12),
@@ -223,7 +241,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
           child: AnimatedScale(
             duration: _lineSwitchDuration,
             curve: Curves.easeInOut,
-            scale: isActiveLine ? 1.3 : 1,
+            scale: isActiveLine ? widget.activeLineScale : 1,
             child: Text(
               lineText,
               style: textStyle,
@@ -232,6 +250,43 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
           ),
         ),
       ),
+    );
+  }
+
+  bool get _shouldShowLeadingBeatIndicator {
+    return widget.showLeadingBeatIndicator &&
+        _activeLineIndex == null &&
+        _isBeforeFirstLine;
+  }
+
+  bool get _isBeforeFirstLine {
+    if (widget.lyrics.lines.isEmpty) {
+      return false;
+    }
+
+    return _latestPlaybackPosition.inMilliseconds <
+        widget.lyrics.lines.first.startMs;
+  }
+
+  Widget _buildLeadingBeatIndicator(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var index = 0; index < 4; index += 1) ...[
+          AnimatedContainer(
+            duration: _lineSwitchDuration,
+            width: index == 0 ? 34 : 28,
+            height: index == 0 ? 34 : 28,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: index == 0 ? 0.72 : 0.36),
+              shape: BoxShape.circle,
+            ),
+          ),
+          if (index < 3) const SizedBox(width: 12),
+        ],
+      ],
     );
   }
 

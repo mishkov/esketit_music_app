@@ -1,5 +1,5 @@
 import 'package:esketit_music_app/domain/track_lyrics.dart';
-import 'package:esketit_music_app/ui/player/fullscreen_synced_lyrics.dart';
+import 'package:esketit_music_app/ui/tracks/synced_track_lyrics_view.dart';
 import 'package:flutter/material.dart';
 
 class FullscreenLyricsPanel extends StatelessWidget {
@@ -10,7 +10,21 @@ class FullscreenLyricsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (lyrics.type == TrackLyricsType.synced && lyrics.lines.isNotEmpty) {
-      return FullscreenSyncedLyrics(lyrics: lyrics);
+      final textStyle = Theme.of(context).textTheme.displaySmall?.copyWith(
+        fontWeight: FontWeight.w900,
+        height: 1.18,
+      );
+
+      return SyncedTrackLyricsView(
+        lyrics: lyrics,
+        activeLineAlignment: 0.46,
+        activeLineScale: 1.08,
+        inactiveLineOpacity: 0.36,
+        lineSpacing: 28,
+        padding: const EdgeInsets.fromLTRB(24, 120, 24, 160),
+        showLeadingBeatIndicator: true,
+        textStyle: textStyle,
+      );
     }
 
     return SingleChildScrollView(
