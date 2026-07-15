@@ -39,6 +39,15 @@ final class SetThemeMode extends SettingsEvent {
   List<Object?> get props => [themeMode];
 }
 
+final class SetUseTrackAlbumCoverColorSchemeSeed extends SettingsEvent {
+  final bool useTrackAlbumCoverColorSchemeSeed;
+
+  SetUseTrackAlbumCoverColorSchemeSeed(this.useTrackAlbumCoverColorSchemeSeed);
+
+  @override
+  List<Object?> get props => [useTrackAlbumCoverColorSchemeSeed];
+}
+
 final class SetAuthorAlbumsDisplayMode extends SettingsEvent {
   final AuthorAlbumsDisplayMode displayMode;
 
@@ -89,6 +98,32 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         await _reportError('Failed to set theme mode', error, stackTrace);
       }
     });
+    on<SetUseTrackAlbumCoverColorSchemeSeed>((event, emit) async {
+      try {
+        await _errorReporter.addBreadcrumb(
+          Breadcrumb(
+            message: 'Set track album cover color scheme seed',
+            category: Category.uiClick,
+            data: {'enabled': event.useTrackAlbumCoverColorSchemeSeed},
+          ),
+        );
+        await _settingsStorage.setUseTrackAlbumCoverColorSchemeSeed(
+          event.useTrackAlbumCoverColorSchemeSeed,
+        );
+        emit(
+          state.copyWith(
+            useTrackAlbumCoverColorSchemeSeed:
+                event.useTrackAlbumCoverColorSchemeSeed,
+          ),
+        );
+      } catch (error, stackTrace) {
+        await _reportError(
+          'Failed to set track album cover color scheme seed',
+          error,
+          stackTrace,
+        );
+      }
+    });
     on<SetAuthorAlbumsDisplayMode>((event, emit) async {
       try {
         await _errorReporter.addBreadcrumb(
@@ -125,12 +160,14 @@ class SettingsState extends Equatable {
   final Uri serverUri;
   final AppLocale? locale;
   final AppThemeMode themeMode;
+  final bool useTrackAlbumCoverColorSchemeSeed;
   final AuthorAlbumsDisplayMode authorAlbumsDisplayMode;
 
   const SettingsState({
     required this.serverUri,
     required this.locale,
     required this.themeMode,
+    required this.useTrackAlbumCoverColorSchemeSeed,
     required this.authorAlbumsDisplayMode,
   });
 
@@ -138,12 +175,16 @@ class SettingsState extends Equatable {
     Uri? serverUri,
     NullableOption<AppLocale>? locale,
     AppThemeMode? themeMode,
+    bool? useTrackAlbumCoverColorSchemeSeed,
     AuthorAlbumsDisplayMode? authorAlbumsDisplayMode,
   }) {
     return SettingsState(
       serverUri: serverUri ?? this.serverUri,
       locale: locale == null ? this.locale : locale.value,
       themeMode: themeMode ?? this.themeMode,
+      useTrackAlbumCoverColorSchemeSeed:
+          useTrackAlbumCoverColorSchemeSeed ??
+          this.useTrackAlbumCoverColorSchemeSeed,
       authorAlbumsDisplayMode:
           authorAlbumsDisplayMode ?? this.authorAlbumsDisplayMode,
     );
@@ -154,6 +195,7 @@ class SettingsState extends Equatable {
     serverUri,
     locale,
     themeMode,
+    useTrackAlbumCoverColorSchemeSeed,
     authorAlbumsDisplayMode,
   ];
 }

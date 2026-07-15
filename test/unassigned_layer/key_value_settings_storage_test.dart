@@ -44,6 +44,56 @@ void main() {
         AuthorAlbumsDisplayMode.expanded,
       );
     });
+
+    test(
+      'returns null when track album cover color scheme seed setting is missing',
+      () async {
+        final testStorage = await _createStorage();
+
+        expect(
+          await testStorage.storage.getUseTrackAlbumCoverColorSchemeSeed(),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'returns null when track album cover color scheme seed setting is unknown',
+      () async {
+        final testStorage = await _createStorage();
+
+        await testStorage.preferences.setString(
+          'settings.use_track_album_cover_color_scheme_seed',
+          'obsolete',
+        );
+
+        expect(
+          await testStorage.storage.getUseTrackAlbumCoverColorSchemeSeed(),
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'saves and reads track album cover color scheme seed setting',
+      () async {
+        final testStorage = await _createStorage();
+
+        await testStorage.storage.setUseTrackAlbumCoverColorSchemeSeed(false);
+
+        expect(
+          await testStorage.storage.getUseTrackAlbumCoverColorSchemeSeed(),
+          isFalse,
+        );
+
+        await testStorage.storage.setUseTrackAlbumCoverColorSchemeSeed(true);
+
+        expect(
+          await testStorage.storage.getUseTrackAlbumCoverColorSchemeSeed(),
+          isTrue,
+        );
+      },
+    );
   });
 }
 

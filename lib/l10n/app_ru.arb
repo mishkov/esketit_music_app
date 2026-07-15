@@ -41,6 +41,7 @@
   "settingsThemeLightOption": "Светлая",
   "settingsThemeDarkOption": "Тёмная",
   "settingsThemeAutoOption": "Авто",
+  "settingsUseTrackAlbumCoverColorSchemeSeedLabel": "Подбирать цвет приложения по обложке трека",
   "signOutButton": "Выйти",
   "appVersionLabel": "Версия {version}",
   "@appVersionLabel": {

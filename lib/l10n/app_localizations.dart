@@ -344,6 +344,12 @@ abstract class AppLocalizations {
   /// **'Auto'**
   String get settingsThemeAutoOption;
 
+  /// No description provided for @settingsUseTrackAlbumCoverColorSchemeSeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Set app color based on track album cover'**
+  String get settingsUseTrackAlbumCoverColorSchemeSeedLabel;
+
   /// No description provided for @signOutButton.
   ///
   /// In en, this message translates to:

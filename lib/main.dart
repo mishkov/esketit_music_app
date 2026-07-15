@@ -78,6 +78,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   final selectedLocale = await settingsStorage.getLocale();
   final selectedThemeMode =
       await settingsStorage.getThemeMode() ?? AppThemeMode.auto;
+  final useTrackAlbumCoverColorSchemeSeed =
+      await settingsStorage.getUseTrackAlbumCoverColorSchemeSeed() ?? true;
   final selectedAuthorAlbumsDisplayMode =
       await settingsStorage.getAuthorAlbumsDisplayMode() ??
       AuthorAlbumsDisplayMode.expanded;
@@ -212,6 +214,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
                 serverUri: baseUri,
                 locale: selectedLocale,
                 themeMode: selectedThemeMode,
+                useTrackAlbumCoverColorSchemeSeed:
+                    useTrackAlbumCoverColorSchemeSeed,
                 authorAlbumsDisplayMode: selectedAuthorAlbumsDisplayMode,
               ),
               settingsStorage: settingsStorage,

@@ -134,6 +134,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsThemeAutoOption => 'Авто';
 
   @override
+  String get settingsUseTrackAlbumCoverColorSchemeSeedLabel =>
+      'Подбирать цвет приложения по обложке трека';
+
+  @override
   String get signOutButton => 'Выйти';
 
   @override

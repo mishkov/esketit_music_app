@@ -11,12 +11,16 @@ class KeyValueSettingsStorage implements SettingsStorage {
   static const String _serverUriKey = 'settings.server_uri';
   static const String _localeKey = 'settings.locale';
   static const String _themeModeKey = 'settings.theme_mode';
+  static const String _useTrackAlbumCoverColorSchemeSeedKey =
+      'settings.use_track_album_cover_color_scheme_seed';
   static const String _authorAlbumsDisplayModeKey =
       'settings.author_albums_display_mode';
   static const String _autoLocaleStorageValue = 'auto';
   static const String _lightThemeModeStorageValue = 'light';
   static const String _darkThemeModeStorageValue = 'dark';
   static const String _autoThemeModeStorageValue = 'auto';
+  static const String _trueStorageValue = 'true';
+  static const String _falseStorageValue = 'false';
   static const String _expandedAuthorAlbumsDisplayModeStorageValue = 'expanded';
   static const String _compactAuthorAlbumsDisplayModeStorageValue = 'compact';
 
@@ -80,6 +84,34 @@ class KeyValueSettingsStorage implements SettingsStorage {
       AppThemeMode.dark => _darkThemeModeStorageValue,
       AppThemeMode.auto => _autoThemeModeStorageValue,
     });
+  }
+
+  @override
+  Future<bool?> getUseTrackAlbumCoverColorSchemeSeed() async {
+    final storageValue = await _keyValueStorage.getString(
+      _useTrackAlbumCoverColorSchemeSeedKey,
+    );
+    if (storageValue == null || storageValue.isEmpty) {
+      return null;
+    }
+
+    return switch (storageValue) {
+      _trueStorageValue => true,
+      _falseStorageValue => false,
+      _ => null,
+    };
+  }
+
+  @override
+  Future<void> setUseTrackAlbumCoverColorSchemeSeed(
+    bool useTrackAlbumCoverColorSchemeSeed,
+  ) {
+    return _keyValueStorage.setString(
+      _useTrackAlbumCoverColorSchemeSeedKey,
+      useTrackAlbumCoverColorSchemeSeed
+          ? _trueStorageValue
+          : _falseStorageValue,
+    );
   }
 
   @override

@@ -134,6 +134,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeAutoOption => 'Auto';
 
   @override
+  String get settingsUseTrackAlbumCoverColorSchemeSeedLabel =>
+      'Set app color based on track album cover';
+
+  @override
   String get signOutButton => 'Sign out';
 
   @override

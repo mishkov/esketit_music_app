@@ -15,6 +15,12 @@ abstract class SettingsStorage {
 
   Future<void> setThemeMode(AppThemeMode themeMode);
 
+  Future<bool?> getUseTrackAlbumCoverColorSchemeSeed();
+
+  Future<void> setUseTrackAlbumCoverColorSchemeSeed(
+    bool useTrackAlbumCoverColorSchemeSeed,
+  );
+
   Future<AuthorAlbumsDisplayMode?> getAuthorAlbumsDisplayMode();
 
   Future<void> setAuthorAlbumsDisplayMode(AuthorAlbumsDisplayMode displayMode);

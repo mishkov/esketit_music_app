@@ -41,6 +41,7 @@
   "settingsThemeLightOption": "Light",
   "settingsThemeDarkOption": "Dark",
   "settingsThemeAutoOption": "Auto",
+  "settingsUseTrackAlbumCoverColorSchemeSeedLabel": "Set app color based on track album cover",
   "signOutButton": "Sign out",
   "appVersionLabel": "Version {version}",
   "@appVersionLabel": {
