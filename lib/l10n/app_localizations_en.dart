@@ -97,6 +97,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bottomPlayerUnknownArtist => 'Unknown artist';
 
   @override
+  String get bottomPlayerOpenFullscreenTooltip => 'Open fullscreen player';
+
+  @override
+  String get fullscreenPlayerCloseTooltip => 'Close fullscreen player';
+
+  @override
   String get guestModeLabel => 'Guest mode';
 
   @override
@@ -128,6 +134,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeAutoOption => 'Auto';
 
   @override
+  String get settingsUseTrackAlbumCoverColorSchemeSeedLabel =>
+      'Set app color based on track album cover';
+
+  @override
   String get signOutButton => 'Sign out';
 
   @override
@@ -155,6 +165,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tracksTitle => 'Tracks';
 
   @override
+  String get lastAddedTracksTitle => 'Last added';
+
+  @override
+  String get viewMoreButton => 'View more';
+
+  @override
+  String get noTracksYet => 'No tracks yet.';
+
+  @override
+  String get lastAddedTracksLoadFailed => 'Failed to load last added tracks.';
+
+  @override
   String get noTracksInAlbumYet => 'No tracks in this album yet.';
 
   @override
@@ -171,6 +193,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authorAlbumsDisplayModeCompactOption => 'Compact';
+
+  @override
+  String get authorsTitle => 'Authors';
 
   @override
   String get featuredAuthorsTitle => 'Featured Authors';

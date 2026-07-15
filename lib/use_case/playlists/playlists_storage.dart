@@ -4,7 +4,7 @@ import 'package:esketit_music_app/domain/track.dart';
 class PlaylistUpsertInput {
   const PlaylistUpsertInput({
     required this.name,
-    required this.description,
+    this.description = '',
     required this.coverImagePath,
     required this.visibility,
   });

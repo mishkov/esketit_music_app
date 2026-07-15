@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TrackProgressSection extends StatefulWidget {
-  const TrackProgressSection({super.key});
+  const TrackProgressSection({this.showTiming = true, super.key});
+
+  final bool showTiming;
 
   @override
   State<TrackProgressSection> createState() => _TrackProgressSectionState();
@@ -98,13 +100,19 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
                       },
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(_formatDuration(position)),
-                const Spacer(),
-                Text(_formatDuration(duration)),
-              ],
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: widget.showTiming ? 1 : 0,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Text(_formatDuration(position)),
+                    const Spacer(),
+                    Text(_formatDuration(duration)),
+                  ],
+                ),
+              ),
             ),
           ],
         );

@@ -272,6 +272,18 @@ abstract class AppLocalizations {
   /// **'Unknown artist'**
   String get bottomPlayerUnknownArtist;
 
+  /// No description provided for @bottomPlayerOpenFullscreenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open fullscreen player'**
+  String get bottomPlayerOpenFullscreenTooltip;
+
+  /// No description provided for @fullscreenPlayerCloseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close fullscreen player'**
+  String get fullscreenPlayerCloseTooltip;
+
   /// No description provided for @guestModeLabel.
   ///
   /// In en, this message translates to:
@@ -332,6 +344,12 @@ abstract class AppLocalizations {
   /// **'Auto'**
   String get settingsThemeAutoOption;
 
+  /// No description provided for @settingsUseTrackAlbumCoverColorSchemeSeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Set app color based on track album cover'**
+  String get settingsUseTrackAlbumCoverColorSchemeSeedLabel;
+
   /// No description provided for @signOutButton.
   ///
   /// In en, this message translates to:
@@ -380,6 +398,30 @@ abstract class AppLocalizations {
   /// **'Tracks'**
   String get tracksTitle;
 
+  /// No description provided for @lastAddedTracksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last added'**
+  String get lastAddedTracksTitle;
+
+  /// No description provided for @viewMoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View more'**
+  String get viewMoreButton;
+
+  /// No description provided for @noTracksYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracks yet.'**
+  String get noTracksYet;
+
+  /// No description provided for @lastAddedTracksLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load last added tracks.'**
+  String get lastAddedTracksLoadFailed;
+
   /// No description provided for @noTracksInAlbumYet.
   ///
   /// In en, this message translates to:
@@ -415,6 +457,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compact'**
   String get authorAlbumsDisplayModeCompactOption;
+
+  /// No description provided for @authorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Authors'**
+  String get authorsTitle;
 
   /// No description provided for @featuredAuthorsTitle.
   ///

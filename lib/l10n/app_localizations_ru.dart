@@ -97,6 +97,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get bottomPlayerUnknownArtist => 'Неизвестный исполнитель';
 
   @override
+  String get bottomPlayerOpenFullscreenTooltip => 'Открыть плеер на весь экран';
+
+  @override
+  String get fullscreenPlayerCloseTooltip => 'Закрыть полноэкранный плеер';
+
+  @override
   String get guestModeLabel => 'Гостевой режим';
 
   @override
@@ -128,6 +134,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsThemeAutoOption => 'Авто';
 
   @override
+  String get settingsUseTrackAlbumCoverColorSchemeSeedLabel =>
+      'Подбирать цвет приложения по обложке трека';
+
+  @override
   String get signOutButton => 'Выйти';
 
   @override
@@ -156,6 +166,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get tracksTitle => 'Треки';
 
   @override
+  String get lastAddedTracksTitle => 'Последние добавленные';
+
+  @override
+  String get viewMoreButton => 'Показать ещё';
+
+  @override
+  String get noTracksYet => 'Треков пока нет.';
+
+  @override
+  String get lastAddedTracksLoadFailed =>
+      'Не удалось загрузить последние добавленные треки.';
+
+  @override
   String get noTracksInAlbumYet => 'В этом альбоме пока нет треков.';
 
   @override
@@ -172,6 +195,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get authorAlbumsDisplayModeCompactOption => 'Компактно';
+
+  @override
+  String get authorsTitle => 'Авторы';
 
   @override
   String get featuredAuthorsTitle => 'Избранные авторы';

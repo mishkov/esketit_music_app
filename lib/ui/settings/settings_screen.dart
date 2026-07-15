@@ -58,6 +58,16 @@ class SettingsScreen extends StatelessWidget {
                 onChanged: (selectedValue) =>
                     _onThemeChanged(context, selectedValue),
               ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  context.l10n.settingsUseTrackAlbumCoverColorSchemeSeedLabel,
+                ),
+                value: state.useTrackAlbumCoverColorSchemeSeed,
+                onChanged: (value) =>
+                    _onUseTrackAlbumCoverColorSchemeSeedChanged(context, value),
+              ),
             ],
           );
         },
@@ -78,6 +88,15 @@ class SettingsScreen extends StatelessWidget {
 
     context.read<SettingsBloc>().add(
       SetThemeMode(_ThemeModeOption.valueToThemeMode(selectedValue)),
+    );
+  }
+
+  void _onUseTrackAlbumCoverColorSchemeSeedChanged(
+    BuildContext context,
+    bool value,
+  ) {
+    context.read<SettingsBloc>().add(
+      SetUseTrackAlbumCoverColorSchemeSeed(value),
     );
   }
 }

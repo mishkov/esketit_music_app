@@ -7,6 +7,136 @@ import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('omits empty playlist description when creating playlist', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/playlists': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 7,
+            'userId': 10,
+            'name': 'Road',
+            'description': '',
+            'coverImagePath': '',
+            'visibility': 'private',
+            'trackCount': 0,
+            'system': false,
+            'isFavorites': false,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiPlaylistsStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final playlist = await storage.createPlaylist(
+      const PlaylistUpsertInput(
+        name: 'Road',
+        coverImagePath: '',
+        visibility: PlaylistVisibility.private,
+      ),
+    );
+
+    expect(playlist.description, '');
+    expect(httpClient.requestedPaths, ['/playlists']);
+    expect(httpClient.bodies.single, {
+      'name': 'Road',
+      'coverImagePath': '',
+      'visibility': 'private',
+    });
+  });
+
+  test('sends provided playlist description when creating playlist', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/playlists': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 7,
+            'userId': 10,
+            'name': 'Road',
+            'description': 'Driving playlist',
+            'coverImagePath': '',
+            'visibility': 'private',
+            'trackCount': 0,
+            'system': false,
+            'isFavorites': false,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiPlaylistsStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final playlist = await storage.createPlaylist(
+      const PlaylistUpsertInput(
+        name: 'Road',
+        description: 'Driving playlist',
+        coverImagePath: '',
+        visibility: PlaylistVisibility.private,
+      ),
+    );
+
+    expect(playlist.description, 'Driving playlist');
+    expect(httpClient.requestedPaths, ['/playlists']);
+    expect(httpClient.bodies.single, {
+      'name': 'Road',
+      'description': 'Driving playlist',
+      'coverImagePath': '',
+      'visibility': 'private',
+    });
+  });
+
+  test(
+    'omits whitespace playlist description when updating playlist',
+    () async {
+      final httpClient = _FakeHttpClient(
+        responses: {
+          '/playlists/7': const HttpResponse(
+            statusCode: 200,
+            response: {
+              'id': 7,
+              'userId': 10,
+              'name': 'Road',
+              'description': '',
+              'coverImagePath': '',
+              'visibility': 'public',
+              'trackCount': 0,
+              'system': false,
+              'isFavorites': false,
+            },
+          ),
+        },
+      );
+      final storage = EsketitRestApiPlaylistsStorage(
+        httpClient: httpClient,
+        baseUri: Uri.parse('http://localhost:8080/api/'),
+      );
+
+      final playlist = await storage.updatePlaylist(
+        playlistId: 7,
+        input: const PlaylistUpsertInput(
+          name: 'Road',
+          description: '   ',
+          coverImagePath: '',
+          visibility: PlaylistVisibility.public,
+        ),
+      );
+
+      expect(playlist.description, '');
+      expect(httpClient.requestedPaths, ['/playlists/7']);
+      expect(httpClient.bodies.single, {
+        'name': 'Road',
+        'coverImagePath': '',
+        'visibility': 'public',
+      });
+    },
+  );
+
   test(
     'loads public playlist details from anonymous public endpoints',
     () async {
@@ -36,6 +166,7 @@ void main() {
                   'name': 'Track name',
                   'authorIds': [],
                   'audioFilePath': '/api/songs/file.mp3',
+                  'coverImagePath': '/api/album-covers/cover.jpg',
                   'isFavorite': false,
                   'isAvailable': true,
                 },
@@ -61,6 +192,10 @@ void main() {
       expect(
         (details.tracks.single.file as HttpFile).uri,
         Uri.parse('http://localhost:8080/api/songs/file.mp3'),
+      );
+      expect(
+        (details.tracks.single.image as HttpFile).uri,
+        Uri.parse('http://localhost:8080/api/album-covers/cover.jpg'),
       );
       expect(httpClient.requestedPaths, [
         '/public/playlists/7',
@@ -232,6 +367,7 @@ class _FakeHttpClient implements HttpClient {
 
   final Map<String, HttpResponse> responses;
   final List<String> requestedPaths = <String>[];
+  final List<Object?> bodies = <Object?>[];
   final List<MultipartFileData> multipartFiles = <MultipartFileData>[];
 
   @override
@@ -247,8 +383,12 @@ class _FakeHttpClient implements HttpClient {
     String path, {
     Map<String, String>? headers,
     Object? body,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    requestedPaths.add(path);
+    bodies.add(body);
+
+    return responses[path] ??
+        const HttpResponse(statusCode: 404, response: 'not found');
   }
 
   @override
@@ -269,8 +409,12 @@ class _FakeHttpClient implements HttpClient {
     String path, {
     Map<String, String>? headers,
     Object? body,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    requestedPaths.add(path);
+    bodies.add(body);
+
+    return responses[path] ??
+        const HttpResponse(statusCode: 404, response: 'not found');
   }
 
   @override

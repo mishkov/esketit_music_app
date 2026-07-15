@@ -13,6 +13,7 @@ import 'package:esketit_music_app/esketit_rest_api/catalog/esketit_rest_api_cata
 import 'package:esketit_music_app/esketit_rest_api/player/esketit_rest_api_autoplay_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_playlists_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_lyrics_storage.dart';
+import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_tracks_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
 import 'package:esketit_music_app/unassigned_layer/audio_player_factory.dart';
 import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
@@ -34,6 +35,7 @@ import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
+import 'package:esketit_music_app/use_case/tracks/tracks_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -76,6 +78,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   final selectedLocale = await settingsStorage.getLocale();
   final selectedThemeMode =
       await settingsStorage.getThemeMode() ?? AppThemeMode.auto;
+  final useTrackAlbumCoverColorSchemeSeed =
+      await settingsStorage.getUseTrackAlbumCoverColorSchemeSeed() ?? true;
   final selectedAuthorAlbumsDisplayMode =
       await settingsStorage.getAuthorAlbumsDisplayMode() ??
       AuthorAlbumsDisplayMode.expanded;
@@ -116,6 +120,10 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   final lyricsStorage = EsketitRestApiLyricsStorage(
     httpClient: optionallyAuthenticatedHttpClient,
   );
+  final tracksStorage = EsketitRestApiTracksStorage(
+    httpClient: optionallyAuthenticatedHttpClient,
+    baseUri: baseUri,
+  );
   final autoplayStorage = EsketitRestApiAutoplayStorage(
     httpClient: authenticatedHttpClient,
     baseUri: baseUri,
@@ -138,6 +146,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   runApp(
     MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<ErrorReporter>.value(value: errorReporter),
+        RepositoryProvider<TracksStorage>.value(value: tracksStorage),
         RepositoryProvider<AnalyticsCollecting>(
           create: (context) => analyticsCollector,
           dispose: (collector) => unawaited(collector.dispose()),
@@ -204,6 +214,8 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
                 serverUri: baseUri,
                 locale: selectedLocale,
                 themeMode: selectedThemeMode,
+                useTrackAlbumCoverColorSchemeSeed:
+                    useTrackAlbumCoverColorSchemeSeed,
                 authorAlbumsDisplayMode: selectedAuthorAlbumsDisplayMode,
               ),
               settingsStorage: settingsStorage,

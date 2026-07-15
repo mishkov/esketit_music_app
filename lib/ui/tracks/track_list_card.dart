@@ -1,9 +1,8 @@
-import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
-import 'package:esketit_music_app/ui/tracks/playlist_picker_sheet.dart';
+import 'package:esketit_music_app/ui/tracks/show_add_to_playlists_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_download_launcher.dart';
 import 'package:esketit_music_app/ui/tracks/track_download_policy.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -136,7 +135,10 @@ class _TrackListCardState extends State<TrackListCard> {
                           tooltip: l10n.addToPlaylistsTooltip,
                           onPressed: playlistsPending
                               ? null
-                              : () => _showAddToPlaylistsSheet(context),
+                              : () => showAddToPlaylistsSheet(
+                                  context: context,
+                                  track: widget.track,
+                                ),
                           icon: const Icon(Icons.playlist_add_rounded),
                         ),
                       if (widget.playlistIdForRemoval != null)
@@ -216,77 +218,6 @@ class _TrackListCardState extends State<TrackListCard> {
     );
   }
 
-  Future<void> _showAddToPlaylistsSheet(BuildContext context) async {
-    if (!context.read<AuthBloc>().state.isAuthenticated) {
-      LoginRequiredPromptScope.of(context).show();
-
-      return;
-    }
-
-    final playlistsBloc = context.read<PlaylistsBloc>();
-    if (playlistsBloc.state.playlists.isEmpty &&
-        !playlistsBloc.state.isLoadingPlaylists) {
-      playlistsBloc.add(const LoadPlaylists());
-    }
-
-    _loadMissingPlaylistDetails(playlistsBloc);
-
-    final result = await showModalBottomSheet<PlaylistPickerResult>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return BlocConsumer<PlaylistsBloc, PlaylistsState>(
-          listener: (context, state) =>
-              _loadMissingPlaylistDetails(context.read<PlaylistsBloc>()),
-          builder: (context, state) {
-            final playlists = state.playlists
-                .where((playlist) => !playlist.isFavorites)
-                .toList(growable: false);
-            final selectedPlaylistIds = _playlistIdsContainingTrack(
-              state,
-              playlists,
-              widget.track.id,
-            );
-
-            return PlaylistPickerSheet(
-              playlists: playlists,
-              initialSelectedPlaylistIds: selectedPlaylistIds,
-              isLoading:
-                  state.isLoadingPlaylists ||
-                  _isLoadingPlaylistMembership(state, playlists),
-            );
-          },
-        );
-      },
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    if (!context.mounted) {
-      return;
-    }
-
-    final playlistIdsToAdd = result.selectedPlaylistIds
-        .difference(result.initialPlaylistIds)
-        .toList(growable: false);
-    final playlistIdsToRemove = result.initialPlaylistIds
-        .difference(result.selectedPlaylistIds)
-        .toList(growable: false);
-    if (playlistIdsToAdd.isEmpty && playlistIdsToRemove.isEmpty) {
-      return;
-    }
-
-    context.read<PlaylistsBloc>().add(
-      UpdateTrackPlaylistsRequested(
-        trackId: widget.track.id,
-        addPlaylistIds: playlistIdsToAdd,
-        removePlaylistIds: playlistIdsToRemove,
-      ),
-    );
-  }
-
   Future<void> _saveToDownloads(BuildContext context) async {
     setState(() {
       _isSavingToDownloads = true;
@@ -308,50 +239,6 @@ class _TrackListCardState extends State<TrackListCard> {
           _isSavingToDownloads = false;
         });
       }
-    }
-  }
-
-  Set<int> _playlistIdsContainingTrack(
-    PlaylistsState state,
-    List<Playlist> playlists,
-    int trackId,
-  ) {
-    return playlists
-        .where(
-          (playlist) =>
-              state.playlistTracksById[playlist.id]?.any(
-                (track) => track.id == trackId,
-              ) ??
-              false,
-        )
-        .map((playlist) => playlist.id)
-        .toSet();
-  }
-
-  bool _isLoadingPlaylistMembership(
-    PlaylistsState state,
-    List<Playlist> playlists,
-  ) {
-    return playlists.any(
-      (playlist) =>
-          playlist.trackCount > 0 &&
-          !state.playlistTracksById.containsKey(playlist.id) &&
-          !state.playlistErrorMessages.containsKey(playlist.id),
-    );
-  }
-
-  void _loadMissingPlaylistDetails(PlaylistsBloc playlistsBloc) {
-    final state = playlistsBloc.state;
-    for (final playlist in state.playlists.where(
-      (playlist) => !playlist.isFavorites && playlist.trackCount > 0,
-    )) {
-      if (state.playlistTracksById.containsKey(playlist.id) ||
-          state.loadingPlaylistIds.contains(playlist.id) ||
-          state.playlistErrorMessages.containsKey(playlist.id)) {
-        continue;
-      }
-
-      playlistsBloc.add(LoadPlaylistDetails(playlist.id));
     }
   }
 }

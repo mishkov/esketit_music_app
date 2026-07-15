@@ -5,6 +5,7 @@ import 'package:esketit_music_app/l10n/app_localizations_build_context_extension
 import 'package:esketit_music_app/ui/catalog/catalog_screen_helpers.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/author_picker_sheet.dart';
+import 'package:esketit_music_app/ui/tracks/show_add_to_playlists_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen_body.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -28,7 +29,8 @@ class TrackScreen extends StatelessWidget {
         final album = selectedTrack == null
             ? null
             : _albumForTrack(context.read<CatalogBloc>().state, selectedTrack);
-        final hasMenuActions = album != null || authors.isNotEmpty;
+        final hasMenuActions =
+            selectedTrack != null || album != null || authors.isNotEmpty;
 
         return ScreenSkeleton(
           enableBottomPlayer: false,
@@ -38,10 +40,19 @@ class TrackScreen extends StatelessWidget {
             actions: [
               PopupMenuButton<_TrackScreenMenuAction>(
                 enabled: hasMenuActions,
-                onSelected: (action) =>
-                    _onMenuActionSelected(context, action, album, authors),
-                itemBuilder: (context) =>
-                    _buildTrackScreenMenuItems(context, album, authors),
+                onSelected: (action) => _onMenuActionSelected(
+                  context,
+                  action,
+                  selectedTrack,
+                  album,
+                  authors,
+                ),
+                itemBuilder: (context) => _buildTrackScreenMenuItems(
+                  context,
+                  selectedTrack,
+                  album,
+                  authors,
+                ),
                 icon: const Icon(Icons.more_vert_rounded),
               ),
             ],
@@ -59,23 +70,36 @@ class TrackScreen extends StatelessWidget {
   void _onMenuActionSelected(
     BuildContext context,
     _TrackScreenMenuAction action,
+    Track? track,
     Album? album,
     List<Author> authors,
   ) async {
-    if (action == _TrackScreenMenuAction.goToAlbum && album != null) {
-      openAlbumDetails(context, album);
-    }
-    if (action == _TrackScreenMenuAction.goToAuthor) {
-      await openAuthorSelection(context, authors);
+    switch (action) {
+      case _TrackScreenMenuAction.addToPlaylists:
+        if (track != null) {
+          await showAddToPlaylistsSheet(context: context, track: track);
+        }
+      case _TrackScreenMenuAction.goToAlbum:
+        if (album != null) {
+          openAlbumDetails(context, album);
+        }
+      case _TrackScreenMenuAction.goToAuthor:
+        await openAuthorSelection(context, authors);
     }
   }
 
   List<PopupMenuEntry<_TrackScreenMenuAction>> _buildTrackScreenMenuItems(
     BuildContext context,
+    Track? track,
     Album? album,
     List<Author> authors,
   ) {
     return [
+      if (track != null)
+        PopupMenuItem<_TrackScreenMenuAction>(
+          value: _TrackScreenMenuAction.addToPlaylists,
+          child: Text(context.l10n.addToPlaylistsTooltip),
+        ),
       if (album != null)
         PopupMenuItem<_TrackScreenMenuAction>(
           value: _TrackScreenMenuAction.goToAlbum,
@@ -114,4 +138,4 @@ class TrackScreen extends StatelessWidget {
   }
 }
 
-enum _TrackScreenMenuAction { goToAlbum, goToAuthor }
+enum _TrackScreenMenuAction { addToPlaylists, goToAlbum, goToAuthor }

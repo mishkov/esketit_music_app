@@ -6,16 +6,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SyncedTrackLyricsView extends StatefulWidget {
-  const SyncedTrackLyricsView({required this.lyrics, super.key});
+  const SyncedTrackLyricsView({
+    required this.lyrics,
+    this.activeLineAlignment = 0.35,
+    this.activeLineScale = 1.3,
+    this.inactiveLineOpacity = 0.3,
+    this.lineSpacing = 10,
+    this.padding = const EdgeInsets.fromLTRB(48, 24, 48, 100),
+    this.showLeadingBeatIndicator = false,
+    this.textStyle,
+    super.key,
+  });
 
   final TrackLyrics lyrics;
+  final double activeLineAlignment;
+  final double activeLineScale;
+  final double inactiveLineOpacity;
+  final double lineSpacing;
+  final EdgeInsetsGeometry padding;
+  final bool showLeadingBeatIndicator;
+  final TextStyle? textStyle;
 
   @override
   State<SyncedTrackLyricsView> createState() => _SyncedTrackLyricsViewState();
 }
 
 class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
-  static const _activeLineAlignment = 0.35;
+  static const _beatIndicatorStepDuration = Duration(milliseconds: 750);
   static const _lineSwitchDuration = Duration(milliseconds: 300);
   static const _autoScrollResumeDelay = Duration(seconds: 2);
 
@@ -23,7 +40,9 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
   final List<GlobalKey> _lineKeys = [];
 
   Timer? _autoScrollResumeTimer;
+  Timer? _beatIndicatorTimer;
   StreamSubscription<PlayerPlaybackProgress>? _playbackProgressSubscription;
+  int _activeBeatIndicatorDotIndex = 0;
   int? _activeLineIndex;
   Duration _latestPlaybackPosition = Duration.zero;
   bool _isAutoScrollSuspended = false;
@@ -37,6 +56,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
     _activeLineIndex = widget.lyrics.syncedLineIndexAt(_latestPlaybackPosition);
     _scrollToActiveLine();
     _subscribeToPlaybackProgress();
+    _updateBeatIndicatorTimer();
   }
 
   @override
@@ -49,12 +69,14 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
         _latestPlaybackPosition,
       );
       _scrollToActiveLine();
+      _updateBeatIndicatorTimer();
     }
   }
 
   @override
   void dispose() {
     _autoScrollResumeTimer?.cancel();
+    _beatIndicatorTimer?.cancel();
     _playbackProgressSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
@@ -65,20 +87,24 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
     _playbackProgressSubscription = playerBloc.playbackProgressStream.listen((
       playbackProgress,
     ) {
-      _latestPlaybackPosition = playbackProgress.position;
-      _updateActiveLine(_latestPlaybackPosition);
+      _updateActiveLine(playbackProgress.position);
     });
   }
 
   void _updateActiveLine(Duration position) {
+    final wasLeadingBeatIndicatorVisible = _shouldShowLeadingBeatIndicator;
+    _latestPlaybackPosition = position;
     final nextActiveLineIndex = widget.lyrics.syncedLineIndexAt(position);
-    if (_activeLineIndex == nextActiveLineIndex) {
+    final shouldShowLeadingBeatIndicator = _shouldShowLeadingBeatIndicator;
+    if (_activeLineIndex == nextActiveLineIndex &&
+        wasLeadingBeatIndicatorVisible == shouldShowLeadingBeatIndicator) {
       return;
     }
 
     setState(() {
       _activeLineIndex = nextActiveLineIndex;
     });
+    _updateBeatIndicatorTimer();
 
     if (nextActiveLineIndex == null) {
       return;
@@ -117,7 +143,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
       _isProgrammaticScrollInProgress = true;
       Scrollable.ensureVisible(
         lineContext,
-        alignment: _activeLineAlignment,
+        alignment: widget.activeLineAlignment,
         duration: _lineSwitchDuration,
         curve: Curves.easeInOut,
       ).whenComplete(() {
@@ -134,12 +160,11 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
       onNotification: _handleScrollNotification,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(
-          vertical: 24,
-          horizontal: 48,
-        ).copyWith(bottom: 100),
+        padding: widget.padding,
         child: Column(
           children: [
+            if (widget.showLeadingBeatIndicator)
+              _buildAnimatedLeadingBeatIndicator(context),
             for (
               var index = 0;
               index < widget.lyrics.lines.length;
@@ -147,7 +172,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
             ) ...[
               _buildLyricsLine(context: context, theme: theme, index: index),
               if (index + 1 < widget.lyrics.lines.length)
-                const SizedBox(height: 10),
+                SizedBox(height: widget.lineSpacing),
             ],
           ],
         ),
@@ -208,13 +233,14 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
     final lineText = line.text.trim();
     final isActiveLine = index == _activeLineIndex;
     final textStyle =
+        widget.textStyle ??
         theme.textTheme.titleLarge?.copyWith(height: 1.35) ??
         const TextStyle(fontSize: 24);
 
     return AnimatedOpacity(
       key: _lineKeys[index],
       duration: _lineSwitchDuration,
-      opacity: isActiveLine ? 1 : 0.3,
+      opacity: isActiveLine ? 1 : widget.inactiveLineOpacity,
       child: InkWell(
         onTap: _createLyricsLineTapCallback(line),
         borderRadius: BorderRadius.circular(12),
@@ -223,7 +249,7 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
           child: AnimatedScale(
             duration: _lineSwitchDuration,
             curve: Curves.easeInOut,
-            scale: isActiveLine ? 1.3 : 1,
+            scale: isActiveLine ? widget.activeLineScale : 1,
             child: Text(
               lineText,
               style: textStyle,
@@ -233,6 +259,111 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
         ),
       ),
     );
+  }
+
+  bool get _shouldShowLeadingBeatIndicator {
+    return widget.showLeadingBeatIndicator &&
+        _activeLineIndex == null &&
+        _isBeforeFirstLine;
+  }
+
+  bool get _isBeforeFirstLine {
+    if (widget.lyrics.lines.isEmpty) {
+      return false;
+    }
+
+    return _latestPlaybackPosition.inMilliseconds <
+        widget.lyrics.lines.first.startMs;
+  }
+
+  Widget _buildAnimatedLeadingBeatIndicator(BuildContext context) {
+    final isVisible = _shouldShowLeadingBeatIndicator;
+
+    return AnimatedSize(
+      duration: _lineSwitchDuration,
+      curve: Curves.easeInOut,
+      child: ClipRect(
+        child: AnimatedAlign(
+          duration: _lineSwitchDuration,
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          heightFactor: isVisible ? 1.0 : 0.0,
+          child: AnimatedOpacity(
+            duration: _lineSwitchDuration,
+            opacity: isVisible ? 1 : 0,
+            child: Column(
+              children: [
+                _buildLeadingBeatIndicator(context),
+                SizedBox(height: widget.lineSpacing * 4),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeadingBeatIndicator(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var index = 0; index < 4; index += 1) ...[
+          _buildBeatIndicatorDot(
+            color: color,
+            isActive: index == _activeBeatIndicatorDotIndex,
+          ),
+          if (index < 3) const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildBeatIndicatorDot({
+    required Color color,
+    required bool isActive,
+  }) {
+    return AnimatedContainer(
+      duration: _lineSwitchDuration,
+      curve: Curves.easeInOut,
+      width: isActive ? 34 : 28,
+      height: isActive ? 34 : 28,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isActive ? 0.72 : 0.36),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+  void _updateBeatIndicatorTimer() {
+    if (!_shouldShowLeadingBeatIndicator) {
+      _beatIndicatorTimer?.cancel();
+      _beatIndicatorTimer = null;
+
+      return;
+    }
+
+    if (_beatIndicatorTimer != null) {
+      return;
+    }
+
+    _beatIndicatorTimer = Timer.periodic(
+      _beatIndicatorStepDuration,
+      (_) => _advanceBeatIndicator(),
+    );
+  }
+
+  void _advanceBeatIndicator() {
+    if (!mounted || !_shouldShowLeadingBeatIndicator) {
+      _updateBeatIndicatorTimer();
+
+      return;
+    }
+
+    setState(() {
+      _activeBeatIndicatorDotIndex = (_activeBeatIndicatorDotIndex + 1) % 4;
+    });
   }
 
   VoidCallback _createLyricsLineTapCallback(SyncedTrackLyricsLine line) {

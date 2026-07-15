@@ -42,6 +42,7 @@ class PlaylistDetailsBody extends StatelessWidget {
                         track: track,
                         queue: _availableTracks(tracks),
                         showAddToPlaylistsAction: true,
+                        showImage: true,
                       );
                     },
                   ),

@@ -268,7 +268,9 @@ class EsketitRestApiPlaylistsStorage
       file: HttpFile(
         uri: _resolveSongUri((item['audioFilePath'] as String?) ?? ''),
       ),
-      image: HttpFile(uri: Uri.parse('')),
+      image: HttpFile(
+        uri: _resolveAlbumCoverUri((item['coverImagePath'] as String?) ?? ''),
+      ),
       isFavorite: (item['isFavorite'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
     );
@@ -277,7 +279,7 @@ class EsketitRestApiPlaylistsStorage
   Map<String, Object?> _serializeUpsertInput(PlaylistUpsertInput input) {
     return {
       'name': input.name,
-      'description': input.description,
+      if (input.description.trim().isNotEmpty) 'description': input.description,
       'coverImagePath': input.coverImagePath,
       'visibility': input.visibility.name,
     };
@@ -307,6 +309,14 @@ class EsketitRestApiPlaylistsStorage
       _baseUri,
       audioFilePath,
       fallbackDirectory: 'songs',
+    );
+  }
+
+  Uri _resolveAlbumCoverUri(String coverImagePath) {
+    return resolveEsketitRestApiUrl(
+      _baseUri,
+      coverImagePath,
+      fallbackDirectory: 'album-covers',
     );
   }
 
