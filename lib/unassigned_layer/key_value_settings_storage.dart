@@ -2,6 +2,7 @@ import 'package:esketit_music_app/key_value_storage/shared/key_value_storage.dar
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
+import 'package:esketit_music_app/use_case/settings/fullscreen_player_inactive_controls.dart';
 import 'package:esketit_music_app/use_case/settings/settings_storage.dart';
 
 class KeyValueSettingsStorage implements SettingsStorage {
@@ -15,6 +16,8 @@ class KeyValueSettingsStorage implements SettingsStorage {
       'settings.use_track_album_cover_color_scheme_seed';
   static const String _authorAlbumsDisplayModeKey =
       'settings.author_albums_display_mode';
+  static const String _fullscreenPlayerInactiveControlsKey =
+      'settings.fullscreen_player_inactive_controls';
   static const String _autoLocaleStorageValue = 'auto';
   static const String _lightThemeModeStorageValue = 'light';
   static const String _darkThemeModeStorageValue = 'dark';
@@ -23,6 +26,21 @@ class KeyValueSettingsStorage implements SettingsStorage {
   static const String _falseStorageValue = 'false';
   static const String _expandedAuthorAlbumsDisplayModeStorageValue = 'expanded';
   static const String _compactAuthorAlbumsDisplayModeStorageValue = 'compact';
+  static const String _trackNameControlStorageValue = 'track_name';
+  static const String _trackAuthorsControlStorageValue = 'track_authors';
+  static const String _trackProgressIndicatorControlStorageValue =
+      'track_progress_indicator';
+  static const String _trackTimingControlStorageValue = 'track_timing';
+  static const String _playbackButtonsControlStorageValue = 'playback_buttons';
+  static const String _favoriteButtonControlStorageValue = 'favorite_button';
+  static const Set<String> _fullscreenPlayerInactiveControlStorageValues = {
+    _trackNameControlStorageValue,
+    _trackAuthorsControlStorageValue,
+    _trackProgressIndicatorControlStorageValue,
+    _trackTimingControlStorageValue,
+    _playbackButtonsControlStorageValue,
+    _favoriteButtonControlStorageValue,
+  };
 
   final KeyValueStorage _keyValueStorage;
 
@@ -142,6 +160,71 @@ class KeyValueSettingsStorage implements SettingsStorage {
         AuthorAlbumsDisplayMode.compact =>
           _compactAuthorAlbumsDisplayModeStorageValue,
       },
+    );
+  }
+
+  @override
+  Future<FullscreenPlayerInactiveControls?>
+  getFullscreenPlayerInactiveControls() async {
+    final storageValue = await _keyValueStorage.getString(
+      _fullscreenPlayerInactiveControlsKey,
+    );
+    if (storageValue == null) {
+      return null;
+    }
+
+    final selectedControls = storageValue.isEmpty
+        ? <String>{}
+        : storageValue.split(',').toSet();
+    if (!selectedControls.every(
+      _fullscreenPlayerInactiveControlStorageValues.contains,
+    )) {
+      return null;
+    }
+
+    final showTrackProgressIndicator = selectedControls.contains(
+      _trackProgressIndicatorControlStorageValue,
+    );
+    final showTrackTiming = selectedControls.contains(
+      _trackTimingControlStorageValue,
+    );
+    if (showTrackTiming && !showTrackProgressIndicator) {
+      return null;
+    }
+
+    return FullscreenPlayerInactiveControls(
+      showTrackName: selectedControls.contains(_trackNameControlStorageValue),
+      showTrackAuthors: selectedControls.contains(
+        _trackAuthorsControlStorageValue,
+      ),
+      showTrackProgressIndicator: showTrackProgressIndicator,
+      showTrackTiming: showTrackTiming,
+      showPlaybackButtons: selectedControls.contains(
+        _playbackButtonsControlStorageValue,
+      ),
+      showFavoriteButton: selectedControls.contains(
+        _favoriteButtonControlStorageValue,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setFullscreenPlayerInactiveControls(
+    FullscreenPlayerInactiveControls controls,
+  ) {
+    final selectedControls = <String>[
+      if (controls.showTrackName) _trackNameControlStorageValue,
+      if (controls.showTrackAuthors) _trackAuthorsControlStorageValue,
+      if (controls.showTrackProgressIndicator)
+        _trackProgressIndicatorControlStorageValue,
+      if (controls.showTrackTiming) _trackTimingControlStorageValue,
+      if (controls.showPlaybackButtons) _playbackButtonsControlStorageValue,
+      if (controls.showFavoriteButton) _favoriteButtonControlStorageValue,
+    ];
+
+    return _keyValueStorage.setString(
+      _fullscreenPlayerInactiveControlsKey,
+      selectedControls.join(','),
     );
   }
 }

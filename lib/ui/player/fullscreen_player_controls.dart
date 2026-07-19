@@ -11,6 +11,8 @@ class FullscreenPlayerControls extends StatelessWidget {
   const FullscreenPlayerControls({
     required this.playerState,
     required this.track,
+    required this.showPlaybackButtons,
+    required this.showFavoriteButton,
     super.key,
   });
 
@@ -18,6 +20,8 @@ class FullscreenPlayerControls extends StatelessWidget {
 
   final PlayerState playerState;
   final Track track;
+  final bool showPlaybackButtons;
+  final bool showFavoriteButton;
 
   @override
   Widget build(BuildContext context) {
@@ -35,67 +39,83 @@ class FullscreenPlayerControls extends StatelessWidget {
           children: [
             const SizedBox(width: _sideSlotWidth),
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: playerState.hasPreviousTrack
-                        ? () => context.read<PlayerBloc>().add(
-                            const SkipToPreviousTrackRequested(),
-                          )
-                        : null,
-                    icon: const Icon(Icons.skip_previous_rounded),
-                    iconSize: 40,
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        context.read<PlayerBloc>().add(const TogglePlay()),
-                    style: FilledButton.styleFrom(shape: const CircleBorder()),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Icon(
-                        playerState.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        size: 40,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 180),
+                opacity: showPlaybackButtons ? 1 : 0,
+                child: IgnorePointer(
+                  ignoring: !showPlaybackButtons,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: playerState.hasPreviousTrack
+                            ? () => context.read<PlayerBloc>().add(
+                                const SkipToPreviousTrackRequested(),
+                              )
+                            : null,
+                        icon: const Icon(Icons.skip_previous_rounded),
+                        iconSize: 40,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      FilledButton.tonal(
+                        onPressed: () =>
+                            context.read<PlayerBloc>().add(const TogglePlay()),
+                        style: FilledButton.styleFrom(
+                          shape: const CircleBorder(),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Icon(
+                            playerState.isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            size: 40,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: playerState.hasNextTrack
+                            ? () => context.read<PlayerBloc>().add(
+                                const SkipToNextTrackRequested(),
+                              )
+                            : null,
+                        icon: const Icon(Icons.skip_next_rounded),
+                        iconSize: 40,
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: playerState.hasNextTrack
-                        ? () => context.read<PlayerBloc>().add(
-                            const SkipToNextTrackRequested(),
-                          )
-                        : null,
-                    icon: const Icon(Icons.skip_next_rounded),
-                    iconSize: 40,
-                  ),
-                ],
+                ),
               ),
             ),
             SizedBox(
               width: _sideSlotWidth,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  tooltip: effectiveIsFavorite
-                      ? l10n.removeFromFavoritesTooltip
-                      : l10n.addToFavoritesTooltip,
-                  onPressed: favoritePending
-                      ? null
-                      : () => _toggleFavorite(
-                          context,
-                          shouldBeFavorite: !effectiveIsFavorite,
-                        ),
-                  icon: Icon(
-                    effectiveIsFavorite
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 180),
+                opacity: showFavoriteButton ? 1 : 0,
+                child: IgnorePointer(
+                  ignoring: !showFavoriteButton,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      tooltip: effectiveIsFavorite
+                          ? l10n.removeFromFavoritesTooltip
+                          : l10n.addToFavoritesTooltip,
+                      onPressed: favoritePending
+                          ? null
+                          : () => _toggleFavorite(
+                              context,
+                              shouldBeFavorite: !effectiveIsFavorite,
+                            ),
+                      icon: Icon(
+                        effectiveIsFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                      ),
+                      iconSize: 32,
+                    ),
                   ),
-                  iconSize: 32,
                 ),
               ),
             ),
