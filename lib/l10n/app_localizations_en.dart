@@ -103,6 +103,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullscreenPlayerCloseTooltip => 'Close fullscreen player';
 
   @override
+  String get fullscreenInactiveControlsSettingsTooltip =>
+      'Customize inactive controls';
+
+  @override
+  String get fullscreenInactiveControlsMenuTitle =>
+      'Select controls that will be visible in ‘inactive’ mode';
+
+  @override
+  String get fullscreenInactiveControlTrackName => 'Track name';
+
+  @override
+  String get fullscreenInactiveControlTrackAuthors => 'Track authors';
+
+  @override
+  String get fullscreenInactiveControlProgressIndicator =>
+      'Track progress indicator';
+
+  @override
+  String get fullscreenInactiveControlTrackTiming =>
+      'Track current playing time & duration';
+
+  @override
+  String get fullscreenInactiveControlPlaybackButtons =>
+      'Previous/play/next buttons';
+
+  @override
+  String get fullscreenInactiveControlFavoriteButton =>
+      'Add to favorites button';
+
+  @override
   String get guestModeLabel => 'Guest mode';
 
   @override

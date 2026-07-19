@@ -103,6 +103,36 @@ class AppLocalizationsRu extends AppLocalizations {
   String get fullscreenPlayerCloseTooltip => 'Закрыть полноэкранный плеер';
 
   @override
+  String get fullscreenInactiveControlsSettingsTooltip =>
+      'Настроить элементы неактивного режима';
+
+  @override
+  String get fullscreenInactiveControlsMenuTitle =>
+      'Выберите элементы, которые будут видны в «неактивном» режиме';
+
+  @override
+  String get fullscreenInactiveControlTrackName => 'Название трека';
+
+  @override
+  String get fullscreenInactiveControlTrackAuthors => 'Исполнители трека';
+
+  @override
+  String get fullscreenInactiveControlProgressIndicator =>
+      'Индикатор прогресса трека';
+
+  @override
+  String get fullscreenInactiveControlTrackTiming =>
+      'Текущее время воспроизведения и длительность';
+
+  @override
+  String get fullscreenInactiveControlPlaybackButtons =>
+      'Кнопки назад/воспроизведение/вперёд';
+
+  @override
+  String get fullscreenInactiveControlFavoriteButton =>
+      'Кнопка добавления в избранное';
+
+  @override
   String get guestModeLabel => 'Гостевой режим';
 
   @override

@@ -306,17 +306,22 @@ class _SyncedTrackLyricsViewState extends State<SyncedTrackLyricsView> {
   Widget _buildLeadingBeatIndicator(BuildContext context) {
     final color = Theme.of(context).colorScheme.onSurfaceVariant;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var index = 0; index < 4; index += 1) ...[
-          _buildBeatIndicatorDot(
-            color: color,
-            isActive: index == _activeBeatIndicatorDotIndex,
-          ),
-          if (index < 3) const SizedBox(width: 12),
-        ],
-      ],
+    return SizedBox(
+      height: 34,
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var index = 0; index < 4; index += 1) ...[
+              _buildBeatIndicatorDot(
+                color: color,
+                isActive: index == _activeBeatIndicatorDotIndex,
+              ),
+              if (index < 3) const SizedBox(width: 12),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

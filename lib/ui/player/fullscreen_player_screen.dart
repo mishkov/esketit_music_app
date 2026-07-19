@@ -6,11 +6,14 @@ import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/category.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/player/fullscreen_inactive_controls_menu.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_lyrics_panel.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_player_platform.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_track_presentation.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
+import 'package:esketit_music_app/use_case/settings/fullscreen_player_inactive_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,6 +32,7 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
 
   Timer? _controlsHideTimer;
   bool _areControlsVisible = false;
+  bool _isSettingsMenuOpen = false;
 
   @override
   void initState() {
@@ -58,8 +62,13 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final inactiveControls = context.select(
+      (SettingsBloc bloc) => bloc.state.fullscreenPlayerInactiveControls,
+    );
+    final shouldShowCursor = _areControlsVisible || _isSettingsMenuOpen;
 
     return MouseRegion(
+      cursor: shouldShowCursor ? MouseCursor.defer : SystemMouseCursors.none,
       onHover: (_) => _showControlsTemporarily(),
       child: BlocConsumer<PlayerBloc, PlayerState>(
         listenWhen: (previous, current) =>
@@ -75,7 +84,28 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
             backgroundColor: theme.colorScheme.surface,
             body: Stack(
               children: [
-                Positioned.fill(child: _buildBody(context, playerState)),
+                Positioned.fill(
+                  child: _buildBody(context, playerState, inactiveControls),
+                ),
+                Positioned(
+                  top: 24,
+                  left: 32,
+                  child: SafeArea(
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 180),
+                      opacity: _areControlsVisible || _isSettingsMenuOpen
+                          ? 1
+                          : 0,
+                      child: IgnorePointer(
+                        ignoring: !_areControlsVisible && !_isSettingsMenuOpen,
+                        child: FullscreenInactiveControlsMenu(
+                          onOpened: _handleSettingsMenuOpened,
+                          onClosed: _handleSettingsMenuClosed,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: 24,
                   right: 32,
@@ -102,7 +132,11 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
     );
   }
 
-  Widget _buildBody(BuildContext context, PlayerState playerState) {
+  Widget _buildBody(
+    BuildContext context,
+    PlayerState playerState,
+    FullscreenPlayerInactiveControls inactiveControls,
+  ) {
     final selectedTrack = playerState.selectedTrack;
     if (selectedTrack == null) {
       return Center(
@@ -133,10 +167,16 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
                 selectedTrack,
                 lyrics,
                 playerState,
+                inactiveControls,
               );
             }
 
-            return _buildArtworkOnlyLayout(context, selectedTrack, playerState);
+            return _buildArtworkOnlyLayout(
+              context,
+              selectedTrack,
+              playerState,
+              inactiveControls,
+            );
           },
         );
       },
@@ -148,6 +188,7 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
     Track track,
     TrackLyrics lyrics,
     PlayerState playerState,
+    FullscreenPlayerInactiveControls inactiveControls,
   ) {
     return SafeArea(
       child: Center(
@@ -162,6 +203,7 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
                     areControlsVisible: _areControlsVisible,
                     playerState: playerState,
                     track: track,
+                    inactiveControls: inactiveControls,
                   ),
                 ),
                 const SizedBox(width: 72),
@@ -178,6 +220,7 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
     BuildContext context,
     Track track,
     PlayerState playerState,
+    FullscreenPlayerInactiveControls inactiveControls,
   ) {
     return SafeArea(
       child: Center(
@@ -189,6 +232,7 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
               areControlsVisible: _areControlsVisible,
               playerState: playerState,
               track: track,
+              inactiveControls: inactiveControls,
             ),
           ),
         ),
@@ -213,6 +257,10 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
   }
 
   void _showControlsTemporarily() {
+    if (_isSettingsMenuOpen) {
+      return;
+    }
+
     _controlsHideTimer?.cancel();
     _controlsHideTimer = Timer(_controlsIdleTimeout, _hideControls);
 
@@ -232,6 +280,26 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
 
     setState(() {
       _areControlsVisible = false;
+    });
+  }
+
+  void _handleSettingsMenuOpened() {
+    _controlsHideTimer?.cancel();
+    setState(() {
+      _areControlsVisible = false;
+      _isSettingsMenuOpen = true;
+    });
+  }
+
+  void _handleSettingsMenuClosed() {
+    _controlsHideTimer?.cancel();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _areControlsVisible = false;
+      _isSettingsMenuOpen = false;
     });
   }
 

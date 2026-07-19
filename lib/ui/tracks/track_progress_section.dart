@@ -1,3 +1,4 @@
+import 'package:esketit_music_app/ui/shared/animated_collapsible.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -69,7 +70,7 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
                 overlayShape: SliderComponentShape.noOverlay,
               ),
               child: Slider(
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 value: position.inMilliseconds
                     .clamp(0, sliderMax.toInt())
                     .toDouble(),
@@ -100,18 +101,15 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
                       },
               ),
             ),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 180),
-              opacity: widget.showTiming ? 1 : 0,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    Text(_formatDuration(position)),
-                    const Spacer(),
-                    Text(_formatDuration(duration)),
-                  ],
-                ),
+            AnimatedCollapsible(
+              visible: widget.showTiming,
+              topPadding: 8,
+              child: Row(
+                children: [
+                  Text(_formatDuration(position)),
+                  const Spacer(),
+                  Text(_formatDuration(duration)),
+                ],
               ),
             ),
           ],

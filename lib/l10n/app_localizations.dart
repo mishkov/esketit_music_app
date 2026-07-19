@@ -284,6 +284,54 @@ abstract class AppLocalizations {
   /// **'Close fullscreen player'**
   String get fullscreenPlayerCloseTooltip;
 
+  /// No description provided for @fullscreenInactiveControlsSettingsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize inactive controls'**
+  String get fullscreenInactiveControlsSettingsTooltip;
+
+  /// No description provided for @fullscreenInactiveControlsMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select controls that will be visible in ‘inactive’ mode'**
+  String get fullscreenInactiveControlsMenuTitle;
+
+  /// No description provided for @fullscreenInactiveControlTrackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Track name'**
+  String get fullscreenInactiveControlTrackName;
+
+  /// No description provided for @fullscreenInactiveControlTrackAuthors.
+  ///
+  /// In en, this message translates to:
+  /// **'Track authors'**
+  String get fullscreenInactiveControlTrackAuthors;
+
+  /// No description provided for @fullscreenInactiveControlProgressIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Track progress indicator'**
+  String get fullscreenInactiveControlProgressIndicator;
+
+  /// No description provided for @fullscreenInactiveControlTrackTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Track current playing time & duration'**
+  String get fullscreenInactiveControlTrackTiming;
+
+  /// No description provided for @fullscreenInactiveControlPlaybackButtons.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous/play/next buttons'**
+  String get fullscreenInactiveControlPlaybackButtons;
+
+  /// No description provided for @fullscreenInactiveControlFavoriteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites button'**
+  String get fullscreenInactiveControlFavoriteButton;
+
   /// No description provided for @guestModeLabel.
   ///
   /// In en, this message translates to:

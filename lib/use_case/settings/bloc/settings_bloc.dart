@@ -6,6 +6,7 @@ import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
 import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
+import 'package:esketit_music_app/use_case/settings/fullscreen_player_inactive_controls.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
 import 'package:esketit_music_app/use_case/settings/settings_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -55,6 +56,15 @@ final class SetAuthorAlbumsDisplayMode extends SettingsEvent {
 
   @override
   List<Object?> get props => [displayMode];
+}
+
+final class SetFullscreenPlayerInactiveControls extends SettingsEvent {
+  SetFullscreenPlayerInactiveControls(this.controls);
+
+  final FullscreenPlayerInactiveControls controls;
+
+  @override
+  List<Object?> get props => [controls];
 }
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
@@ -143,6 +153,35 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         );
       }
     });
+    on<SetFullscreenPlayerInactiveControls>((event, emit) async {
+      try {
+        await _errorReporter.addBreadcrumb(
+          Breadcrumb(
+            message: 'Set fullscreen player inactive controls',
+            category: Category.uiClick,
+            data: {
+              'showTrackName': event.controls.showTrackName,
+              'showTrackAuthors': event.controls.showTrackAuthors,
+              'showTrackProgressIndicator':
+                  event.controls.showTrackProgressIndicator,
+              'showTrackTiming': event.controls.showTrackTiming,
+              'showPlaybackButtons': event.controls.showPlaybackButtons,
+              'showFavoriteButton': event.controls.showFavoriteButton,
+            },
+          ),
+        );
+        await _settingsStorage.setFullscreenPlayerInactiveControls(
+          event.controls,
+        );
+        emit(state.copyWith(fullscreenPlayerInactiveControls: event.controls));
+      } catch (error, stackTrace) {
+        await _reportError(
+          'Failed to set fullscreen player inactive controls',
+          error,
+          stackTrace,
+        );
+      }
+    });
   }
 
   Future<void> _reportError(
@@ -162,6 +201,7 @@ class SettingsState extends Equatable {
   final AppThemeMode themeMode;
   final bool useTrackAlbumCoverColorSchemeSeed;
   final AuthorAlbumsDisplayMode authorAlbumsDisplayMode;
+  final FullscreenPlayerInactiveControls fullscreenPlayerInactiveControls;
 
   const SettingsState({
     required this.serverUri,
@@ -169,6 +209,7 @@ class SettingsState extends Equatable {
     required this.themeMode,
     required this.useTrackAlbumCoverColorSchemeSeed,
     required this.authorAlbumsDisplayMode,
+    required this.fullscreenPlayerInactiveControls,
   });
 
   SettingsState copyWith({
@@ -177,6 +218,7 @@ class SettingsState extends Equatable {
     AppThemeMode? themeMode,
     bool? useTrackAlbumCoverColorSchemeSeed,
     AuthorAlbumsDisplayMode? authorAlbumsDisplayMode,
+    FullscreenPlayerInactiveControls? fullscreenPlayerInactiveControls,
   }) {
     return SettingsState(
       serverUri: serverUri ?? this.serverUri,
@@ -187,6 +229,9 @@ class SettingsState extends Equatable {
           this.useTrackAlbumCoverColorSchemeSeed,
       authorAlbumsDisplayMode:
           authorAlbumsDisplayMode ?? this.authorAlbumsDisplayMode,
+      fullscreenPlayerInactiveControls:
+          fullscreenPlayerInactiveControls ??
+          this.fullscreenPlayerInactiveControls,
     );
   }
 
@@ -197,5 +242,6 @@ class SettingsState extends Equatable {
     themeMode,
     useTrackAlbumCoverColorSchemeSeed,
     authorAlbumsDisplayMode,
+    fullscreenPlayerInactiveControls,
   ];
 }
