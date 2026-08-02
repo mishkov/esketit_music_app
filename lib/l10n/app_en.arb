@@ -81,6 +81,8 @@
   "noPublishedAuthorsYet": "No published authors yet.",
   "authorNotFound": "Author not found.",
   "authorLoadFailed": "Failed to load the author.",
+  "albumNotFound": "Album not found.",
+  "albumLoadFailed": "Failed to load the album.",
   "searchHint": "Search authors, albums, tracks, playlists",
   "clearSearchTooltip": "Clear search",
   "recentSearchQueriesTitle": "Recent searches",

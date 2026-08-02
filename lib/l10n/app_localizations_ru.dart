@@ -245,6 +245,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authorLoadFailed => 'Не удалось загрузить автора.';
 
   @override
+  String get albumNotFound => 'Альбом не найден.';
+
+  @override
+  String get albumLoadFailed => 'Не удалось загрузить альбом.';
+
+  @override
   String get searchHint => 'Искать авторов, альбомы, треки, плейлисты';
 
   @override

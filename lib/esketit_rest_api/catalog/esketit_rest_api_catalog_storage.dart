@@ -25,6 +25,27 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
        _baseUri = baseUri;
 
   @override
+  Future<Album?> getAlbum({required int albumId}) async {
+    final path = '/albums/$albumId';
+    final response = await _httpClient.get(path);
+    if (response.statusCode == 404) {
+      return null;
+    }
+    _throwIfNotSuccess(response, path);
+
+    final body = _coerceJson(response.response);
+    if (body is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Expected /albums/{id} response to be a JSON object',
+      );
+    }
+
+    final album = _parseAlbum(body);
+
+    return album.id == albumId ? album : null;
+  }
+
+  @override
   Future<List<Author>> getPublishedAuthors() async {
     final authorsResponse = await _httpClient.get('/authors');
     _throwIfNotSuccess(authorsResponse, '/authors');

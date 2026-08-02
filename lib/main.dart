@@ -28,6 +28,7 @@ import 'package:esketit_music_app/use_case/analytics/analytics_queue_storage.dar
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
+import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
@@ -151,6 +152,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<ErrorReporter>.value(value: errorReporter),
+        RepositoryProvider<CatalogStorage>.value(value: catalogStorage),
         RepositoryProvider<TracksStorage>.value(value: tracksStorage),
         RepositoryProvider<AnalyticsCollecting>(
           create: (context) => analyticsCollector,

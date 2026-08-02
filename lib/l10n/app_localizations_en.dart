@@ -243,6 +243,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authorLoadFailed => 'Failed to load the author.';
 
   @override
+  String get albumNotFound => 'Album not found.';
+
+  @override
+  String get albumLoadFailed => 'Failed to load the album.';
+
+  @override
   String get searchHint => 'Search authors, albums, tracks, playlists';
 
   @override

@@ -401,6 +401,9 @@ class _FakeAuthRepository implements AuthRepository {
 
 class _FakeCatalogStorage implements CatalogStorage {
   @override
+  Future<Album?> getAlbum({required int albumId}) async => null;
+
+  @override
   Future<List<Track>> getAlbumTracks({required Album album}) async => const [];
 
   @override

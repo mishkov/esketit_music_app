@@ -112,6 +112,9 @@ class _FakeCatalogStorage implements CatalogStorage {
   final List<String> searchQueries = [];
 
   @override
+  Future<Album?> getAlbum({required int albumId}) async => null;
+
+  @override
   Future<List<Author>> getPublishedAuthors() async => const [];
 
   @override

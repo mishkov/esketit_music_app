@@ -1,7 +1,7 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/playlist.dart';
-import 'package:esketit_music_app/ui/albums/album_details_screen.dart';
+import 'package:esketit_music_app/ui/albums/album_routes.dart';
 import 'package:esketit_music_app/ui/authors/author_routes.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_details_screen.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_routes.dart';
@@ -17,9 +17,7 @@ void openAuthorDetails(BuildContext context, Author author) {
 }
 
 void openAlbumDetails(BuildContext context, Album album) {
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (context) => AlbumDetailsScreen(album: album)),
-  );
+  Navigator.of(context).pushNamed(albumRoutePath(album.id), arguments: album);
 }
 
 void openPlaylistDetails(BuildContext context, Playlist playlist) {

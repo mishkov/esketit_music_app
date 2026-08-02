@@ -1,6 +1,9 @@
+import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
+import 'package:esketit_music_app/ui/albums/album_details_route_screen.dart';
+import 'package:esketit_music_app/ui/albums/album_routes.dart';
 import 'package:esketit_music_app/ui/app_shell.dart';
 import 'package:esketit_music_app/ui/authors/author_details_route_screen.dart';
 import 'package:esketit_music_app/ui/authors/author_routes.dart';
@@ -94,6 +97,22 @@ class EsketitApp extends StatelessWidget {
         builder: (context) => AuthorDetailsRouteScreen(
           authorId: authorId,
           initialAuthor: initialAuthor,
+        ),
+      );
+    }
+
+    final albumId = albumIdFromRouteName(name);
+    if (albumId != null) {
+      final argument = settings.arguments;
+      final initialAlbum = argument is Album && argument.id == albumId
+          ? argument
+          : null;
+
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) => AlbumDetailsRouteScreen(
+          albumId: albumId,
+          initialAlbum: initialAlbum,
         ),
       );
     }

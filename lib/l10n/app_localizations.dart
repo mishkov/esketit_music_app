@@ -542,6 +542,18 @@ abstract class AppLocalizations {
   /// **'Failed to load the author.'**
   String get authorLoadFailed;
 
+  /// No description provided for @albumNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Album not found.'**
+  String get albumNotFound;
+
+  /// No description provided for @albumLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the album.'**
+  String get albumLoadFailed;
+
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
