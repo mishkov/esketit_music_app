@@ -24,6 +24,7 @@ class TrackScreenBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final artworkUrl = _trackImageUrl(track);
+    final isCurrentTrack = state.selectedTrack?.id == track.id;
 
     return SafeArea(
       top: false,
@@ -32,8 +33,8 @@ class TrackScreenBody extends StatelessWidget {
           final useDesktopLayout =
               constraints.maxWidth >= _desktopLayoutBreakpoint;
           final content = useDesktopLayout
-              ? _buildDesktopLayout(context, theme, artworkUrl)
-              : _buildMobileLayout(context, theme, artworkUrl);
+              ? _buildDesktopLayout(context, theme, artworkUrl, isCurrentTrack)
+              : _buildMobileLayout(context, theme, artworkUrl, isCurrentTrack);
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -56,6 +57,7 @@ class TrackScreenBody extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     String? artworkUrl,
+    bool isCurrentTrack,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -70,7 +72,7 @@ class TrackScreenBody extends StatelessWidget {
           theme,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        const TrackProgressSection(),
+        TrackProgressSection(enabled: isCurrentTrack),
         const SizedBox(height: 24),
         TrackControlsRow(state: state, track: track),
         const SizedBox(height: 24),
@@ -83,13 +85,19 @@ class TrackScreenBody extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     String? artworkUrl,
+    bool isCurrentTrack,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           flex: 4,
-          child: _buildDesktopPlaybackPanel(context, theme, artworkUrl),
+          child: _buildDesktopPlaybackPanel(
+            context,
+            theme,
+            artworkUrl,
+            isCurrentTrack,
+          ),
         ),
         const SizedBox(width: 24),
         Expanded(
@@ -107,6 +115,7 @@ class TrackScreenBody extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     String? artworkUrl,
+    bool isCurrentTrack,
   ) {
     return Card.outlined(
       child: Padding(
@@ -118,7 +127,7 @@ class TrackScreenBody extends StatelessWidget {
             const SizedBox(height: 16),
             _buildTrackTitleBlock(context, theme),
             const SizedBox(height: 12),
-            const TrackProgressSection(),
+            TrackProgressSection(enabled: isCurrentTrack),
             const SizedBox(height: 24),
             TrackControlsRow(state: state, track: track),
           ],

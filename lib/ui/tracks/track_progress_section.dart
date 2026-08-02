@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TrackProgressSection extends StatefulWidget {
-  const TrackProgressSection({this.showTiming = true, super.key});
+  const TrackProgressSection({
+    this.showTiming = true,
+    this.enabled = true,
+    super.key,
+  });
 
   final bool showTiming;
+  final bool enabled;
 
   @override
   State<TrackProgressSection> createState() => _TrackProgressSectionState();
@@ -39,12 +44,16 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
         duration: Duration.zero,
       ),
       builder: (context, snapshot) {
-        final playbackProgress =
-            snapshot.data ??
-            const PlayerPlaybackProgress(
-              position: Duration.zero,
-              duration: Duration.zero,
-            );
+        final playbackProgress = widget.enabled
+            ? snapshot.data ??
+                  const PlayerPlaybackProgress(
+                    position: Duration.zero,
+                    duration: Duration.zero,
+                  )
+            : const PlayerPlaybackProgress(
+                position: Duration.zero,
+                duration: Duration.zero,
+              );
         final actualPosition = _normalizePosition(
           playbackProgress.position,
           playbackProgress.duration,
@@ -75,7 +84,7 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
                     .clamp(0, sliderMax.toInt())
                     .toDouble(),
                 max: sliderMax,
-                onChanged: durationMilliseconds == 0
+                onChanged: !widget.enabled || durationMilliseconds == 0
                     ? null
                     : (value) {
                         setState(() {
@@ -84,7 +93,7 @@ class _TrackProgressSectionState extends State<TrackProgressSection> {
                           );
                         });
                       },
-                onChangeEnd: durationMilliseconds == 0
+                onChangeEnd: !widget.enabled || durationMilliseconds == 0
                     ? null
                     : (value) {
                         final seekPosition = Duration(

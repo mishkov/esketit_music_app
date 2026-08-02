@@ -389,6 +389,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackNotAvailable => 'Not available';
 
   @override
+  String get trackNotFound => 'Track not found.';
+
+  @override
+  String get trackLoadFailed => 'Failed to load the track.';
+
+  @override
+  String get trackScreenTitle => 'Track';
+
+  @override
   String get trackScreenNowPlayingLabel => 'NOW PLAYING';
 
   @override
@@ -419,6 +428,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trackScreenChooseAuthorTitle => 'Choose author';
+
+  @override
+  String get copyTrackLinkTooltip => 'Copy track link';
+
+  @override
+  String get trackLinkCopied => 'Track link copied.';
 
   @override
   String get removeFromFavoritesTooltip => 'Remove from favorites';

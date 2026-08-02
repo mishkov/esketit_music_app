@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/category.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
@@ -7,7 +8,8 @@ import 'package:esketit_music_app/l10n/app_localizations_build_context_extension
 import 'package:esketit_music_app/ui/player/bottom_player_progress_border.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_player_platform.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_player_screen.dart';
-import 'package:esketit_music_app/ui/tracks/track_screen.dart';
+import 'package:esketit_music_app/ui/shared/remote_image.dart';
+import 'package:esketit_music_app/ui/tracks/track_routes.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +37,7 @@ class BottomPlayer extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             onTap: selectedTrack == null
                 ? null
-                : () => _openTrackScreen(context),
+                : () => _openTrackScreen(context, selectedTrack),
             child: Row(
               children: [
                 SizedBox.square(
@@ -111,10 +113,8 @@ class BottomPlayer extends StatelessWidget {
     );
   }
 
-  void _openTrackScreen(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (context) => const TrackScreen()));
+  void _openTrackScreen(BuildContext context, Track track) {
+    Navigator.of(context).pushNamed(trackRoutePath(track.id), arguments: track);
   }
 
   Future<void> _openFullscreenPlayer(BuildContext context) async {
@@ -163,7 +163,7 @@ class BottomPlayer extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: Image.network(imageUrl),
+      child: RemoteImage(imageUrl: imageUrl, icon: Icons.music_note_rounded),
     );
   }
 

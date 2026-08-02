@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class TrackControlsRow extends StatelessWidget {
 
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, playlistsState) {
+        final isCurrentTrack = state.selectedTrack?.id == track.id;
         final effectiveIsFavorite =
             playlistsState.favoriteOverrides[track.id] ?? track.isFavorite;
         final favoritePending = playlistsState.pendingFavoriteTrackIds.contains(
@@ -30,7 +32,7 @@ class TrackControlsRow extends StatelessWidget {
           children: [
             Expanded(child: const SizedBox.shrink()),
             IconButton(
-              onPressed: state.hasPreviousTrack
+              onPressed: isCurrentTrack && state.hasPreviousTrack
                   ? () => context.read<PlayerBloc>().add(
                       const SkipToPreviousTrackRequested(),
                     )
@@ -39,13 +41,29 @@ class TrackControlsRow extends StatelessWidget {
               iconSize: 40,
             ),
             FilledButton.tonal(
-              onPressed: () =>
-                  context.read<PlayerBloc>().add(const TogglePlay()),
+              onPressed: !track.isAvailable
+                  ? null
+                  : () {
+                      final playerBloc = context.read<PlayerBloc>();
+                      if (isCurrentTrack) {
+                        playerBloc.add(const TogglePlay());
+                      } else {
+                        playerBloc.add(
+                          PlayTrack(
+                            track,
+                            autoplayContext: AutoplayContext(
+                              sourceType: AutoplaySourceType.track,
+                              sourceId: track.id,
+                            ),
+                          ),
+                        );
+                      }
+                    },
               style: FilledButton.styleFrom(shape: const CircleBorder()),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Icon(
-                  state.isPlaying
+                  isCurrentTrack && state.isPlaying
                       ? Icons.pause_rounded
                       : Icons.play_arrow_rounded,
                   size: 40,
@@ -53,7 +71,7 @@ class TrackControlsRow extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: state.hasNextTrack
+              onPressed: isCurrentTrack && state.hasNextTrack
                   ? () => context.read<PlayerBloc>().add(
                       const SkipToNextTrackRequested(),
                     )

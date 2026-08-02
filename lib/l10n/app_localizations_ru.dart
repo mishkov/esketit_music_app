@@ -396,6 +396,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackNotAvailable => 'Недоступно';
 
   @override
+  String get trackNotFound => 'Трек не найден.';
+
+  @override
+  String get trackLoadFailed => 'Не удалось загрузить трек.';
+
+  @override
+  String get trackScreenTitle => 'Трек';
+
+  @override
   String get trackScreenNowPlayingLabel => 'СЕЙЧАС ИГРАЕТ';
 
   @override
@@ -427,6 +436,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get trackScreenChooseAuthorTitle => 'Выберите автора';
+
+  @override
+  String get copyTrackLinkTooltip => 'Скопировать ссылку на трек';
+
+  @override
+  String get trackLinkCopied => 'Ссылка на трек скопирована.';
 
   @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';

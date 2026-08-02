@@ -782,6 +782,24 @@ abstract class AppLocalizations {
   /// **'Not available'**
   String get trackNotAvailable;
 
+  /// No description provided for @trackNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Track not found.'**
+  String get trackNotFound;
+
+  /// No description provided for @trackLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the track.'**
+  String get trackLoadFailed;
+
+  /// No description provided for @trackScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track'**
+  String get trackScreenTitle;
+
   /// No description provided for @trackScreenNowPlayingLabel.
   ///
   /// In en, this message translates to:
@@ -841,6 +859,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose author'**
   String get trackScreenChooseAuthorTitle;
+
+  /// No description provided for @copyTrackLinkTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy track link'**
+  String get copyTrackLinkTooltip;
+
+  /// No description provided for @trackLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Track link copied.'**
+  String get trackLinkCopied;
 
   /// No description provided for @removeFromFavoritesTooltip.
   ///
