@@ -1,5 +1,5 @@
 import 'package:esketit_music_app/domain/author.dart';
-import 'package:esketit_music_app/ui/authors/author_details_screen.dart';
+import 'package:esketit_music_app/ui/catalog/catalog_screen_helpers.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:flutter/material.dart';
 
@@ -39,10 +39,6 @@ class AuthorCard extends StatelessWidget {
   }
 
   void _openAuthorDetails(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AuthorDetailsScreen(author: author),
-      ),
-    );
+    openAuthorDetails(context, author);
   }
 }

@@ -237,6 +237,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPublishedAuthorsYet => 'No published authors yet.';
 
   @override
+  String get authorNotFound => 'Author not found.';
+
+  @override
+  String get authorLoadFailed => 'Failed to load the author.';
+
+  @override
   String get searchHint => 'Search authors, albums, tracks, playlists';
 
   @override

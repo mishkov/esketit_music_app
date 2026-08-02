@@ -1,5 +1,8 @@
+import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/app_shell.dart';
+import 'package:esketit_music_app/ui/authors/author_details_route_screen.dart';
+import 'package:esketit_music_app/ui/authors/author_routes.dart';
 import 'package:esketit_music_app/ui/playlists/shareable_playlist_details_screen.dart';
 import 'package:esketit_music_app/ui/theme/album_cover_color_scheme_seed_builder.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -75,6 +78,22 @@ class EsketitApp extends StatelessWidget {
 
     final uri = Uri.tryParse(name);
     final segments = uri?.pathSegments ?? const <String>[];
+
+    final authorId = authorIdFromRouteName(name);
+    if (authorId != null) {
+      final argument = settings.arguments;
+      final initialAuthor = argument is Author && argument.id == authorId
+          ? argument
+          : null;
+
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) => AuthorDetailsRouteScreen(
+          authorId: authorId,
+          initialAuthor: initialAuthor,
+        ),
+      );
+    }
 
     if (segments.length == 2 && segments.first == 'playlists') {
       final playlistId = int.tryParse(segments[1]);

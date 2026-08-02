@@ -530,6 +530,18 @@ abstract class AppLocalizations {
   /// **'No published authors yet.'**
   String get noPublishedAuthorsYet;
 
+  /// No description provided for @authorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Author not found.'**
+  String get authorNotFound;
+
+  /// No description provided for @authorLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the author.'**
+  String get authorLoadFailed;
+
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:

@@ -239,6 +239,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noPublishedAuthorsYet => 'Опубликованных авторов пока нет.';
 
   @override
+  String get authorNotFound => 'Автор не найден.';
+
+  @override
+  String get authorLoadFailed => 'Не удалось загрузить автора.';
+
+  @override
   String get searchHint => 'Искать авторов, альбомы, треки, плейлисты';
 
   @override

@@ -20,7 +20,7 @@ flutter build web --release --base-href / --dart-define BASE_URL=/api/
 ```
 
 Make sure nginx serves the Flutter app for direct client-side routes such as
-`/playlists/7` and `/playlists/shared/<token>`:
+`/authors/12`, `/playlists/7`, and `/playlists/shared/<token>`:
 
 ```nginx
 location / {

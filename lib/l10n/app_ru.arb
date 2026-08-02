@@ -79,6 +79,8 @@
   "featuredAuthorsTitle": "Избранные авторы",
   "playMyVibeButton": "Включить мой вайб",
   "noPublishedAuthorsYet": "Опубликованных авторов пока нет.",
+  "authorNotFound": "Автор не найден.",
+  "authorLoadFailed": "Не удалось загрузить автора.",
   "searchHint": "Искать авторов, альбомы, треки, плейлисты",
   "clearSearchTooltip": "Очистить поиск",
   "recentSearchQueriesTitle": "Недавние поисковые запросы",
