@@ -223,7 +223,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
 
       final updatedPlaylists = _upsertPlaylist(state.playlists, playlist);
       final updatedTracks = Map<int, List<Track>>.of(state.playlistTracksById)
-        ..[event.playlistId] = _applyFavoriteOverrides(tracks);
+        ..[event.playlistId] = _orderPlaylistTracks(
+          playlist,
+          _applyFavoriteOverrides(tracks),
+        );
       final loadingPlaylistIds = Set<int>.of(state.loadingPlaylistIds)
         ..remove(event.playlistId);
 
@@ -829,6 +832,14 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
           ),
         )
         .toList(growable: false);
+  }
+
+  List<Track> _orderPlaylistTracks(Playlist playlist, List<Track> tracks) {
+    if (!playlist.isFavorites) {
+      return tracks;
+    }
+
+    return tracks.reversed.toList(growable: false);
   }
 }
 

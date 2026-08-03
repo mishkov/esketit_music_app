@@ -10,6 +10,32 @@ import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('loads recently added favorite tracks first', () async {
+    final playlist = _playlist(7, trackCount: 3, isFavorites: true);
+    final storage = _FakePlaylistsStorage(
+      playlists: [playlist],
+      playlistTracksById: {
+        playlist.id: [_track(1), _track(2), _track(3)],
+      },
+    );
+    final bloc = PlaylistsBloc(
+      playlistsStorage: storage,
+      errorReporter: _FakeErrorReporter(),
+    );
+
+    bloc.add(LoadPlaylistDetails(playlist.id));
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(bloc.state.playlistTracksById[playlist.id], [
+      _track(3),
+      _track(2),
+      _track(1),
+    ]);
+
+    await bloc.close();
+  });
+
   test('reloads cached playlist tracks after adding a track to it', () async {
     final playlist = _playlist(7, trackCount: 1);
     final storage = _FakePlaylistsStorage(
@@ -189,7 +215,11 @@ class _FakeErrorReporter implements ErrorReporter {
   Future<void> setUserId(String? id) async {}
 }
 
-Playlist _playlist(int id, {required int trackCount}) {
+Playlist _playlist(
+  int id, {
+  required int trackCount,
+  bool isFavorites = false,
+}) {
   return Playlist(
     id: id,
     userId: 1,
@@ -199,7 +229,7 @@ Playlist _playlist(int id, {required int trackCount}) {
     visibility: PlaylistVisibility.private,
     trackCount: trackCount,
     system: false,
-    isFavorites: false,
+    isFavorites: isFavorites,
   );
 }
 
