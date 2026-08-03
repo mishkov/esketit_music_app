@@ -7,6 +7,7 @@ import 'package:esketit_music_app/ui/albums/album_routes.dart';
 import 'package:esketit_music_app/ui/app_shell.dart';
 import 'package:esketit_music_app/ui/authors/author_details_route_screen.dart';
 import 'package:esketit_music_app/ui/authors/author_routes.dart';
+import 'package:esketit_music_app/ui/player/system_player_favorite_synchronizer.dart';
 import 'package:esketit_music_app/ui/playlists/shareable_playlist_details_screen.dart';
 import 'package:esketit_music_app/ui/theme/album_cover_color_scheme_seed_builder.dart';
 import 'package:esketit_music_app/ui/tracks/track_route_screen.dart';
@@ -43,6 +44,9 @@ class EsketitApp extends StatelessWidget {
                   localizationsDelegates:
                       AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
+                  builder: (context, child) => SystemPlayerFavoriteSynchronizer(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                   theme: ThemeData(
                     colorSchemeSeed: colorSchemeSeed,
                     useMaterial3: true,
