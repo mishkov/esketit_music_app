@@ -36,7 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
         BlocListener<PlaylistsBloc, PlaylistsState>(
           listenWhen: (previous, current) =>
               previous.feedbackSerial != current.feedbackSerial &&
-              current.feedbackMessage != null,
+              (current.feedbackMessage != null ||
+                  current.feedbackReason != null),
           listener: _onPlaylistsStateChanged,
         ),
       ],
@@ -91,7 +92,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onPlaylistsStateChanged(BuildContext context, PlaylistsState state) {
-    final message = state.feedbackMessage;
+    final message = switch (state.feedbackReason) {
+      PlaylistsFeedbackReason.favoriteUpdateFailed =>
+        context.l10n.favoriteUpdateFailed,
+      PlaylistsFeedbackReason.dislikeUpdateFailed =>
+        context.l10n.dislikeUpdateFailed,
+      null => state.feedbackMessage,
+    };
     if (message == null) {
       return;
     }

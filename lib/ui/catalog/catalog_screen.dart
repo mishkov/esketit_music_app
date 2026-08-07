@@ -67,6 +67,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   child: TextField(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
+                    autocorrect: false,
+                    enableSuggestions: false,
                     onChanged: _onSearchQueryChanged,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(

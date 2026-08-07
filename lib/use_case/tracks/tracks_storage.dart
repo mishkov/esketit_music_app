@@ -25,6 +25,8 @@ class PaginatedTracks extends Equatable {
 }
 
 abstract class TracksStorage {
+  Future<Track?> getTrack({required int trackId});
+
   Future<PaginatedTracks> getTracks({
     required int page,
     required int pageSize,

@@ -29,15 +29,44 @@ class FullscreenPlayerControls extends StatelessWidget {
 
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, playlistsState) {
-        final effectiveIsFavorite =
-            playlistsState.favoriteOverrides[track.id] ?? track.isFavorite;
-        final favoritePending = playlistsState.pendingFavoriteTrackIds.contains(
+        final effectiveIsFavorite = playlistsState.effectiveIsFavorite(track);
+        final effectiveIsDisliked = playlistsState.effectiveIsDisliked(track);
+        final preferencePending = playlistsState.isTrackPreferencePending(
           track.id,
         );
 
         return Row(
           children: [
-            const SizedBox(width: _sideSlotWidth),
+            SizedBox(
+              width: _sideSlotWidth,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 180),
+                opacity: showFavoriteButton ? 1 : 0,
+                child: IgnorePointer(
+                  ignoring: !showFavoriteButton,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      tooltip: effectiveIsDisliked
+                          ? l10n.removeFromDislikesTooltip
+                          : l10n.addToDislikesTooltip,
+                      onPressed: preferencePending
+                          ? null
+                          : () => _toggleDislike(
+                              context,
+                              shouldBeDisliked: !effectiveIsDisliked,
+                            ),
+                      icon: Icon(
+                        effectiveIsDisliked
+                            ? Icons.thumb_down_rounded
+                            : Icons.thumb_down_outlined,
+                      ),
+                      iconSize: 32,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 180),
@@ -102,11 +131,12 @@ class FullscreenPlayerControls extends StatelessWidget {
                       tooltip: effectiveIsFavorite
                           ? l10n.removeFromFavoritesTooltip
                           : l10n.addToFavoritesTooltip,
-                      onPressed: favoritePending
+                      onPressed: preferencePending
                           ? null
                           : () => _toggleFavorite(
                               context,
                               shouldBeFavorite: !effectiveIsFavorite,
+                              currentIsDisliked: effectiveIsDisliked,
                             ),
                       icon: Icon(
                         effectiveIsFavorite
@@ -125,7 +155,11 @@ class FullscreenPlayerControls extends StatelessWidget {
     );
   }
 
-  void _toggleFavorite(BuildContext context, {required bool shouldBeFavorite}) {
+  void _toggleFavorite(
+    BuildContext context, {
+    required bool shouldBeFavorite,
+    required bool currentIsDisliked,
+  }) {
     if (!context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
 
@@ -136,6 +170,23 @@ class FullscreenPlayerControls extends StatelessWidget {
       ToggleFavoriteRequested(
         trackId: track.id,
         shouldBeFavorite: shouldBeFavorite,
+        currentIsDisliked: currentIsDisliked,
+      ),
+    );
+  }
+
+  void _toggleDislike(BuildContext context, {required bool shouldBeDisliked}) {
+    if (!context.read<AuthBloc>().state.isAuthenticated) {
+      LoginRequiredPromptScope.of(context).show();
+
+      return;
+    }
+
+    context.read<PlaylistsBloc>().add(
+      ToggleDislikeRequested(
+        trackId: track.id,
+        shouldBeDisliked: shouldBeDisliked,
+        sourceWasPlaying: playerState.isPlaying,
       ),
     );
   }

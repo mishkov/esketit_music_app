@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
@@ -19,18 +20,39 @@ class TrackControlsRow extends StatelessWidget {
 
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, playlistsState) {
-        final effectiveIsFavorite =
-            playlistsState.favoriteOverrides[track.id] ?? track.isFavorite;
-        final favoritePending = playlistsState.pendingFavoriteTrackIds.contains(
+        final isCurrentTrack = state.selectedTrack?.id == track.id;
+        final effectiveIsFavorite = playlistsState.effectiveIsFavorite(track);
+        final effectiveIsDisliked = playlistsState.effectiveIsDisliked(track);
+        final preferencePending = playlistsState.isTrackPreferencePending(
           track.id,
         );
 
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(child: const SizedBox.shrink()),
+            Expanded(
+              child: IconButton(
+                tooltip: effectiveIsDisliked
+                    ? l10n.removeFromDislikesTooltip
+                    : l10n.addToDislikesTooltip,
+                onPressed: preferencePending
+                    ? null
+                    : () => _toggleDislike(
+                        context,
+                        shouldBeDisliked: !effectiveIsDisliked,
+                        isCurrentTrack: isCurrentTrack,
+                        wasPlaying: isCurrentTrack && state.isPlaying,
+                      ),
+                icon: Icon(
+                  effectiveIsDisliked
+                      ? Icons.thumb_down_rounded
+                      : Icons.thumb_down_outlined,
+                ),
+                iconSize: 32,
+              ),
+            ),
             IconButton(
-              onPressed: state.hasPreviousTrack
+              onPressed: isCurrentTrack && state.hasPreviousTrack
                   ? () => context.read<PlayerBloc>().add(
                       const SkipToPreviousTrackRequested(),
                     )
@@ -39,13 +61,29 @@ class TrackControlsRow extends StatelessWidget {
               iconSize: 40,
             ),
             FilledButton.tonal(
-              onPressed: () =>
-                  context.read<PlayerBloc>().add(const TogglePlay()),
+              onPressed: !track.isAvailable
+                  ? null
+                  : () {
+                      final playerBloc = context.read<PlayerBloc>();
+                      if (isCurrentTrack) {
+                        playerBloc.add(const TogglePlay());
+                      } else {
+                        playerBloc.add(
+                          PlayTrack(
+                            track,
+                            autoplayContext: AutoplayContext(
+                              sourceType: AutoplaySourceType.track,
+                              sourceId: track.id,
+                            ),
+                          ),
+                        );
+                      }
+                    },
               style: FilledButton.styleFrom(shape: const CircleBorder()),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Icon(
-                  state.isPlaying
+                  isCurrentTrack && state.isPlaying
                       ? Icons.pause_rounded
                       : Icons.play_arrow_rounded,
                   size: 40,
@@ -53,7 +91,7 @@ class TrackControlsRow extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: state.hasNextTrack
+              onPressed: isCurrentTrack && state.hasNextTrack
                   ? () => context.read<PlayerBloc>().add(
                       const SkipToNextTrackRequested(),
                     )
@@ -66,11 +104,12 @@ class TrackControlsRow extends StatelessWidget {
                 tooltip: effectiveIsFavorite
                     ? l10n.removeFromFavoritesTooltip
                     : l10n.addToFavoritesTooltip,
-                onPressed: favoritePending
+                onPressed: preferencePending
                     ? null
                     : () => _toggleFavorite(
                         context,
                         shouldBeFavorite: !effectiveIsFavorite,
+                        currentIsDisliked: effectiveIsDisliked,
                       ),
                 icon: Icon(
                   effectiveIsFavorite
@@ -86,7 +125,11 @@ class TrackControlsRow extends StatelessWidget {
     );
   }
 
-  void _toggleFavorite(BuildContext context, {required bool shouldBeFavorite}) {
+  void _toggleFavorite(
+    BuildContext context, {
+    required bool shouldBeFavorite,
+    required bool currentIsDisliked,
+  }) {
     if (!context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
 
@@ -97,6 +140,35 @@ class TrackControlsRow extends StatelessWidget {
       ToggleFavoriteRequested(
         trackId: track.id,
         shouldBeFavorite: shouldBeFavorite,
+        currentIsDisliked: currentIsDisliked,
+      ),
+    );
+  }
+
+  void _toggleDislike(
+    BuildContext context, {
+    required bool shouldBeDisliked,
+    required bool isCurrentTrack,
+    required bool wasPlaying,
+  }) {
+    if (!context.read<AuthBloc>().state.isAuthenticated) {
+      LoginRequiredPromptScope.of(context).show();
+
+      return;
+    }
+
+    context.read<PlaylistsBloc>().add(
+      ToggleDislikeRequested(
+        trackId: track.id,
+        shouldBeDisliked: shouldBeDisliked,
+        sourceContext: isCurrentTrack
+            ? null
+            : AutoplayContext(
+                sourceType: AutoplaySourceType.track,
+                sourceId: track.id,
+              ),
+        sourceQueueIndex: isCurrentTrack ? null : 0,
+        sourceWasPlaying: wasPlaying,
       ),
     );
   }

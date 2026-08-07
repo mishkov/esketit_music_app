@@ -21,6 +21,41 @@ class EsketitRestApiTracksStorage implements TracksStorage {
        _baseUri = baseUri;
 
   @override
+  Future<Track?> getTrack({required int trackId}) async {
+    final path = '/tracks/$trackId';
+    final trackResponse = await _httpClient.get(path);
+    if (trackResponse.statusCode == 404) {
+      return null;
+    }
+    _throwIfNotSuccess(trackResponse, path);
+
+    final body = _coerceJson(trackResponse.response);
+    if (body is! Map<String, dynamic>) {
+      throw AppError('Expected /tracks/{id} response to be a JSON object');
+    }
+
+    final authorsResponse = await _httpClient.get('/authors');
+    _throwIfNotSuccess(authorsResponse, '/authors');
+
+    final tracks = _parseTracks([
+      body,
+    ], _parseAuthorsById(authorsResponse.response));
+    var track = tracks.firstOrNull;
+    if (track == null || track.id != trackId) {
+      return null;
+    }
+
+    if (_trackImagePath(body).isEmpty) {
+      final albumCoverUri = await _loadAlbumCoverUri(body);
+      if (albumCoverUri != null) {
+        track = track.copyWith(image: HttpFile(uri: albumCoverUri));
+      }
+    }
+
+    return track;
+  }
+
+  @override
   Future<PaginatedTracks> getTracks({
     required int page,
     required int pageSize,
@@ -153,11 +188,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
 
       final name = (item['name'] as String?) ?? '';
       final audioFilePath = (item['audioFilePath'] as String?) ?? '';
-      final albumImagePath =
-          (item['imagePath'] as String?) ??
-          (item['coverImagePath'] as String?) ??
-          (item['albumImagePath'] as String?) ??
-          '';
+      final albumImagePath = _trackImagePath(item);
       final authorIds = item['authorIds'];
 
       final authors = ((item['authors'] as List?) ?? const [])
@@ -198,6 +229,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
           file: HttpFile(uri: _resolveSongUri(audioFilePath)),
           image: HttpFile(uri: _resolveAlbumCoverUri(albumImagePath)),
           isFavorite: (item['isFavorite'] as bool?) ?? false,
+          isDisliked: (item['isDisliked'] as bool?) ?? false,
           isAvailable: (item['isAvailable'] as bool?) ?? true,
         ),
       );
@@ -222,6 +254,50 @@ class EsketitRestApiTracksStorage implements TracksStorage {
       _baseUri,
       coverImagePath,
       fallbackDirectory: 'album-covers',
+    );
+  }
+
+  Future<Uri?> _loadAlbumCoverUri(Map<String, dynamic> trackItem) async {
+    final albumItem = trackItem['album'];
+    final albumId =
+        _asInt(trackItem['albumId']) ??
+        (albumItem is Map<String, dynamic> ? _asInt(albumItem['id']) : null);
+    if (albumId == null) {
+      return null;
+    }
+
+    final path = '/albums/$albumId';
+    final response = await _httpClient.get(path);
+    _throwIfNotSuccess(response, path);
+
+    final body = _coerceJson(response.response);
+    if (body is! Map<String, dynamic>) {
+      throw AppError('Expected /albums/{id} response to be a JSON object');
+    }
+
+    final coverImagePath = _trackImagePath(body);
+
+    return coverImagePath.isEmpty
+        ? null
+        : _resolveAlbumCoverUri(coverImagePath);
+  }
+
+  String _trackImagePath(Map<String, dynamic> item) {
+    final albumItem = item['album'];
+    final albumCoverImagePath = albumItem is Map<String, dynamic>
+        ? (albumItem['coverImagePath'] as String?) ?? ''
+        : '';
+
+    final candidates = <String?>[
+      item['imagePath'] as String?,
+      item['coverImagePath'] as String?,
+      item['albumImagePath'] as String?,
+      albumCoverImagePath,
+    ];
+
+    return candidates.whereType<String>().firstWhere(
+      (candidate) => candidate.isNotEmpty,
+      orElse: () => '',
     );
   }
 

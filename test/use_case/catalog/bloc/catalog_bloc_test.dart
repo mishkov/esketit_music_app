@@ -149,6 +149,9 @@ class _FakeCatalogStorage implements CatalogStorage {
   final PaginatedCatalogSearchResults? searchResults;
 
   @override
+  Future<Album?> getAlbum({required int albumId}) async => null;
+
+  @override
   Future<List<Author>> getPublishedAuthors() async => const [];
 
   @override

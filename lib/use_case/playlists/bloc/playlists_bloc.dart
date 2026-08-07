@@ -2,7 +2,10 @@ import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
+import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
+import 'package:esketit_music_app/errors/error_reporter/category.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -70,13 +73,40 @@ final class ToggleFavoriteRequested extends PlaylistsEvent {
   const ToggleFavoriteRequested({
     required this.trackId,
     required this.shouldBeFavorite,
+    this.currentIsDisliked,
   });
 
   final int trackId;
   final bool shouldBeFavorite;
+  final bool? currentIsDisliked;
 
   @override
-  List<Object?> get props => [trackId, shouldBeFavorite];
+  List<Object?> get props => [trackId, shouldBeFavorite, currentIsDisliked];
+}
+
+final class ToggleDislikeRequested extends PlaylistsEvent {
+  const ToggleDislikeRequested({
+    required this.trackId,
+    required this.shouldBeDisliked,
+    this.sourceContext,
+    this.sourceQueueIndex,
+    this.sourceWasPlaying,
+  });
+
+  final int trackId;
+  final bool shouldBeDisliked;
+  final AutoplayContext? sourceContext;
+  final int? sourceQueueIndex;
+  final bool? sourceWasPlaying;
+
+  @override
+  List<Object?> get props => [
+    trackId,
+    shouldBeDisliked,
+    sourceContext,
+    sourceQueueIndex,
+    sourceWasPlaying,
+  ];
 }
 
 final class AddTrackToPlaylistsRequested extends PlaylistsEvent {
@@ -137,6 +167,39 @@ final class ClearPlaylists extends PlaylistsEvent {
   const ClearPlaylists();
 }
 
+enum PlaylistsFeedbackReason { favoriteUpdateFailed, dislikeUpdateFailed }
+
+final class PersistedTrackPreferenceChange extends Equatable {
+  const PersistedTrackPreferenceChange({
+    required this.serial,
+    required this.trackId,
+    required this.isDisliked,
+    required this.collectDislikeAnalytics,
+    this.sourceContext,
+    this.sourceQueueIndex,
+    this.sourceWasPlaying,
+  });
+
+  final int serial;
+  final int trackId;
+  final bool isDisliked;
+  final bool collectDislikeAnalytics;
+  final AutoplayContext? sourceContext;
+  final int? sourceQueueIndex;
+  final bool? sourceWasPlaying;
+
+  @override
+  List<Object?> get props => [
+    serial,
+    trackId,
+    isDisliked,
+    collectDislikeAnalytics,
+    sourceContext,
+    sourceQueueIndex,
+    sourceWasPlaying,
+  ];
+}
+
 class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
   PlaylistsBloc({
     required PlaylistsStorage playlistsStorage,
@@ -150,6 +213,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     on<UpdatePlaylistRequested>(_onUpdatePlaylistRequested);
     on<DeletePlaylistRequested>(_onDeletePlaylistRequested);
     on<ToggleFavoriteRequested>(_onToggleFavoriteRequested);
+    on<ToggleDislikeRequested>(_onToggleDislikeRequested);
     on<AddTrackToPlaylistsRequested>(_onAddTrackToPlaylistsRequested);
     on<UpdateTrackPlaylistsRequested>(_onUpdateTrackPlaylistsRequested);
     on<RemoveTrackFromPlaylistRequested>(_onRemoveTrackFromPlaylistRequested);
@@ -223,7 +287,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
 
       final updatedPlaylists = _upsertPlaylist(state.playlists, playlist);
       final updatedTracks = Map<int, List<Track>>.of(state.playlistTracksById)
-        ..[event.playlistId] = _applyFavoriteOverrides(tracks);
+        ..[event.playlistId] = _orderPlaylistTracks(
+          playlist,
+          _applyPreferenceOverrides(tracks),
+        );
       final loadingPlaylistIds = Set<int>.of(state.loadingPlaylistIds)
         ..remove(event.playlistId);
 
@@ -308,6 +375,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     UpdatePlaylistRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
+    if (!_isKnownEditablePlaylist(event.playlistId)) {
+      return;
+    }
+
     emit(state.copyWith(isSubmittingPlaylist: true));
 
     try {
@@ -364,6 +435,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     DeletePlaylistRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
+    if (event.playlist.system || event.playlist.kind != PlaylistKind.custom) {
+      return;
+    }
+
     final deletingPlaylistIds = Set<int>.of(state.deletingPlaylistIds)
       ..add(event.playlist.id);
     emit(state.copyWith(deletingPlaylistIds: deletingPlaylistIds));
@@ -401,25 +476,48 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     ToggleFavoriteRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
+    if (state.isTrackPreferencePending(event.trackId)) {
+      return;
+    }
+
+    final previousPreferences = _snapshotTrackPreferences(event.trackId);
     final pendingFavoriteTrackIds = Set<int>.of(state.pendingFavoriteTrackIds)
       ..add(event.trackId);
     final favoriteOverrides = Map<int, bool>.of(state.favoriteOverrides)
       ..[event.trackId] = event.shouldBeFavorite;
+    final dislikeOverrides = Map<int, bool>.of(state.dislikeOverrides);
+    if (event.shouldBeFavorite) {
+      dislikeOverrides[event.trackId] = false;
+    }
 
     emit(
       state.copyWith(
         pendingFavoriteTrackIds: pendingFavoriteTrackIds,
         favoriteOverrides: favoriteOverrides,
+        dislikeOverrides: dislikeOverrides,
         playlistTracksById: _mapTracks(
           state.playlistTracksById,
           (track) => track.id == event.trackId
-              ? track.copyWith(isFavorite: event.shouldBeFavorite)
+              ? track.copyWith(
+                  isFavorite: event.shouldBeFavorite,
+                  isDisliked: event.shouldBeFavorite ? false : track.isDisliked,
+                )
               : track,
         ),
       ),
     );
 
     try {
+      await _errorReporter.addBreadcrumb(
+        Breadcrumb(
+          message: 'Toggle favorite track',
+          category: Category.uiClick,
+          data: {
+            'trackId': event.trackId,
+            'shouldBeFavorite': event.shouldBeFavorite,
+          },
+        ),
+      );
       if (event.shouldBeFavorite) {
         await _playlistsStorage.addTrackToFavorites(trackId: event.trackId);
       } else {
@@ -430,35 +528,159 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
 
       final updatedPendingIds = Set<int>.of(state.pendingFavoriteTrackIds)
         ..remove(event.trackId);
-      emit(state.copyWith(pendingFavoriteTrackIds: updatedPendingIds));
-      add(const LoadPlaylists(forceRefresh: true));
-
-      final favoritesPlaylist = state.playlists
-          .where((playlist) => playlist.isFavorites)
-          .firstOrNull;
-      if (favoritesPlaylist != null) {
-        add(LoadPlaylistDetails(favoritesPlaylist.id, forceRefresh: true));
-      }
-    } catch (error, stackTrace) {
-      final updatedPendingIds = Set<int>.of(state.pendingFavoriteTrackIds)
-        ..remove(event.trackId);
-      final revertedOverrides = Map<int, bool>.of(state.favoriteOverrides)
-        ..[event.trackId] = !event.shouldBeFavorite;
       emit(
         state.copyWith(
           pendingFavoriteTrackIds: updatedPendingIds,
-          favoriteOverrides: revertedOverrides,
-          playlistTracksById: _mapTracks(
-            state.playlistTracksById,
-            (track) => track.id == event.trackId
-                ? track.copyWith(isFavorite: !event.shouldBeFavorite)
-                : track,
+          persistedTrackPreferenceChange: _nextPersistedPreferenceChange(
+            trackId: event.trackId,
+            isDisliked: event.shouldBeFavorite
+                ? false
+                : (event.currentIsDisliked ??
+                      previousPreferences.effectiveIsDisliked ??
+                      false),
+            collectDislikeAnalytics: false,
           ),
         ),
       );
-      _emitFeedback(emit, message: 'Failed to update favorite.', isError: true);
+      _refreshSystemPlaylists();
+    } catch (error, stackTrace) {
+      final updatedPendingIds = Set<int>.of(state.pendingFavoriteTrackIds)
+        ..remove(event.trackId);
+      emit(
+        state.copyWith(
+          pendingFavoriteTrackIds: updatedPendingIds,
+          favoriteOverrides: _restoreOverride(
+            state.favoriteOverrides,
+            trackId: event.trackId,
+            wasSet: previousPreferences.favoriteOverrideWasSet,
+            value: previousPreferences.favoriteOverride,
+          ),
+          dislikeOverrides: _restoreOverride(
+            state.dislikeOverrides,
+            trackId: event.trackId,
+            wasSet: previousPreferences.dislikeOverrideWasSet,
+            value: previousPreferences.dislikeOverride,
+          ),
+          playlistTracksById: _restoreCachedTrackPreferences(
+            state.playlistTracksById,
+            trackId: event.trackId,
+            snapshot: previousPreferences,
+          ),
+        ),
+      );
+      _emitFeedback(
+        emit,
+        reason: PlaylistsFeedbackReason.favoriteUpdateFailed,
+        isError: true,
+      );
       await _reportError(
         'Failed to update favorite track ${event.trackId}',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
+  Future<void> _onToggleDislikeRequested(
+    ToggleDislikeRequested event,
+    Emitter<PlaylistsState> emit,
+  ) async {
+    if (state.isTrackPreferencePending(event.trackId)) {
+      return;
+    }
+
+    final previousPreferences = _snapshotTrackPreferences(event.trackId);
+    final pendingDislikeTrackIds = Set<int>.of(state.pendingDislikeTrackIds)
+      ..add(event.trackId);
+    final dislikeOverrides = Map<int, bool>.of(state.dislikeOverrides)
+      ..[event.trackId] = event.shouldBeDisliked;
+    final favoriteOverrides = Map<int, bool>.of(state.favoriteOverrides);
+    if (event.shouldBeDisliked) {
+      favoriteOverrides[event.trackId] = false;
+    }
+
+    emit(
+      state.copyWith(
+        pendingDislikeTrackIds: pendingDislikeTrackIds,
+        favoriteOverrides: favoriteOverrides,
+        dislikeOverrides: dislikeOverrides,
+        playlistTracksById: _mapTracks(
+          state.playlistTracksById,
+          (track) => track.id == event.trackId
+              ? track.copyWith(
+                  isFavorite: event.shouldBeDisliked ? false : track.isFavorite,
+                  isDisliked: event.shouldBeDisliked,
+                )
+              : track,
+        ),
+      ),
+    );
+
+    try {
+      await _errorReporter.addBreadcrumb(
+        Breadcrumb(
+          message: 'Toggle dislike track',
+          category: Category.uiClick,
+          data: {
+            'trackId': event.trackId,
+            'shouldBeDisliked': event.shouldBeDisliked,
+          },
+        ),
+      );
+      if (event.shouldBeDisliked) {
+        await _playlistsStorage.addTrackToDislikes(trackId: event.trackId);
+      } else {
+        await _playlistsStorage.removeTrackFromDislikes(trackId: event.trackId);
+      }
+
+      final updatedPendingIds = Set<int>.of(state.pendingDislikeTrackIds)
+        ..remove(event.trackId);
+      emit(
+        state.copyWith(
+          pendingDislikeTrackIds: updatedPendingIds,
+          persistedTrackPreferenceChange: _nextPersistedPreferenceChange(
+            trackId: event.trackId,
+            isDisliked: event.shouldBeDisliked,
+            collectDislikeAnalytics: true,
+            sourceContext: event.sourceContext,
+            sourceQueueIndex: event.sourceQueueIndex,
+            sourceWasPlaying: event.sourceWasPlaying,
+          ),
+        ),
+      );
+      _refreshSystemPlaylists();
+    } catch (error, stackTrace) {
+      final updatedPendingIds = Set<int>.of(state.pendingDislikeTrackIds)
+        ..remove(event.trackId);
+      emit(
+        state.copyWith(
+          pendingDislikeTrackIds: updatedPendingIds,
+          favoriteOverrides: _restoreOverride(
+            state.favoriteOverrides,
+            trackId: event.trackId,
+            wasSet: previousPreferences.favoriteOverrideWasSet,
+            value: previousPreferences.favoriteOverride,
+          ),
+          dislikeOverrides: _restoreOverride(
+            state.dislikeOverrides,
+            trackId: event.trackId,
+            wasSet: previousPreferences.dislikeOverrideWasSet,
+            value: previousPreferences.dislikeOverride,
+          ),
+          playlistTracksById: _restoreCachedTrackPreferences(
+            state.playlistTracksById,
+            trackId: event.trackId,
+            snapshot: previousPreferences,
+          ),
+        ),
+      );
+      _emitFeedback(
+        emit,
+        reason: PlaylistsFeedbackReason.dislikeUpdateFailed,
+        isError: true,
+      );
+      await _reportError(
+        'Failed to update disliked track ${event.trackId}',
         error,
         stackTrace,
       );
@@ -469,6 +691,11 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     AddTrackToPlaylistsRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
+    final playlistIds = _editablePlaylistIds(event.playlistIds);
+    if (playlistIds.isEmpty) {
+      return;
+    }
+
     final pendingTrackPlaylistActionIds = Set<int>.of(
       state.pendingTrackPlaylistActionIds,
     )..add(event.trackId);
@@ -481,7 +708,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     try {
       await _playlistsStorage.addTrackToPlaylists(
         trackId: event.trackId,
-        playlistIds: event.playlistIds,
+        playlistIds: playlistIds,
       );
 
       final updatedPendingIds = Set<int>.of(state.pendingTrackPlaylistActionIds)
@@ -489,7 +716,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       final playlistTracksById = Map<int, List<Track>>.of(
         state.playlistTracksById,
       );
-      final cachedPlaylistIds = event.playlistIds
+      final cachedPlaylistIds = playlistIds
           .where(playlistTracksById.containsKey)
           .toList(growable: false);
       for (final playlistId in cachedPlaylistIds) {
@@ -502,7 +729,7 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
           playlistTracksById: playlistTracksById,
           playlists: state.playlists
               .map((playlist) {
-                if (!event.playlistIds.contains(playlist.id)) {
+                if (!playlistIds.contains(playlist.id)) {
                   return playlist;
                 }
 
@@ -536,7 +763,9 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     UpdateTrackPlaylistsRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
-    if (event.addPlaylistIds.isEmpty && event.removePlaylistIds.isEmpty) {
+    final addPlaylistIds = _editablePlaylistIds(event.addPlaylistIds);
+    final removePlaylistIds = _editablePlaylistIds(event.removePlaylistIds);
+    if (addPlaylistIds.isEmpty && removePlaylistIds.isEmpty) {
       return;
     }
 
@@ -550,14 +779,14 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     );
 
     try {
-      if (event.addPlaylistIds.isNotEmpty) {
+      if (addPlaylistIds.isNotEmpty) {
         await _playlistsStorage.addTrackToPlaylists(
           trackId: event.trackId,
-          playlistIds: event.addPlaylistIds,
+          playlistIds: addPlaylistIds,
         );
       }
 
-      for (final playlistId in event.removePlaylistIds) {
+      for (final playlistId in removePlaylistIds) {
         await _playlistsStorage.removeTrackFromPlaylist(
           trackId: event.trackId,
           playlistId: playlistId,
@@ -569,13 +798,13 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
       final playlistTracksById = Map<int, List<Track>>.of(
         state.playlistTracksById,
       );
-      final cachedAddedPlaylistIds = event.addPlaylistIds
+      final cachedAddedPlaylistIds = addPlaylistIds
           .where(playlistTracksById.containsKey)
           .toList(growable: false);
       for (final playlistId in cachedAddedPlaylistIds) {
         playlistTracksById.remove(playlistId);
       }
-      for (final playlistId in event.removePlaylistIds) {
+      for (final playlistId in removePlaylistIds) {
         final tracks = playlistTracksById[playlistId];
         if (tracks == null) {
           continue;
@@ -591,11 +820,11 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
           playlistTracksById: playlistTracksById,
           playlists: state.playlists
               .map((playlist) {
-                if (event.addPlaylistIds.contains(playlist.id)) {
+                if (addPlaylistIds.contains(playlist.id)) {
                   return playlist.copyWith(trackCount: playlist.trackCount + 1);
                 }
 
-                if (event.removePlaylistIds.contains(playlist.id)) {
+                if (removePlaylistIds.contains(playlist.id)) {
                   return playlist.copyWith(
                     trackCount: (playlist.trackCount - 1).clamp(0, 1 << 31),
                   );
@@ -631,6 +860,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     RemoveTrackFromPlaylistRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
+    if (!_isKnownEditablePlaylist(event.playlistId)) {
+      return;
+    }
+
     final pendingTrackPlaylistActionIds = Set<int>.of(
       state.pendingTrackPlaylistActionIds,
     )..add(event.trackId);
@@ -708,6 +941,10 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     ReorderPlaylistTracksRequested event,
     Emitter<PlaylistsState> emit,
   ) async {
+    if (!_isKnownEditablePlaylist(event.playlistId)) {
+      return;
+    }
+
     final previousTracks = state.playlistTracksById[event.playlistId];
     if (previousTracks == null) {
       return;
@@ -779,12 +1016,17 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
 
   void _emitFeedback(
     Emitter<PlaylistsState> emit, {
-    required String message,
+    String? message,
+    PlaylistsFeedbackReason? reason,
     bool isError = false,
   }) {
+    assert(message != null || reason != null);
     emit(
       state.copyWith(
         feedbackMessage: message,
+        clearFeedbackMessage: message == null,
+        feedbackReason: reason,
+        clearFeedbackReason: reason == null,
         feedbackSerial: state.feedbackSerial + 1,
         isFeedbackError: isError,
       ),
@@ -801,8 +1043,11 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
   List<Playlist> _sortPlaylists(List<Playlist> playlists) {
     final sorted = playlists.toList(growable: false);
     sorted.sort((left, right) {
-      if (left.isFavorites != right.isFavorites) {
-        return left.isFavorites ? -1 : 1;
+      final kindOrder = _playlistKindOrder(
+        left.kind,
+      ).compareTo(_playlistKindOrder(right.kind));
+      if (kindOrder != 0) {
+        return kindOrder;
       }
 
       return left.name.toLowerCase().compareTo(right.name.toLowerCase());
@@ -821,14 +1066,157 @@ class PlaylistsBloc extends Bloc<PlaylistsEvent, PlaylistsState> {
     };
   }
 
-  List<Track> _applyFavoriteOverrides(List<Track> tracks) {
+  List<Track> _applyPreferenceOverrides(List<Track> tracks) {
     return tracks
         .map(
           (track) => track.copyWith(
             isFavorite: state.favoriteOverrides[track.id] ?? track.isFavorite,
+            isDisliked: state.dislikeOverrides[track.id] ?? track.isDisliked,
           ),
         )
         .toList(growable: false);
+  }
+
+  List<Track> _orderPlaylistTracks(Playlist playlist, List<Track> tracks) {
+    if (playlist.kind != PlaylistKind.favorites) {
+      return tracks;
+    }
+
+    return tracks.reversed.toList(growable: false);
+  }
+
+  int _playlistKindOrder(PlaylistKind kind) {
+    return switch (kind) {
+      PlaylistKind.favorites => 0,
+      PlaylistKind.dislikes => 1,
+      PlaylistKind.custom => 2,
+    };
+  }
+
+  bool _isKnownEditablePlaylist(int playlistId) {
+    final playlist = state.playlists
+        .where((playlist) => playlist.id == playlistId)
+        .firstOrNull;
+
+    return playlist != null &&
+        !playlist.system &&
+        playlist.kind == PlaylistKind.custom;
+  }
+
+  List<int> _editablePlaylistIds(List<int> playlistIds) {
+    return playlistIds.where(_isKnownEditablePlaylist).toList(growable: false);
+  }
+
+  void _refreshSystemPlaylists() {
+    add(const LoadPlaylists(forceRefresh: true));
+    for (final playlist in state.playlists.where(
+      (playlist) => playlist.kind != PlaylistKind.custom,
+    )) {
+      add(LoadPlaylistDetails(playlist.id, forceRefresh: true));
+    }
+  }
+
+  PersistedTrackPreferenceChange _nextPersistedPreferenceChange({
+    required int trackId,
+    required bool isDisliked,
+    required bool collectDislikeAnalytics,
+    AutoplayContext? sourceContext,
+    int? sourceQueueIndex,
+    bool? sourceWasPlaying,
+  }) {
+    return PersistedTrackPreferenceChange(
+      serial: (state.persistedTrackPreferenceChange?.serial ?? 0) + 1,
+      trackId: trackId,
+      isDisliked: isDisliked,
+      collectDislikeAnalytics: collectDislikeAnalytics,
+      sourceContext: sourceContext,
+      sourceQueueIndex: sourceQueueIndex,
+      sourceWasPlaying: sourceWasPlaying,
+    );
+  }
+
+  _TrackPreferenceSnapshot _snapshotTrackPreferences(int trackId) {
+    final cachedTracksByPlaylistId = <int, Track>{};
+    for (final entry in state.playlistTracksById.entries) {
+      final matchingTrack = entry.value
+          .where((track) => track.id == trackId)
+          .firstOrNull;
+      if (matchingTrack != null) {
+        cachedTracksByPlaylistId[entry.key] = matchingTrack;
+      }
+    }
+
+    return _TrackPreferenceSnapshot(
+      favoriteOverrideWasSet: state.favoriteOverrides.containsKey(trackId),
+      favoriteOverride: state.favoriteOverrides[trackId],
+      dislikeOverrideWasSet: state.dislikeOverrides.containsKey(trackId),
+      dislikeOverride: state.dislikeOverrides[trackId],
+      cachedTracksByPlaylistId: cachedTracksByPlaylistId,
+    );
+  }
+
+  Map<int, bool> _restoreOverride(
+    Map<int, bool> overrides, {
+    required int trackId,
+    required bool wasSet,
+    required bool? value,
+  }) {
+    final restored = Map<int, bool>.of(overrides);
+    if (wasSet) {
+      restored[trackId] = value!;
+    } else {
+      restored.remove(trackId);
+    }
+
+    return restored;
+  }
+
+  Map<int, List<Track>> _restoreCachedTrackPreferences(
+    Map<int, List<Track>> tracksByPlaylistId, {
+    required int trackId,
+    required _TrackPreferenceSnapshot snapshot,
+  }) {
+    return {
+      for (final entry in tracksByPlaylistId.entries)
+        entry.key: entry.value
+            .map((track) {
+              final previousTrack =
+                  snapshot.cachedTracksByPlaylistId[entry.key];
+              if (track.id != trackId || previousTrack == null) {
+                return track;
+              }
+
+              return track.copyWith(
+                isFavorite: previousTrack.isFavorite,
+                isDisliked: previousTrack.isDisliked,
+              );
+            })
+            .toList(growable: false),
+    };
+  }
+}
+
+final class _TrackPreferenceSnapshot {
+  const _TrackPreferenceSnapshot({
+    required this.favoriteOverrideWasSet,
+    required this.favoriteOverride,
+    required this.dislikeOverrideWasSet,
+    required this.dislikeOverride,
+    required this.cachedTracksByPlaylistId,
+  });
+
+  final bool favoriteOverrideWasSet;
+  final bool? favoriteOverride;
+  final bool dislikeOverrideWasSet;
+  final bool? dislikeOverride;
+  final Map<int, Track> cachedTracksByPlaylistId;
+
+  bool? get effectiveIsDisliked {
+    if (dislikeOverrideWasSet) {
+      return dislikeOverride;
+    }
+
+    return cachedTracksByPlaylistId.values.firstOrNull?.isDisliked;
   }
 }
 
@@ -843,12 +1231,16 @@ class PlaylistsState extends Equatable {
     required this.isSubmittingPlaylist,
     required this.deletingPlaylistIds,
     required this.pendingFavoriteTrackIds,
+    required this.pendingDislikeTrackIds,
     required this.pendingTrackPlaylistActionIds,
     required this.reorderingPlaylistIds,
     required this.favoriteOverrides,
+    required this.dislikeOverrides,
     required this.feedbackMessage,
+    required this.feedbackReason,
     required this.feedbackSerial,
     required this.isFeedbackError,
+    required this.persistedTrackPreferenceChange,
   });
 
   const PlaylistsState.initial()
@@ -862,12 +1254,16 @@ class PlaylistsState extends Equatable {
         isSubmittingPlaylist: false,
         deletingPlaylistIds: const {},
         pendingFavoriteTrackIds: const {},
+        pendingDislikeTrackIds: const {},
         pendingTrackPlaylistActionIds: const {},
         reorderingPlaylistIds: const {},
         favoriteOverrides: const {},
+        dislikeOverrides: const {},
         feedbackMessage: null,
+        feedbackReason: null,
         feedbackSerial: 0,
         isFeedbackError: false,
+        persistedTrackPreferenceChange: null,
       );
 
   final List<Playlist> playlists;
@@ -879,12 +1275,29 @@ class PlaylistsState extends Equatable {
   final bool isSubmittingPlaylist;
   final Set<int> deletingPlaylistIds;
   final Set<int> pendingFavoriteTrackIds;
+  final Set<int> pendingDislikeTrackIds;
   final Set<int> pendingTrackPlaylistActionIds;
   final Set<int> reorderingPlaylistIds;
   final Map<int, bool> favoriteOverrides;
+  final Map<int, bool> dislikeOverrides;
   final String? feedbackMessage;
+  final PlaylistsFeedbackReason? feedbackReason;
   final int feedbackSerial;
   final bool isFeedbackError;
+  final PersistedTrackPreferenceChange? persistedTrackPreferenceChange;
+
+  bool effectiveIsFavorite(Track track) {
+    return favoriteOverrides[track.id] ?? track.isFavorite;
+  }
+
+  bool effectiveIsDisliked(Track track) {
+    return dislikeOverrides[track.id] ?? track.isDisliked;
+  }
+
+  bool isTrackPreferencePending(int trackId) {
+    return pendingFavoriteTrackIds.contains(trackId) ||
+        pendingDislikeTrackIds.contains(trackId);
+  }
 
   PlaylistsState copyWith({
     List<Playlist>? playlists,
@@ -898,12 +1311,18 @@ class PlaylistsState extends Equatable {
     bool? isSubmittingPlaylist,
     Set<int>? deletingPlaylistIds,
     Set<int>? pendingFavoriteTrackIds,
+    Set<int>? pendingDislikeTrackIds,
     Set<int>? pendingTrackPlaylistActionIds,
     Set<int>? reorderingPlaylistIds,
     Map<int, bool>? favoriteOverrides,
+    Map<int, bool>? dislikeOverrides,
     String? feedbackMessage,
+    bool clearFeedbackMessage = false,
+    PlaylistsFeedbackReason? feedbackReason,
+    bool clearFeedbackReason = false,
     int? feedbackSerial,
     bool? isFeedbackError,
+    PersistedTrackPreferenceChange? persistedTrackPreferenceChange,
   }) {
     final nextPlaylistErrorMessages = Map<int, String>.of(
       playlistErrorMessages ?? this.playlistErrorMessages,
@@ -925,14 +1344,24 @@ class PlaylistsState extends Equatable {
       deletingPlaylistIds: deletingPlaylistIds ?? this.deletingPlaylistIds,
       pendingFavoriteTrackIds:
           pendingFavoriteTrackIds ?? this.pendingFavoriteTrackIds,
+      pendingDislikeTrackIds:
+          pendingDislikeTrackIds ?? this.pendingDislikeTrackIds,
       pendingTrackPlaylistActionIds:
           pendingTrackPlaylistActionIds ?? this.pendingTrackPlaylistActionIds,
       reorderingPlaylistIds:
           reorderingPlaylistIds ?? this.reorderingPlaylistIds,
       favoriteOverrides: favoriteOverrides ?? this.favoriteOverrides,
-      feedbackMessage: feedbackMessage ?? this.feedbackMessage,
+      dislikeOverrides: dislikeOverrides ?? this.dislikeOverrides,
+      feedbackMessage: clearFeedbackMessage
+          ? null
+          : (feedbackMessage ?? this.feedbackMessage),
+      feedbackReason: clearFeedbackReason
+          ? null
+          : (feedbackReason ?? this.feedbackReason),
       feedbackSerial: feedbackSerial ?? this.feedbackSerial,
       isFeedbackError: isFeedbackError ?? this.isFeedbackError,
+      persistedTrackPreferenceChange:
+          persistedTrackPreferenceChange ?? this.persistedTrackPreferenceChange,
     );
   }
 
@@ -947,11 +1376,15 @@ class PlaylistsState extends Equatable {
     isSubmittingPlaylist,
     deletingPlaylistIds,
     pendingFavoriteTrackIds,
+    pendingDislikeTrackIds,
     pendingTrackPlaylistActionIds,
     reorderingPlaylistIds,
     favoriteOverrides,
+    dislikeOverrides,
     feedbackMessage,
+    feedbackReason,
     feedbackSerial,
     isFeedbackError,
+    persistedTrackPreferenceChange,
   ];
 }

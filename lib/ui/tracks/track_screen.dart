@@ -1,19 +1,28 @@
+import 'dart:async';
+
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
+import 'package:esketit_music_app/errors/error_reporter/category.dart';
+import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_screen_helpers.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/ui/tracks/author_picker_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/show_add_to_playlists_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen_body.dart';
+import 'package:esketit_music_app/ui/tracks/track_routes.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 class TrackScreen extends StatelessWidget {
-  const TrackScreen({super.key});
+  const TrackScreen({this.track, super.key});
+
+  final Track? track;
 
   @override
   Widget build(BuildContext context) {
@@ -24,32 +33,38 @@ class TrackScreen extends StatelessWidget {
           previous.hasPreviousTrack != current.hasPreviousTrack ||
           previous.hasNextTrack != current.hasNextTrack,
       builder: (context, state) {
-        final selectedTrack = state.selectedTrack;
-        final authors = selectedTrack?.authors ?? const <Author>[];
-        final album = selectedTrack == null
+        final displayedTrack = track ?? state.selectedTrack;
+        final authors = displayedTrack?.authors ?? const <Author>[];
+        final album = displayedTrack == null
             ? null
-            : _albumForTrack(context.read<CatalogBloc>().state, selectedTrack);
+            : _albumForTrack(context.read<CatalogBloc>().state, displayedTrack);
         final hasMenuActions =
-            selectedTrack != null || album != null || authors.isNotEmpty;
+            displayedTrack != null || album != null || authors.isNotEmpty;
 
         return ScreenSkeleton(
           enableBottomPlayer: false,
           appBar: AppBar(
-            title: Text(context.l10n.trackScreenNowPlayingLabel),
+            title: Text(track?.name ?? context.l10n.trackScreenNowPlayingLabel),
             centerTitle: true,
             actions: [
+              if (displayedTrack != null)
+                IconButton(
+                  tooltip: context.l10n.copyTrackLinkTooltip,
+                  onPressed: () => _copyTrackLink(context, displayedTrack),
+                  icon: const Icon(Icons.ios_share_rounded),
+                ),
               PopupMenuButton<_TrackScreenMenuAction>(
                 enabled: hasMenuActions,
                 onSelected: (action) => _onMenuActionSelected(
                   context,
                   action,
-                  selectedTrack,
+                  displayedTrack,
                   album,
                   authors,
                 ),
                 itemBuilder: (context) => _buildTrackScreenMenuItems(
                   context,
-                  selectedTrack,
+                  displayedTrack,
                   album,
                   authors,
                 ),
@@ -57,14 +72,37 @@ class TrackScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: selectedTrack == null
+          body: displayedTrack == null
               ? Center(
                   child: Text(context.l10n.trackScreenNoTrackSelectedMessage),
                 )
-              : TrackScreenBody(track: selectedTrack, state: state),
+              : TrackScreenBody(track: displayedTrack, state: state),
         );
       },
     );
+  }
+
+  Future<void> _copyTrackLink(BuildContext context, Track track) async {
+    unawaited(
+      context.read<ErrorReporter>().addBreadcrumb(
+        Breadcrumb(
+          message: 'Copy track link',
+          category: Category.uiClick,
+          data: {'trackId': track.id},
+        ),
+      ),
+    );
+
+    await Clipboard.setData(
+      ClipboardData(text: shareableTrackUri(track.id).toString()),
+    );
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.trackLinkCopied)));
   }
 
   void _onMenuActionSelected(

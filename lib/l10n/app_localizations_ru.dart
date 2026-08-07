@@ -130,7 +130,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fullscreenInactiveControlFavoriteButton =>
-      'Кнопка добавления в избранное';
+      'Кнопки избранного и дизлайка';
 
   @override
   String get guestModeLabel => 'Гостевой режим';
@@ -187,7 +187,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playlistsDescription =>
-      'Избранное управляется автоматически. Все остальное можно редактировать.';
+      'Избранное и дизлайки управляются автоматически. Остальные плейлисты можно редактировать.';
 
   @override
   String get noPlaylistsYet => 'Плейлистов пока нет. Создайте первый.';
@@ -237,6 +237,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noPublishedAuthorsYet => 'Опубликованных авторов пока нет.';
+
+  @override
+  String get authorNotFound => 'Автор не найден.';
+
+  @override
+  String get authorLoadFailed => 'Не удалось загрузить автора.';
+
+  @override
+  String get albumNotFound => 'Альбом не найден.';
+
+  @override
+  String get albumLoadFailed => 'Не удалось загрузить альбом.';
 
   @override
   String get searchHint => 'Искать авторов, альбомы, треки, плейлисты';
@@ -390,6 +402,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackNotAvailable => 'Недоступно';
 
   @override
+  String get trackNotFound => 'Трек не найден.';
+
+  @override
+  String get trackLoadFailed => 'Не удалось загрузить трек.';
+
+  @override
+  String get trackScreenTitle => 'Трек';
+
+  @override
   String get trackScreenNowPlayingLabel => 'СЕЙЧАС ИГРАЕТ';
 
   @override
@@ -423,10 +444,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get trackScreenChooseAuthorTitle => 'Выберите автора';
 
   @override
+  String get copyTrackLinkTooltip => 'Скопировать ссылку на трек';
+
+  @override
+  String get trackLinkCopied => 'Ссылка на трек скопирована.';
+
+  @override
   String get removeFromFavoritesTooltip => 'Убрать из избранного';
 
   @override
   String get addToFavoritesTooltip => 'Добавить в избранное';
+
+  @override
+  String get removeFromDislikesTooltip => 'Убрать из дизлайков';
+
+  @override
+  String get addToDislikesTooltip => 'Добавить в дизлайки';
+
+  @override
+  String get trackDisliked => 'Не нравится';
+
+  @override
+  String get favoriteUpdateFailed => 'Не удалось обновить избранное.';
+
+  @override
+  String get dislikeUpdateFailed => 'Не удалось обновить дизлайк.';
 
   @override
   String get addToPlaylistsTooltip => 'Добавить в плейлисты';

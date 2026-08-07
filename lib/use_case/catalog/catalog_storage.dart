@@ -4,6 +4,8 @@ import 'package:esketit_music_app/domain/catalog_search_result.dart';
 import 'package:esketit_music_app/domain/track.dart';
 
 abstract class CatalogStorage {
+  Future<Album?> getAlbum({required int albumId});
+
   Future<List<Author>> getPublishedAuthors();
 
   Future<List<Album>> getPublishedAlbumsByAuthor({required int authorId});

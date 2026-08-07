@@ -119,6 +119,9 @@ class _FakeTracksStorage implements TracksStorage {
   final List<_GetTracksCall> calls = [];
 
   @override
+  Future<Track?> getTrack({required int trackId}) async => null;
+
+  @override
   Future<PaginatedTracks> getTracks({
     required int page,
     required int pageSize,
@@ -194,6 +197,7 @@ Track _track(int id) {
     file: _FakeFile(),
     image: _FakeFile(),
     isFavorite: false,
+    isDisliked: false,
     isAvailable: true,
   );
 }

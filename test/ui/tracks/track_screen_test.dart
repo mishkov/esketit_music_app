@@ -12,6 +12,8 @@ import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen.dart';
+import 'package:esketit_music_app/ui/tracks/track_route_screen.dart';
+import 'package:esketit_music_app/ui/tracks/track_routes.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
@@ -24,11 +26,181 @@ import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
+import 'package:esketit_music_app/use_case/tracks/tracks_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('does not play a directly opened track automatically', (
+    tester,
+  ) async {
+    final track = _track(1);
+    final errorReporter = _FakeErrorReporter();
+    final audioPlayer = _FakeAudioPlayer();
+    final autoplayStorage = _FakeAutoplayStorage();
+    final authBloc = AuthBloc(
+      authRepository: _FakeAuthRepository(),
+      errorReporter: errorReporter,
+    )..add(const AuthSessionRestoreRequested());
+    final playlistsBloc = PlaylistsBloc(
+      playlistsStorage: _FakePlaylistsStorage(playlists: const []),
+      errorReporter: errorReporter,
+    );
+    final playerBloc = PlayerBloc(
+      initialState: PlayerState(selectedTrack: null, isPlaying: false),
+      player: audioPlayer,
+      autoplayStorage: autoplayStorage,
+      errorReporter: errorReporter,
+    );
+    final catalogBloc = CatalogBloc(
+      initialState: _emptyCatalogState(),
+      catalogStorage: _FakeCatalogStorage(),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      errorReporter: errorReporter,
+    );
+    final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+
+    addTearDown(authBloc.close);
+    addTearDown(playlistsBloc.close);
+    addTearDown(playerBloc.close);
+    addTearDown(catalogBloc.close);
+    addTearDown(lyricsBloc.close);
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<CatalogBloc>.value(value: catalogBloc),
+          BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+        ],
+        child: RepositoryProvider<ErrorReporter>.value(
+          value: errorReporter,
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TrackScreen(track: track),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(audioPlayer.playedTracks, isEmpty);
+
+    await tester.ensureVisible(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FilledButton));
+    await tester.pump();
+
+    expect(audioPlayer.playedTracks, [track]);
+    expect(autoplayStorage.requestedContexts, [
+      AutoplayContext(sourceType: AutoplaySourceType.track, sourceId: track.id),
+    ]);
+  });
+
+  testWidgets(
+    'updates track screen and browser URL without replacing the route',
+    (tester) async {
+      final firstTrack = _track(1);
+      final secondTrack = _track(2);
+      final errorReporter = _FakeErrorReporter();
+      final navigatorObserver = _RecordingNavigatorObserver();
+      final navigationMethodCalls = <MethodCall>[];
+      final binaryMessenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      binaryMessenger.setMockMethodCallHandler(SystemChannels.navigation, (
+        methodCall,
+      ) async {
+        navigationMethodCalls.add(methodCall);
+
+        return null;
+      });
+      addTearDown(
+        () => binaryMessenger.setMockMethodCallHandler(
+          SystemChannels.navigation,
+          null,
+        ),
+      );
+      final authBloc = AuthBloc(
+        authRepository: _FakeAuthRepository(),
+        errorReporter: errorReporter,
+      )..add(const AuthSessionRestoreRequested());
+      final playlistsBloc = PlaylistsBloc(
+        playlistsStorage: _FakePlaylistsStorage(playlists: const []),
+        errorReporter: errorReporter,
+      );
+      final playerBloc = PlayerBloc(
+        initialState: PlayerState(selectedTrack: firstTrack, isPlaying: false),
+        player: _FakeAudioPlayer(),
+        autoplayStorage: _FakeAutoplayStorage(),
+        errorReporter: errorReporter,
+      );
+      final catalogBloc = CatalogBloc(
+        initialState: _emptyCatalogState(),
+        catalogStorage: _FakeCatalogStorage(),
+        recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+        errorReporter: errorReporter,
+      );
+      final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+
+      addTearDown(authBloc.close);
+      addTearDown(playlistsBloc.close);
+      addTearDown(playerBloc.close);
+      addTearDown(catalogBloc.close);
+      addTearDown(lyricsBloc.close);
+
+      await tester.pumpWidget(
+        MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<ErrorReporter>.value(value: errorReporter),
+            RepositoryProvider<TracksStorage>.value(
+              value: const _FakeTracksStorage(),
+            ),
+          ],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthBloc>.value(value: authBloc),
+              BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
+              BlocProvider<PlayerBloc>.value(value: playerBloc),
+              BlocProvider<CatalogBloc>.value(value: catalogBloc),
+              BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              navigatorObservers: [navigatorObserver],
+              home: TrackRouteScreen(
+                trackId: firstTrack.id,
+                initialTrack: firstTrack,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      navigationMethodCalls.clear();
+
+      playerBloc.add(PlayTrack(secondTrack));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(AppBar, secondTrack.name), findsOneWidget);
+      expect(navigatorObserver.replacementCount, 0);
+      final routeUpdates = navigationMethodCalls
+          .where((methodCall) => methodCall.method == 'routeInformationUpdated')
+          .toList();
+      expect(routeUpdates, hasLength(1));
+      expect(routeUpdates.single.arguments, <String, Object?>{
+        'uri': trackRoutePath(secondTrack.id),
+        'state': null,
+        'replace': true,
+      });
+    },
+  );
+
   testWidgets('adds selected track to playlist from track screen menu', (
     tester,
   ) async {
@@ -229,6 +401,9 @@ class _FakeAuthRepository implements AuthRepository {
 
 class _FakeCatalogStorage implements CatalogStorage {
   @override
+  Future<Album?> getAlbum({required int albumId}) async => null;
+
+  @override
   Future<List<Track>> getAlbumTracks({required Album album}) async => const [];
 
   @override
@@ -254,6 +429,23 @@ class _FakeCatalogStorage implements CatalogStorage {
       totalItems: 0,
       totalPages: 0,
     );
+  }
+}
+
+class _FakeTracksStorage implements TracksStorage {
+  const _FakeTracksStorage();
+
+  @override
+  Future<Track?> getTrack({required int trackId}) async => null;
+
+  @override
+  Future<PaginatedTracks> getTracks({
+    required int page,
+    required int pageSize,
+    TracksSort sort = TracksSort.id,
+    TracksSortOrder order = TracksSortOrder.ascending,
+  }) {
+    throw UnimplementedError();
   }
 }
 
@@ -286,6 +478,9 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   Future<void> addTrackToFavorites({required int trackId}) async {}
 
   @override
+  Future<void> addTrackToDislikes({required int trackId}) async {}
+
+  @override
   Future<void> addTrackToPlaylists({
     required int trackId,
     required List<int> playlistIds,
@@ -306,7 +501,7 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
       visibility: input.visibility,
       trackCount: 0,
       system: false,
-      isFavorites: false,
+      kind: PlaylistKind.custom,
     );
     _playlists = [..._playlists, playlist];
 
@@ -326,6 +521,9 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 
   @override
   Future<void> removeTrackFromFavorites({required int trackId}) async {}
+
+  @override
+  Future<void> removeTrackFromDislikes({required int trackId}) async {}
 
   @override
   Future<void> removeTrackFromPlaylist({
@@ -357,8 +555,13 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 }
 
 class _FakeAudioPlayer implements AudioPlayer {
+  final List<Track> playedTracks = <Track>[];
+
   @override
   Duration get currentPosition => Duration.zero;
+
+  @override
+  int? get currentIndex => null;
 
   @override
   Stream<Track?> get currentTrackStream => const Stream.empty();
@@ -385,7 +588,9 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> beginPlayingQueue(
     List<Track> tracks, {
     required int initialIndex,
-  }) async {}
+  }) async {
+    playedTracks.add(tracks[initialIndex]);
+  }
 
   @override
   Future<void> dispose() async {}
@@ -394,24 +599,38 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> seekTo(Duration position) async {}
 
   @override
+  Future<void> removeUpcomingTracks(Set<int> trackIds) async {}
+
+  @override
   Future<void> skipToNextTrack() async {}
 
   @override
   Future<void> skipToPreviousTrack() async {}
 
   @override
+  Future<void> stop() async {}
+
+  @override
   Future<void> togglePlay() async {}
 }
 
 class _FakeAutoplayStorage implements AutoplayStorage {
+  final List<AutoplayContext> requestedContexts = <AutoplayContext>[];
+
   @override
   Future<AutoplayTracksBatch> getNextTracks({
     required AutoplayContext context,
     required int count,
     required List<int> recentTrackIds,
     required List<int> excludedTrackIds,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    requestedContexts.add(context);
+
+    return AutoplayTracksBatch(
+      context: context,
+      strategy: 'test',
+      tracks: const [],
+    );
   }
 }
 
@@ -424,6 +643,15 @@ class _FakeErrorReporter implements ErrorReporter {
 
   @override
   Future<void> setUserId(String? id) async {}
+}
+
+class _RecordingNavigatorObserver extends NavigatorObserver {
+  int replacementCount = 0;
+
+  @override
+  void didReplace({Route<Object?>? newRoute, Route<Object?>? oldRoute}) {
+    replacementCount += 1;
+  }
 }
 
 CatalogState _emptyCatalogState() {
@@ -457,7 +685,7 @@ Playlist _playlist(int id, {required String name}) {
     visibility: PlaylistVisibility.private,
     trackCount: 0,
     system: false,
-    isFavorites: false,
+    kind: PlaylistKind.custom,
   );
 }
 
@@ -470,6 +698,7 @@ Track _track(int id) {
     file: _FakeFile(),
     image: _FakeFile(),
     isFavorite: false,
+    isDisliked: false,
     isAvailable: true,
   );
 }

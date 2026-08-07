@@ -1,7 +1,18 @@
+import 'package:esketit_music_app/domain/album.dart';
+import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
+import 'package:esketit_music_app/ui/albums/album_details_route_screen.dart';
+import 'package:esketit_music_app/ui/albums/album_routes.dart';
 import 'package:esketit_music_app/ui/app_shell.dart';
+import 'package:esketit_music_app/ui/authors/author_details_route_screen.dart';
+import 'package:esketit_music_app/ui/authors/author_routes.dart';
+import 'package:esketit_music_app/ui/player/system_player_favorite_synchronizer.dart';
+import 'package:esketit_music_app/ui/player/track_preference_synchronizer.dart';
 import 'package:esketit_music_app/ui/playlists/shareable_playlist_details_screen.dart';
 import 'package:esketit_music_app/ui/theme/album_cover_color_scheme_seed_builder.dart';
+import 'package:esketit_music_app/ui/tracks/track_route_screen.dart';
+import 'package:esketit_music_app/ui/tracks/track_routes.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/app_locale.dart';
@@ -34,6 +45,11 @@ class EsketitApp extends StatelessWidget {
                   localizationsDelegates:
                       AppLocalizations.localizationsDelegates,
                   supportedLocales: AppLocalizations.supportedLocales,
+                  builder: (context, child) => TrackPreferenceSynchronizer(
+                    child: SystemPlayerFavoriteSynchronizer(
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  ),
                   theme: ThemeData(
                     colorSchemeSeed: colorSchemeSeed,
                     useMaterial3: true,
@@ -75,6 +91,52 @@ class EsketitApp extends StatelessWidget {
 
     final uri = Uri.tryParse(name);
     final segments = uri?.pathSegments ?? const <String>[];
+
+    final authorId = authorIdFromRouteName(name);
+    if (authorId != null) {
+      final argument = settings.arguments;
+      final initialAuthor = argument is Author && argument.id == authorId
+          ? argument
+          : null;
+
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) => AuthorDetailsRouteScreen(
+          authorId: authorId,
+          initialAuthor: initialAuthor,
+        ),
+      );
+    }
+
+    final albumId = albumIdFromRouteName(name);
+    if (albumId != null) {
+      final argument = settings.arguments;
+      final initialAlbum = argument is Album && argument.id == albumId
+          ? argument
+          : null;
+
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) => AlbumDetailsRouteScreen(
+          albumId: albumId,
+          initialAlbum: initialAlbum,
+        ),
+      );
+    }
+
+    final trackId = trackIdFromRouteName(name);
+    if (trackId != null) {
+      final argument = settings.arguments;
+      final initialTrack = argument is Track && argument.id == trackId
+          ? argument
+          : null;
+
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) =>
+            TrackRouteScreen(trackId: trackId, initialTrack: initialTrack),
+      );
+    }
 
     if (segments.length == 2 && segments.first == 'playlists') {
       final playlistId = int.tryParse(segments[1]);

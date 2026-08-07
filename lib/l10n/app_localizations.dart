@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @fullscreenInactiveControlFavoriteButton.
   ///
   /// In en, this message translates to:
-  /// **'Add to favorites button'**
+  /// **'Favorite and dislike buttons'**
   String get fullscreenInactiveControlFavoriteButton;
 
   /// No description provided for @guestModeLabel.
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Favorites is managed automatically. Everything else is fully editable.'**
+  /// **'Favorites and Dislikes are managed automatically. Everything else is fully editable.'**
   String get playlistsDescription;
 
   /// No description provided for @noPlaylistsYet.
@@ -529,6 +529,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No published authors yet.'**
   String get noPublishedAuthorsYet;
+
+  /// No description provided for @authorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Author not found.'**
+  String get authorNotFound;
+
+  /// No description provided for @authorLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the author.'**
+  String get authorLoadFailed;
+
+  /// No description provided for @albumNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Album not found.'**
+  String get albumNotFound;
+
+  /// No description provided for @albumLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the album.'**
+  String get albumLoadFailed;
 
   /// No description provided for @searchHint.
   ///
@@ -770,6 +794,24 @@ abstract class AppLocalizations {
   /// **'Not available'**
   String get trackNotAvailable;
 
+  /// No description provided for @trackNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Track not found.'**
+  String get trackNotFound;
+
+  /// No description provided for @trackLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the track.'**
+  String get trackLoadFailed;
+
+  /// No description provided for @trackScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track'**
+  String get trackScreenTitle;
+
   /// No description provided for @trackScreenNowPlayingLabel.
   ///
   /// In en, this message translates to:
@@ -830,6 +872,18 @@ abstract class AppLocalizations {
   /// **'Choose author'**
   String get trackScreenChooseAuthorTitle;
 
+  /// No description provided for @copyTrackLinkTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy track link'**
+  String get copyTrackLinkTooltip;
+
+  /// No description provided for @trackLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Track link copied.'**
+  String get trackLinkCopied;
+
   /// No description provided for @removeFromFavoritesTooltip.
   ///
   /// In en, this message translates to:
@@ -841,6 +895,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to favorites'**
   String get addToFavoritesTooltip;
+
+  /// No description provided for @removeFromDislikesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from dislikes'**
+  String get removeFromDislikesTooltip;
+
+  /// No description provided for @addToDislikesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to dislikes'**
+  String get addToDislikesTooltip;
+
+  /// No description provided for @trackDisliked.
+  ///
+  /// In en, this message translates to:
+  /// **'Disliked'**
+  String get trackDisliked;
+
+  /// No description provided for @favoriteUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update favorite.'**
+  String get favoriteUpdateFailed;
+
+  /// No description provided for @dislikeUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update dislike.'**
+  String get dislikeUpdateFailed;
 
   /// No description provided for @addToPlaylistsTooltip.
   ///

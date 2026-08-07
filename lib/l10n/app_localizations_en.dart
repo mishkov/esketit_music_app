@@ -130,7 +130,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fullscreenInactiveControlFavoriteButton =>
-      'Add to favorites button';
+      'Favorite and dislike buttons';
 
   @override
   String get guestModeLabel => 'Guest mode';
@@ -186,7 +186,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistsDescription =>
-      'Favorites is managed automatically. Everything else is fully editable.';
+      'Favorites and Dislikes are managed automatically. Everything else is fully editable.';
 
   @override
   String get noPlaylistsYet => 'No playlists yet. Create your first one.';
@@ -235,6 +235,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noPublishedAuthorsYet => 'No published authors yet.';
+
+  @override
+  String get authorNotFound => 'Author not found.';
+
+  @override
+  String get authorLoadFailed => 'Failed to load the author.';
+
+  @override
+  String get albumNotFound => 'Album not found.';
+
+  @override
+  String get albumLoadFailed => 'Failed to load the album.';
 
   @override
   String get searchHint => 'Search authors, albums, tracks, playlists';
@@ -383,6 +395,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackNotAvailable => 'Not available';
 
   @override
+  String get trackNotFound => 'Track not found.';
+
+  @override
+  String get trackLoadFailed => 'Failed to load the track.';
+
+  @override
+  String get trackScreenTitle => 'Track';
+
+  @override
   String get trackScreenNowPlayingLabel => 'NOW PLAYING';
 
   @override
@@ -415,10 +436,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trackScreenChooseAuthorTitle => 'Choose author';
 
   @override
+  String get copyTrackLinkTooltip => 'Copy track link';
+
+  @override
+  String get trackLinkCopied => 'Track link copied.';
+
+  @override
   String get removeFromFavoritesTooltip => 'Remove from favorites';
 
   @override
   String get addToFavoritesTooltip => 'Add to favorites';
+
+  @override
+  String get removeFromDislikesTooltip => 'Remove from dislikes';
+
+  @override
+  String get addToDislikesTooltip => 'Add to dislikes';
+
+  @override
+  String get trackDisliked => 'Disliked';
+
+  @override
+  String get favoriteUpdateFailed => 'Failed to update favorite.';
+
+  @override
+  String get dislikeUpdateFailed => 'Failed to update dislike.';
 
   @override
   String get addToPlaylistsTooltip => 'Add to playlists';

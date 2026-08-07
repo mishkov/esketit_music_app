@@ -12,6 +12,11 @@ class PlaylistHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final playlistIcon = switch (playlist.kind) {
+      PlaylistKind.custom => Icons.queue_music_rounded,
+      PlaylistKind.favorites => Icons.favorite_rounded,
+      PlaylistKind.dislikes => Icons.thumb_down_rounded,
+    };
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -26,18 +31,11 @@ class PlaylistHeader extends StatelessWidget {
               child: playlist.coverImagePath.isEmpty
                   ? ColoredBox(
                       color: Theme.of(context).colorScheme.secondaryContainer,
-                      child: Icon(
-                        playlist.isFavorites
-                            ? Icons.favorite_rounded
-                            : Icons.queue_music_rounded,
-                        size: 42,
-                      ),
+                      child: Icon(playlistIcon, size: 42),
                     )
                   : RemoteImage(
                       imageUrl: playlist.coverImagePath,
-                      icon: playlist.isFavorites
-                          ? Icons.favorite_rounded
-                          : Icons.queue_music_rounded,
+                      icon: playlistIcon,
                     ),
             ),
           ),
@@ -58,11 +56,7 @@ class PlaylistHeader extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     Chip(
-                      avatar: Icon(
-                        playlist.isFavorites
-                            ? Icons.favorite_rounded
-                            : Icons.queue_music_rounded,
-                      ),
+                      avatar: Icon(playlistIcon),
                       label: Text(
                         l10n.playlistTracksCount(playlist.trackCount),
                       ),

@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 
 enum PlaylistVisibility { private, public, shared }
 
+enum PlaylistKind { custom, favorites, dislikes }
+
 class Playlist extends Equatable {
   const Playlist({
     required this.id,
@@ -12,7 +14,7 @@ class Playlist extends Equatable {
     required this.visibility,
     required this.trackCount,
     required this.system,
-    required this.isFavorites,
+    required this.kind,
     this.shareToken,
   });
 
@@ -24,7 +26,7 @@ class Playlist extends Equatable {
   final PlaylistVisibility visibility;
   final int trackCount;
   final bool system;
-  final bool isFavorites;
+  final PlaylistKind kind;
   final String? shareToken;
 
   Playlist copyWith({
@@ -36,7 +38,7 @@ class Playlist extends Equatable {
     PlaylistVisibility? visibility,
     int? trackCount,
     bool? system,
-    bool? isFavorites,
+    PlaylistKind? kind,
     String? shareToken,
   }) {
     return Playlist(
@@ -48,7 +50,7 @@ class Playlist extends Equatable {
       visibility: visibility ?? this.visibility,
       trackCount: trackCount ?? this.trackCount,
       system: system ?? this.system,
-      isFavorites: isFavorites ?? this.isFavorites,
+      kind: kind ?? this.kind,
       shareToken: shareToken ?? this.shareToken,
     );
   }
@@ -63,7 +65,7 @@ class Playlist extends Equatable {
     visibility,
     trackCount,
     system,
-    isFavorites,
+    kind,
     shareToken,
   ];
 }

@@ -13,6 +13,11 @@ class PlaylistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final playlistIcon = switch (playlist.kind) {
+      PlaylistKind.custom => Icons.queue_music_rounded,
+      PlaylistKind.favorites => Icons.favorite_rounded,
+      PlaylistKind.dislikes => Icons.thumb_down_rounded,
+    };
 
     return Card.outlined(
       margin: const EdgeInsets.only(bottom: 12),
@@ -33,18 +38,11 @@ class PlaylistCard extends StatelessWidget {
                           color: Theme.of(
                             context,
                           ).colorScheme.secondaryContainer,
-                          child: Icon(
-                            playlist.isFavorites
-                                ? Icons.favorite_rounded
-                                : Icons.queue_music_rounded,
-                            size: 30,
-                          ),
+                          child: Icon(playlistIcon, size: 30),
                         )
                       : RemoteImage(
                           imageUrl: playlist.coverImagePath,
-                          icon: playlist.isFavorites
-                              ? Icons.favorite_rounded
-                              : Icons.queue_music_rounded,
+                          icon: playlistIcon,
                         ),
                 ),
               ),
@@ -63,8 +61,8 @@ class PlaylistCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (playlist.isFavorites)
-                          const Icon(Icons.favorite_rounded, size: 18),
+                        if (playlist.kind != PlaylistKind.custom)
+                          Icon(playlistIcon, size: 18),
                       ],
                     ),
                     const SizedBox(height: 4),

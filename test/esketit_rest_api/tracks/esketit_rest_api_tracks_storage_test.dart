@@ -6,6 +6,106 @@ import 'package:esketit_music_app/use_case/tracks/tracks_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('loads one track by ID for direct navigation', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/authors': const HttpResponse(
+          statusCode: 200,
+          response: [
+            {'id': 7, 'currentName': 'Artist Name', 'photos': []},
+          ],
+        ),
+        '/tracks/123': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 123,
+            'name': 'Shared track',
+            'audioFilePath': 'track.mp3',
+            'coverImagePath': 'cover.jpg',
+            'authorIds': [7],
+            'isFavorite': false,
+            'isDisliked': true,
+            'isAvailable': true,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiTracksStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final track = await storage.getTrack(trackId: 123);
+
+    expect(httpClient.requestedPaths, ['/tracks/123', '/authors']);
+    expect(track?.id, 123);
+    expect(track?.name, 'Shared track');
+    expect(track?.authors.single.currentName, 'Artist Name');
+    expect(track?.isDisliked, isTrue);
+  });
+
+  test('returns null when a directly requested track does not exist', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/tracks/404': const HttpResponse(
+          statusCode: 404,
+          response: 'not found',
+        ),
+      },
+    );
+    final storage = EsketitRestApiTracksStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    expect(await storage.getTrack(trackId: 404), isNull);
+    expect(httpClient.requestedPaths, ['/tracks/404']);
+  });
+
+  test(
+    'loads the album cover when a direct track has only an album ID',
+    () async {
+      final httpClient = _FakeHttpClient(
+        responses: {
+          '/tracks/123': const HttpResponse(
+            statusCode: 200,
+            response: {
+              'id': 123,
+              'name': 'Shared track',
+              'audioFilePath': 'track.mp3',
+              'albumId': 9,
+              'authorIds': [],
+              'isFavorite': false,
+              'isDisliked': false,
+              'isAvailable': true,
+            },
+          ),
+          '/authors': const HttpResponse(statusCode: 200, response: []),
+          '/albums/9': const HttpResponse(
+            statusCode: 200,
+            response: {'id': 9, 'imagePath': '', 'coverImagePath': 'album.jpg'},
+          ),
+        },
+      );
+      final storage = EsketitRestApiTracksStorage(
+        httpClient: httpClient,
+        baseUri: Uri.parse('http://localhost:8080/api/'),
+      );
+
+      final track = await storage.getTrack(trackId: 123);
+
+      expect(httpClient.requestedPaths, [
+        '/tracks/123',
+        '/authors',
+        '/albums/9',
+      ]);
+      expect(
+        (track?.image as HttpFile).uri,
+        Uri.parse('http://localhost:8080/api/album-covers/album.jpg'),
+      );
+    },
+  );
+
   test('loads tracks with added date descending sorting params', () async {
     final httpClient = _FakeHttpClient(
       responses: {
@@ -66,6 +166,7 @@ void main() {
                     'coverImagePath': '/api/album-covers/album.jpg',
                     'authorIds': [7],
                     'isFavorite': false,
+                    'isDisliked': true,
                     'isAvailable': true,
                   },
                 ],
@@ -91,6 +192,7 @@ void main() {
     final track = page.items.single;
 
     expect(track.name, 'Track name');
+    expect(track.isDisliked, isTrue);
     expect(track.authors.single.currentName, 'Artist Name');
     expect(
       track.authors.single.primaryPhotoUrl,

@@ -10,6 +10,8 @@ enum AnalyticsEventType {
   trackChange('track_change'),
   trackComplete('track_complete'),
   trackSkip('track_skip'),
+  trackDislike('track_dislike'),
+  trackUndislike('track_undislike'),
   search('search'),
   searchResultClick('search_result_click'),
   playbackError('playback_error');

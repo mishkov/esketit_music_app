@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:esketit_music_app/ui/shared/fallback_image.dart';
+import 'package:flutter/material.dart';
 
 class RemoteImage extends StatelessWidget {
   const RemoteImage({
@@ -22,6 +22,7 @@ class RemoteImage extends StatelessWidget {
     return Image.network(
       imageUrl!,
       fit: fit,
+      webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
       errorBuilder: (context, error, stackTrace) {
         return FallbackImage(icon: icon);
       },

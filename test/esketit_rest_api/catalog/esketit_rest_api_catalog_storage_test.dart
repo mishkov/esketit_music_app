@@ -6,6 +6,77 @@ import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('loads an album by ID', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/albums/42': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 42,
+            'title': 'Night Drive',
+            'coverImagePath': 'night-drive.jpg',
+            'authorIds': [7],
+            'releaseDate': '2026-07-20',
+            'isPublished': true,
+            'trackIds': [10, 11],
+          },
+        ),
+        '/authors': const HttpResponse(statusCode: 200, response: []),
+        '/albums/42/tracks': const HttpResponse(
+          statusCode: 200,
+          response: [
+            {
+              'id': 10,
+              'name': 'Disliked album track',
+              'audioFilePath': 'track.mp3',
+              'authorIds': [],
+              'isFavorite': false,
+              'isDisliked': true,
+              'isAvailable': true,
+            },
+          ],
+        ),
+      },
+    );
+    final storage = EsketitRestApiCatalogStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080'),
+    );
+
+    final album = await storage.getAlbum(albumId: 42);
+    final tracks = await storage.getAlbumTracks(album: album!);
+
+    expect(album.title, 'Night Drive');
+    expect(album.authorIds, [7]);
+    expect(album.trackIds, [10, 11]);
+    expect(tracks.single.isDisliked, isTrue);
+    expect(
+      (album.coverImage as HttpFile).uri,
+      Uri.parse('http://localhost:8080/album-covers/night-drive.jpg'),
+    );
+    expect(httpClient.requestedPaths, [
+      '/albums/42',
+      '/authors',
+      '/albums/42/tracks',
+    ]);
+  });
+
+  test('returns null when an album does not exist', () async {
+    final storage = EsketitRestApiCatalogStorage(
+      httpClient: _FakeHttpClient(
+        responses: {
+          '/albums/42': const HttpResponse(
+            statusCode: 404,
+            response: 'not found',
+          ),
+        },
+      ),
+      baseUri: Uri.parse('http://localhost:8080'),
+    );
+
+    expect(await storage.getAlbum(albumId: 42), isNull);
+  });
+
   test('search sends query, page, and pageSize params', () async {
     final httpClient = _FakeHttpClient(
       responses: {
@@ -58,6 +129,7 @@ void main() {
                     ],
                     'coverImagePath': 'album-cover.jpg',
                     'isFavorite': false,
+                    'isDisliked': true,
                     'isAvailable': true,
                   },
                 },
@@ -91,6 +163,7 @@ void main() {
         (track.image as HttpFile).uri,
         Uri.parse('http://localhost:8080/album-covers/album-cover.jpg'),
       );
+      expect(track.isDisliked, isTrue);
     },
   );
 
@@ -112,6 +185,7 @@ void main() {
                   'visibility': 'public',
                   'trackCount': 12,
                   'system': false,
+                  'kind': 'custom',
                   'isFavorites': false,
                 },
               },
@@ -134,6 +208,7 @@ void main() {
 
     expect(playlist.name, 'Road');
     expect(playlist.visibility, PlaylistVisibility.public);
+    expect(playlist.kind, PlaylistKind.custom);
     expect(playlist.coverImagePath, 'http://localhost:8080/covers/road.jpg');
   });
 

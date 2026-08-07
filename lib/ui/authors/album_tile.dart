@@ -1,6 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
-import 'package:esketit_music_app/ui/albums/album_details_screen.dart';
+import 'package:esketit_music_app/ui/albums/album_routes.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
@@ -42,9 +42,7 @@ class AlbumTile extends StatelessWidget {
   }
 
   void _openAlbumDetails(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => AlbumDetailsScreen(album: album)),
-    );
+    Navigator.of(context).pushNamed(albumRoutePath(album.id), arguments: album);
   }
 }
 

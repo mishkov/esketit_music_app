@@ -21,6 +21,7 @@ void main() {
             'visibility': 'private',
             'trackCount': 0,
             'system': false,
+            'kind': 'custom',
             'isFavorites': false,
           },
         ),
@@ -62,6 +63,7 @@ void main() {
             'visibility': 'private',
             'trackCount': 0,
             'system': false,
+            'kind': 'custom',
             'isFavorites': false,
           },
         ),
@@ -107,6 +109,7 @@ void main() {
               'visibility': 'public',
               'trackCount': 0,
               'system': false,
+              'kind': 'custom',
               'isFavorites': false,
             },
           ),
@@ -153,6 +156,7 @@ void main() {
               'visibility': 'public',
               'trackCount': 1,
               'system': false,
+              'kind': 'custom',
               'isFavorites': false,
             },
           ),
@@ -168,6 +172,7 @@ void main() {
                   'audioFilePath': '/api/songs/file.mp3',
                   'coverImagePath': '/api/album-covers/cover.jpg',
                   'isFavorite': false,
+                  'isDisliked': true,
                   'isAvailable': true,
                 },
               ],
@@ -188,7 +193,9 @@ void main() {
 
       expect(details.playlist.name, 'Road');
       expect(details.playlist.visibility, PlaylistVisibility.public);
+      expect(details.playlist.kind, PlaylistKind.custom);
       expect(details.playlist.shareToken, isNull);
+      expect(details.tracks.single.isDisliked, isTrue);
       expect(
         (details.tracks.single.file as HttpFile).uri,
         Uri.parse('http://localhost:8080/api/songs/file.mp3'),
@@ -219,6 +226,7 @@ void main() {
             'visibility': 'shared',
             'trackCount': 0,
             'system': false,
+            'kind': 'custom',
             'isFavorites': false,
           },
         ),
@@ -269,6 +277,7 @@ void main() {
             'visibility': 'private',
             'trackCount': 0,
             'system': false,
+            'kind': 'custom',
             'isFavorites': false,
           },
         ),
@@ -313,6 +322,7 @@ void main() {
               'visibility': 'public',
               'trackCount': 1,
               'system': false,
+              'kind': 'custom',
               'isFavorites': false,
             },
           ),
@@ -336,6 +346,7 @@ void main() {
                   'authorIds': [1],
                   'audioFilePath': '/api/songs/file.mp3',
                   'isFavorite': false,
+                  'isDisliked': false,
                   'isAvailable': true,
                 },
               ],
@@ -360,6 +371,89 @@ void main() {
       );
     },
   );
+
+  test('decodes dislikes playlist kind without using its name', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/playlists/9': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 9,
+            'userId': 10,
+            'name': 'Anything',
+            'description': '',
+            'coverImagePath': '',
+            'visibility': 'private',
+            'trackCount': 0,
+            'system': true,
+            'kind': 'dislikes',
+            'isFavorites': false,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiPlaylistsStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final playlist = await storage.getPlaylist(playlistId: 9);
+
+    expect(playlist.kind, PlaylistKind.dislikes);
+  });
+
+  test('uses legacy isFavorites only when playlist kind is absent', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/playlists/7': const HttpResponse(
+          statusCode: 200,
+          response: {
+            'id': 7,
+            'userId': 10,
+            'name': 'Favorites',
+            'description': '',
+            'coverImagePath': '',
+            'visibility': 'private',
+            'trackCount': 0,
+            'system': true,
+            'isFavorites': true,
+          },
+        ),
+      },
+    );
+    final storage = EsketitRestApiPlaylistsStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    final playlist = await storage.getPlaylist(playlistId: 7);
+
+    expect(playlist.kind, PlaylistKind.favorites);
+  });
+
+  test('sends dislike and undislike requests to the track endpoint', () async {
+    final httpClient = _FakeHttpClient(
+      responses: {
+        '/tracks/123/dislike': const HttpResponse(
+          statusCode: 204,
+          response: null,
+        ),
+      },
+    );
+    final storage = EsketitRestApiPlaylistsStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    await storage.addTrackToDislikes(trackId: 123);
+    await storage.removeTrackFromDislikes(trackId: 123);
+
+    expect(httpClient.requestedMethods, ['PUT', 'DELETE']);
+    expect(httpClient.requestedPaths, [
+      '/tracks/123/dislike',
+      '/tracks/123/dislike',
+    ]);
+  });
 }
 
 class _FakeHttpClient implements HttpClient {
@@ -367,11 +461,13 @@ class _FakeHttpClient implements HttpClient {
 
   final Map<String, HttpResponse> responses;
   final List<String> requestedPaths = <String>[];
+  final List<String> requestedMethods = <String>[];
   final List<Object?> bodies = <Object?>[];
   final List<MultipartFileData> multipartFiles = <MultipartFileData>[];
 
   @override
   Future<HttpResponse> get(String path, {Map<String, String>? headers}) async {
+    requestedMethods.add('GET');
     requestedPaths.add(path);
 
     return responses[path] ??
@@ -384,6 +480,7 @@ class _FakeHttpClient implements HttpClient {
     Map<String, String>? headers,
     Object? body,
   }) async {
+    requestedMethods.add('POST');
     requestedPaths.add(path);
     bodies.add(body);
 
@@ -397,6 +494,7 @@ class _FakeHttpClient implements HttpClient {
     Map<String, String>? headers,
     required MultipartFileData file,
   }) async {
+    requestedMethods.add('POST');
     requestedPaths.add(path);
     multipartFiles.add(file);
 
@@ -410,6 +508,7 @@ class _FakeHttpClient implements HttpClient {
     Map<String, String>? headers,
     Object? body,
   }) async {
+    requestedMethods.add('PUT');
     requestedPaths.add(path);
     bodies.add(body);
 
@@ -418,7 +517,14 @@ class _FakeHttpClient implements HttpClient {
   }
 
   @override
-  Future<HttpResponse> delete(String path, {Map<String, String>? headers}) {
-    throw UnimplementedError();
+  Future<HttpResponse> delete(
+    String path, {
+    Map<String, String>? headers,
+  }) async {
+    requestedMethods.add('DELETE');
+    requestedPaths.add(path);
+
+    return responses[path] ??
+        const HttpResponse(statusCode: 404, response: 'not found');
   }
 }

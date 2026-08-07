@@ -112,6 +112,9 @@ class _FakeCatalogStorage implements CatalogStorage {
   final List<String> searchQueries = [];
 
   @override
+  Future<Album?> getAlbum({required int albumId}) async => null;
+
+  @override
   Future<List<Author>> getPublishedAuthors() async => const [];
 
   @override
@@ -168,6 +171,9 @@ class _FakeAudioPlayer implements AudioPlayer {
   Duration get currentPosition => Duration.zero;
 
   @override
+  int? get currentIndex => null;
+
+  @override
   Stream<Track?> get currentTrackStream => const Stream.empty();
 
   @override
@@ -201,10 +207,16 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> seekTo(Duration position) async {}
 
   @override
+  Future<void> removeUpcomingTracks(Set<int> trackIds) async {}
+
+  @override
   Future<void> skipToNextTrack() async {}
 
   @override
   Future<void> skipToPreviousTrack() async {}
+
+  @override
+  Future<void> stop() async {}
 
   @override
   Future<void> togglePlay() async {}
