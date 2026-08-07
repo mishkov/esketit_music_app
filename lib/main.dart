@@ -119,7 +119,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     baseUri: baseUri,
   );
   final shareablePlaylistsStorage = EsketitRestApiPlaylistsStorage(
-    httpClient: unauthenticatedHttpClient,
+    httpClient: optionallyAuthenticatedHttpClient,
     baseUri: baseUri,
   );
   final lyricsStorage = EsketitRestApiLyricsStorage(

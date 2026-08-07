@@ -130,7 +130,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fullscreenInactiveControlFavoriteButton =>
-      'Add to favorites button';
+      'Favorite and dislike buttons';
 
   @override
   String get guestModeLabel => 'Guest mode';
@@ -186,7 +186,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistsDescription =>
-      'Favorites is managed automatically. Everything else is fully editable.';
+      'Favorites and Dislikes are managed automatically. Everything else is fully editable.';
 
   @override
   String get noPlaylistsYet => 'No playlists yet. Create your first one.';
@@ -446,6 +446,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addToFavoritesTooltip => 'Add to favorites';
+
+  @override
+  String get removeFromDislikesTooltip => 'Remove from dislikes';
+
+  @override
+  String get addToDislikesTooltip => 'Add to dislikes';
+
+  @override
+  String get trackDisliked => 'Disliked';
+
+  @override
+  String get favoriteUpdateFailed => 'Failed to update favorite.';
+
+  @override
+  String get dislikeUpdateFailed => 'Failed to update dislike.';
 
   @override
   String get addToPlaylistsTooltip => 'Add to playlists';

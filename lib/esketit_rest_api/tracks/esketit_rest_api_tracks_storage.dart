@@ -229,6 +229,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
           file: HttpFile(uri: _resolveSongUri(audioFilePath)),
           image: HttpFile(uri: _resolveAlbumCoverUri(albumImagePath)),
           isFavorite: (item['isFavorite'] as bool?) ?? false,
+          isDisliked: (item['isDisliked'] as bool?) ?? false,
           isAvailable: (item['isAvailable'] as bool?) ?? true,
         ),
       );

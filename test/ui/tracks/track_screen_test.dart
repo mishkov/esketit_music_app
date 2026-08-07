@@ -478,6 +478,9 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   Future<void> addTrackToFavorites({required int trackId}) async {}
 
   @override
+  Future<void> addTrackToDislikes({required int trackId}) async {}
+
+  @override
   Future<void> addTrackToPlaylists({
     required int trackId,
     required List<int> playlistIds,
@@ -498,7 +501,7 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
       visibility: input.visibility,
       trackCount: 0,
       system: false,
-      isFavorites: false,
+      kind: PlaylistKind.custom,
     );
     _playlists = [..._playlists, playlist];
 
@@ -518,6 +521,9 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 
   @override
   Future<void> removeTrackFromFavorites({required int trackId}) async {}
+
+  @override
+  Future<void> removeTrackFromDislikes({required int trackId}) async {}
 
   @override
   Future<void> removeTrackFromPlaylist({
@@ -555,6 +561,9 @@ class _FakeAudioPlayer implements AudioPlayer {
   Duration get currentPosition => Duration.zero;
 
   @override
+  int? get currentIndex => null;
+
+  @override
   Stream<Track?> get currentTrackStream => const Stream.empty();
 
   @override
@@ -590,10 +599,16 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> seekTo(Duration position) async {}
 
   @override
+  Future<void> removeUpcomingTracks(Set<int> trackIds) async {}
+
+  @override
   Future<void> skipToNextTrack() async {}
 
   @override
   Future<void> skipToPreviousTrack() async {}
+
+  @override
+  Future<void> stop() async {}
 
   @override
   Future<void> togglePlay() async {}
@@ -670,7 +685,7 @@ Playlist _playlist(int id, {required String name}) {
     visibility: PlaylistVisibility.private,
     trackCount: 0,
     system: false,
-    isFavorites: false,
+    kind: PlaylistKind.custom,
   );
 }
 
@@ -683,6 +698,7 @@ Track _track(int id) {
     file: _FakeFile(),
     image: _FakeFile(),
     isFavorite: false,
+    isDisliked: false,
     isAvailable: true,
   );
 }

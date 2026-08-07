@@ -50,15 +50,19 @@ class _TrackListCardState extends State<TrackListCard> {
       buildWhen: (previous, current) =>
           previous.selectedTrack != current.selectedTrack,
       builder: (context, playerState) {
-        final isSelected = playerState.selectedTrack == widget.track;
+        final isSelected = playerState.selectedTrack?.id == widget.track.id;
 
         return BlocBuilder<PlaylistsBloc, PlaylistsState>(
           builder: (context, playlistState) {
-            final effectiveIsFavorite =
-                playlistState.favoriteOverrides[widget.track.id] ??
-                widget.track.isFavorite;
-            final favoritePending = playlistState.pendingFavoriteTrackIds
-                .contains(widget.track.id);
+            final effectiveIsFavorite = playlistState.effectiveIsFavorite(
+              widget.track,
+            );
+            final effectiveIsDisliked = playlistState.effectiveIsDisliked(
+              widget.track,
+            );
+            final preferencePending = playlistState.isTrackPreferencePending(
+              widget.track.id,
+            );
             final playlistsPending = playlistState.pendingTrackPlaylistActionIds
                 .contains(widget.track.id);
             final canShowSaveToDownloadsAction =
@@ -107,6 +111,7 @@ class _TrackListCardState extends State<TrackListCard> {
                       widget.track.authors
                           .map((author) => author.currentName)
                           .join(', '),
+                      if (effectiveIsDisliked) l10n.trackDisliked,
                       if (!widget.track.isAvailable) l10n.trackNotAvailable,
                     ].where((part) => part.isNotEmpty).join(' • '),
                     overflow: TextOverflow.ellipsis,
@@ -115,14 +120,31 @@ class _TrackListCardState extends State<TrackListCard> {
                     spacing: 4,
                     children: [
                       IconButton(
+                        tooltip: effectiveIsDisliked
+                            ? l10n.removeFromDislikesTooltip
+                            : l10n.addToDislikesTooltip,
+                        onPressed: preferencePending
+                            ? null
+                            : () => _toggleDislike(
+                                context,
+                                shouldBeDisliked: !effectiveIsDisliked,
+                              ),
+                        icon: Icon(
+                          effectiveIsDisliked
+                              ? Icons.thumb_down_rounded
+                              : Icons.thumb_down_outlined,
+                        ),
+                      ),
+                      IconButton(
                         tooltip: effectiveIsFavorite
                             ? l10n.removeFromFavoritesTooltip
                             : l10n.addToFavoritesTooltip,
-                        onPressed: favoritePending
+                        onPressed: preferencePending
                             ? null
                             : () => _toggleFavorite(
                                 context,
                                 shouldBeFavorite: !effectiveIsFavorite,
+                                currentIsDisliked: effectiveIsDisliked,
                               ),
                         icon: Icon(
                           effectiveIsFavorite
@@ -203,7 +225,11 @@ class _TrackListCardState extends State<TrackListCard> {
     return value.isEmpty ? null : value;
   }
 
-  void _toggleFavorite(BuildContext context, {required bool shouldBeFavorite}) {
+  void _toggleFavorite(
+    BuildContext context, {
+    required bool shouldBeFavorite,
+    required bool currentIsDisliked,
+  }) {
     if (!context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
 
@@ -214,6 +240,31 @@ class _TrackListCardState extends State<TrackListCard> {
       ToggleFavoriteRequested(
         trackId: widget.track.id,
         shouldBeFavorite: shouldBeFavorite,
+        currentIsDisliked: currentIsDisliked,
+      ),
+    );
+  }
+
+  void _toggleDislike(BuildContext context, {required bool shouldBeDisliked}) {
+    if (!context.read<AuthBloc>().state.isAuthenticated) {
+      LoginRequiredPromptScope.of(context).show();
+
+      return;
+    }
+
+    final queueIndex = widget.queue.indexWhere(
+      (track) => track.id == widget.track.id,
+    );
+    final playerState = context.read<PlayerBloc>().state;
+    context.read<PlaylistsBloc>().add(
+      ToggleDislikeRequested(
+        trackId: widget.track.id,
+        shouldBeDisliked: shouldBeDisliked,
+        sourceContext: widget.autoplayContext,
+        sourceQueueIndex: queueIndex < 0 ? null : queueIndex,
+        sourceWasPlaying:
+            playerState.selectedTrack?.id == widget.track.id &&
+            playerState.isPlaying,
       ),
     );
   }

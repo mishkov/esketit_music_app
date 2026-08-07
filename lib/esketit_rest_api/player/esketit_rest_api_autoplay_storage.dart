@@ -94,6 +94,7 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
       ),
       image: HttpFile(uri: _resolveTrackImageUri(item)),
       isFavorite: (item['isFavorite'] as bool?) ?? false,
+      isDisliked: (item['isDisliked'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
     );
   }

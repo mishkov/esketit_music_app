@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @fullscreenInactiveControlFavoriteButton.
   ///
   /// In en, this message translates to:
-  /// **'Add to favorites button'**
+  /// **'Favorite and dislike buttons'**
   String get fullscreenInactiveControlFavoriteButton;
 
   /// No description provided for @guestModeLabel.
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @playlistsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Favorites is managed automatically. Everything else is fully editable.'**
+  /// **'Favorites and Dislikes are managed automatically. Everything else is fully editable.'**
   String get playlistsDescription;
 
   /// No description provided for @noPlaylistsYet.
@@ -895,6 +895,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to favorites'**
   String get addToFavoritesTooltip;
+
+  /// No description provided for @removeFromDislikesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from dislikes'**
+  String get removeFromDislikesTooltip;
+
+  /// No description provided for @addToDislikesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to dislikes'**
+  String get addToDislikesTooltip;
+
+  /// No description provided for @trackDisliked.
+  ///
+  /// In en, this message translates to:
+  /// **'Disliked'**
+  String get trackDisliked;
+
+  /// No description provided for @favoriteUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update favorite.'**
+  String get favoriteUpdateFailed;
+
+  /// No description provided for @dislikeUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update dislike.'**
+  String get dislikeUpdateFailed;
 
   /// No description provided for @addToPlaylistsTooltip.
   ///

@@ -4,9 +4,8 @@ import 'package:esketit_music_app/l10n/app_localizations_build_context_extension
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_routes.dart';
+import 'package:esketit_music_app/ui/playlists/playlist_tracks_list.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
-import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
-import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
@@ -89,48 +88,17 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                             ? const Center(child: CircularProgressIndicator())
                             : tracks.isEmpty
                             ? Center(child: Text(l10n.playlistHasNoTracksYet))
-                            : ReorderableListView.builder(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  0,
-                                  16,
-                                  16,
+                            : PlaylistTracksList(
+                                playlist: playlist,
+                                tracks: tracks,
+                                isReordering: state.reorderingPlaylistIds
+                                    .contains(playlist.id),
+                                onReorder: (oldIndex, newIndex) => _onReorder(
+                                  context,
+                                  tracks: tracks,
+                                  oldIndex: oldIndex,
+                                  newIndex: newIndex,
                                 ),
-                                onReorder:
-                                    state.reorderingPlaylistIds.contains(
-                                      playlist.id,
-                                    )
-                                    ? (_, _) {}
-                                    : (oldIndex, newIndex) => _onReorder(
-                                        context,
-                                        tracks: tracks,
-                                        oldIndex: oldIndex,
-                                        newIndex: newIndex,
-                                      ),
-                                itemCount: tracks.length,
-                                itemBuilder: (context, index) {
-                                  final track = tracks[index];
-
-                                  return TrackListCard(
-                                    key: ValueKey(
-                                      'playlist-${playlist.id}-track-${track.id}',
-                                    ),
-                                    track: track,
-                                    queue: tracks
-                                        .where((item) => item.isAvailable)
-                                        .toList(growable: false),
-                                    autoplayContext: AutoplayContext(
-                                      sourceType: AutoplaySourceType.playlist,
-                                      sourceId: playlist.id,
-                                    ),
-                                    playlistIdForRemoval: playlist.isFavorites
-                                        ? null
-                                        : playlist.id,
-                                    showAddToPlaylistsAction:
-                                        !playlist.isFavorites,
-                                    showImage: true,
-                                  );
-                                },
                               ),
                       ),
                     ],

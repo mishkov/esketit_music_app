@@ -10,6 +10,7 @@ class Track extends Equatable {
   final AbstractFile file;
   final AbstractFile image;
   final bool isFavorite;
+  final bool isDisliked;
   final bool isAvailable;
 
   /// Any related info like history of track, who inspired, how it was written,
@@ -24,6 +25,7 @@ class Track extends Equatable {
     required this.file,
     required this.image,
     required this.isFavorite,
+    required this.isDisliked,
     required this.isAvailable,
   });
 
@@ -35,6 +37,7 @@ class Track extends Equatable {
     AbstractFile? image,
     List<TrackInfo>? addionalInfo,
     bool? isFavorite,
+    bool? isDisliked,
     bool? isAvailable,
   }) {
     return Track(
@@ -45,6 +48,7 @@ class Track extends Equatable {
       file: file ?? this.file,
       image: image ?? this.image,
       isFavorite: isFavorite ?? this.isFavorite,
+      isDisliked: isDisliked ?? this.isDisliked,
       isAvailable: isAvailable ?? this.isAvailable,
     );
   }
@@ -58,6 +62,7 @@ class Track extends Equatable {
     addionalInfo,
     image,
     isFavorite,
+    isDisliked,
     isAvailable,
   ];
 }

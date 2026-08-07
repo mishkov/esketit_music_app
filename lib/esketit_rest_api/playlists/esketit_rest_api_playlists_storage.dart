@@ -225,6 +225,20 @@ class EsketitRestApiPlaylistsStorage
     _throwIfNotSuccess(response, path);
   }
 
+  @override
+  Future<void> addTrackToDislikes({required int trackId}) async {
+    final path = '/tracks/$trackId/dislike';
+    final response = await _httpClient.put(path);
+    _throwIfNotSuccess(response, path);
+  }
+
+  @override
+  Future<void> removeTrackFromDislikes({required int trackId}) async {
+    final path = '/tracks/$trackId/dislike';
+    final response = await _httpClient.delete(path);
+    _throwIfNotSuccess(response, path);
+  }
+
   Playlist _parsePlaylist(Map<String, dynamic> item) {
     return Playlist(
       id: _asInt(item['id']) ?? 0,
@@ -237,7 +251,10 @@ class EsketitRestApiPlaylistsStorage
       visibility: _parseVisibility(item['visibility'] as String?),
       trackCount: _asInt(item['trackCount']) ?? 0,
       system: (item['system'] as bool?) ?? false,
-      isFavorites: (item['isFavorites'] as bool?) ?? false,
+      kind: _parsePlaylistKind(
+        item['kind'] as String?,
+        legacyIsFavorites: (item['isFavorites'] as bool?) ?? false,
+      ),
       shareToken: item['shareToken'] as String?,
     );
   }
@@ -272,6 +289,7 @@ class EsketitRestApiPlaylistsStorage
         uri: _resolveAlbumCoverUri((item['coverImagePath'] as String?) ?? ''),
       ),
       isFavorite: (item['isFavorite'] as bool?) ?? false,
+      isDisliked: (item['isDisliked'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
     );
   }
@@ -290,6 +308,19 @@ class EsketitRestApiPlaylistsStorage
       (visibility) => visibility.name == value,
       orElse: () => PlaylistVisibility.private,
     );
+  }
+
+  PlaylistKind _parsePlaylistKind(
+    String? value, {
+    required bool legacyIsFavorites,
+  }) {
+    return switch (value) {
+      'custom' => PlaylistKind.custom,
+      'favorites' => PlaylistKind.favorites,
+      'dislikes' => PlaylistKind.dislikes,
+      _ when legacyIsFavorites => PlaylistKind.favorites,
+      _ => PlaylistKind.custom,
+    };
   }
 
   String _resolveImagePath(String value) {

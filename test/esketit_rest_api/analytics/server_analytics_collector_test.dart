@@ -35,6 +35,40 @@ void main() {
     },
   );
 
+  test('dislike event types survive durable queue round-trip', () async {
+    final queueStorage = KeyValueAnalyticsQueueStorage(
+      keyValueStorage: _MemoryKeyValueStorage(),
+    );
+    final events = [
+      AnalyticsEvent(
+        eventId: 'dislike-event',
+        type: AnalyticsEventType.trackDislike,
+        trackId: 8,
+        clientTime: DateTime.utc(2026, 8, 5, 10),
+      ),
+      AnalyticsEvent(
+        eventId: 'undislike-event',
+        type: AnalyticsEventType.trackUndislike,
+        trackId: 8,
+        clientTime: DateTime.utc(2026, 8, 5, 11),
+      ),
+    ];
+
+    await queueStorage.writeAll(
+      events.map(QueuedAnalyticsEvent.initial).toList(growable: false),
+    );
+    final restoredEvents = await queueStorage.readAll();
+
+    expect(restoredEvents.map((queuedEvent) => queuedEvent.event.type), [
+      AnalyticsEventType.trackDislike,
+      AnalyticsEventType.trackUndislike,
+    ]);
+    expect(restoredEvents.map((queuedEvent) => queuedEvent.event.trackId), [
+      8,
+      8,
+    ]);
+  });
+
   test(
     'flush removes events when accepted and duplicate counts confirm batch',
     () async {

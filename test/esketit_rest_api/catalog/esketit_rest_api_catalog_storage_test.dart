@@ -21,6 +21,21 @@ void main() {
             'trackIds': [10, 11],
           },
         ),
+        '/authors': const HttpResponse(statusCode: 200, response: []),
+        '/albums/42/tracks': const HttpResponse(
+          statusCode: 200,
+          response: [
+            {
+              'id': 10,
+              'name': 'Disliked album track',
+              'audioFilePath': 'track.mp3',
+              'authorIds': [],
+              'isFavorite': false,
+              'isDisliked': true,
+              'isAvailable': true,
+            },
+          ],
+        ),
       },
     );
     final storage = EsketitRestApiCatalogStorage(
@@ -29,15 +44,21 @@ void main() {
     );
 
     final album = await storage.getAlbum(albumId: 42);
+    final tracks = await storage.getAlbumTracks(album: album!);
 
-    expect(album?.title, 'Night Drive');
-    expect(album?.authorIds, [7]);
-    expect(album?.trackIds, [10, 11]);
+    expect(album.title, 'Night Drive');
+    expect(album.authorIds, [7]);
+    expect(album.trackIds, [10, 11]);
+    expect(tracks.single.isDisliked, isTrue);
     expect(
-      (album?.coverImage as HttpFile).uri,
+      (album.coverImage as HttpFile).uri,
       Uri.parse('http://localhost:8080/album-covers/night-drive.jpg'),
     );
-    expect(httpClient.requestedPaths, ['/albums/42']);
+    expect(httpClient.requestedPaths, [
+      '/albums/42',
+      '/authors',
+      '/albums/42/tracks',
+    ]);
   });
 
   test('returns null when an album does not exist', () async {
@@ -108,6 +129,7 @@ void main() {
                     ],
                     'coverImagePath': 'album-cover.jpg',
                     'isFavorite': false,
+                    'isDisliked': true,
                     'isAvailable': true,
                   },
                 },
@@ -141,6 +163,7 @@ void main() {
         (track.image as HttpFile).uri,
         Uri.parse('http://localhost:8080/album-covers/album-cover.jpg'),
       );
+      expect(track.isDisliked, isTrue);
     },
   );
 
@@ -162,6 +185,7 @@ void main() {
                   'visibility': 'public',
                   'trackCount': 12,
                   'system': false,
+                  'kind': 'custom',
                   'isFavorites': false,
                 },
               },
@@ -184,6 +208,7 @@ void main() {
 
     expect(playlist.name, 'Road');
     expect(playlist.visibility, PlaylistVisibility.public);
+    expect(playlist.kind, PlaylistKind.custom);
     expect(playlist.coverImagePath, 'http://localhost:8080/covers/road.jpg');
   });
 

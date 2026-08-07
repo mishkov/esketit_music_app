@@ -243,6 +243,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
             ),
             image: album.coverImage,
             isFavorite: (item['isFavorite'] as bool?) ?? false,
+            isDisliked: (item['isDisliked'] as bool?) ?? false,
             isAvailable: (item['isAvailable'] as bool?) ?? true,
           );
         })
@@ -365,6 +366,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       ),
       image: HttpFile(uri: _resolveTrackImageUri(item)),
       isFavorite: (item['isFavorite'] as bool?) ?? false,
+      isDisliked: (item['isDisliked'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
     );
   }
@@ -381,7 +383,10 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       visibility: _parseVisibility(item['visibility'] as String?),
       trackCount: _asInt(item['trackCount']) ?? 0,
       system: (item['system'] as bool?) ?? false,
-      isFavorites: (item['isFavorites'] as bool?) ?? false,
+      kind: _parsePlaylistKind(
+        item['kind'] as String?,
+        legacyIsFavorites: (item['isFavorites'] as bool?) ?? false,
+      ),
       shareToken: item['shareToken'] as String?,
     );
   }
@@ -452,6 +457,19 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       (visibility) => visibility.name == value,
       orElse: () => PlaylistVisibility.private,
     );
+  }
+
+  PlaylistKind _parsePlaylistKind(
+    String? value, {
+    required bool legacyIsFavorites,
+  }) {
+    return switch (value) {
+      'custom' => PlaylistKind.custom,
+      'favorites' => PlaylistKind.favorites,
+      'dislikes' => PlaylistKind.dislikes,
+      _ when legacyIsFavorites => PlaylistKind.favorites,
+      _ => PlaylistKind.custom,
+    };
   }
 
   static void _throwIfNotSuccess(HttpResponse response, String path) {

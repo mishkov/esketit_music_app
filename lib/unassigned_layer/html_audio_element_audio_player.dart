@@ -51,6 +51,9 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   Duration get currentPosition => _currentPosition;
 
   @override
+  int? get currentIndex => _currentIndex;
+
+  @override
   Stream<Track?> get currentTrackStream =>
       _streamWithInitial(_currentTrack, _currentTrackController.stream);
 
@@ -106,6 +109,22 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> removeUpcomingTracks(Set<int> trackIds) async {
+    final safeCurrentIndex = _currentIndex;
+    if (safeCurrentIndex == null || trackIds.isEmpty) {
+      return;
+    }
+
+    _queue = List<Track>.unmodifiable([
+      ..._queue.take(safeCurrentIndex + 1),
+      ..._queue
+          .skip(safeCurrentIndex + 1)
+          .where((track) => !trackIds.contains(track.id)),
+    ]);
+    _emitNavigationState();
+  }
+
+  @override
   Future<void> dispose() async {
     _positionTimer?.cancel();
     for (final subscription in _subscriptions) {
@@ -125,6 +144,15 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   @override
   Future<void> seekTo(Duration position) async {
     _seekTo(position);
+  }
+
+  @override
+  Future<void> stop() async {
+    _audioElement.pause();
+    _stopPositionTimer();
+    _emitPlayingState();
+    _emitPosition();
+    _setMediaSessionPlaybackState('none');
   }
 
   @override

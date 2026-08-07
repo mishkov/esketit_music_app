@@ -39,6 +39,34 @@ final class StartAutoplayPlaybackRequested extends PlayerEvent {
   List<Object?> get props => [autoplayContext];
 }
 
+final class PersistedTrackPreferenceChanged extends PlayerEvent {
+  const PersistedTrackPreferenceChanged({
+    required this.trackId,
+    required this.isDisliked,
+    required this.collectDislikeAnalytics,
+    this.sourceContext,
+    this.sourceQueueIndex,
+    this.sourceWasPlaying,
+  });
+
+  final int trackId;
+  final bool isDisliked;
+  final bool collectDislikeAnalytics;
+  final AutoplayContext? sourceContext;
+  final int? sourceQueueIndex;
+  final bool? sourceWasPlaying;
+
+  @override
+  List<Object?> get props => [
+    trackId,
+    isDisliked,
+    collectDislikeAnalytics,
+    sourceContext,
+    sourceQueueIndex,
+    sourceWasPlaying,
+  ];
+}
+
 final class TogglePlay extends PlayerEvent {
   const TogglePlay();
 
@@ -135,6 +163,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final List<Track> _queue = <Track>[];
   final List<int> _recentTrackIds = <int>[];
   final Set<int> _excludedTrackIds = <int>{};
+  final Set<int> _knownDislikedTrackIds = <int>{};
+  final Map<int, bool> _persistedTrackDislikeOverrides = <int, bool>{};
 
   AutoplayContext? _autoplayContext;
   Track? _previousAnalyticsTrack;
@@ -146,6 +176,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   bool _isAutoplayExhausted = false;
   bool _skipNextSelectedTrackAutoplayPrefetch = false;
   bool _suppressNextResumeAnalyticsEvent = false;
+  bool _suppressNextPauseAnalyticsEvent = false;
   bool _hasSeenPlaybackState = false;
 
   StreamSubscription<bool>? _isPlayingSubscription;
@@ -226,6 +257,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     on<PlayTrack>(_onPlayTrack);
     on<StartAutoplayPlaybackRequested>(_onStartAutoplayPlaybackRequested);
+    on<PersistedTrackPreferenceChanged>(
+      _onPersistedTrackPreferenceChanged,
+      transformer: _sequentialPreferenceChanges(),
+    );
 
     on<TogglePlay>((event, emit) async {
       try {
@@ -368,6 +403,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         );
       }
       if (!event.isPlaying && wasPlaying && state.selectedTrack != null) {
+        if (_suppressNextPauseAnalyticsEvent) {
+          _suppressNextPauseAnalyticsEvent = false;
+
+          return;
+        }
         await _collectPause(reason: 'user');
       }
     });
@@ -430,6 +470,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<_PlaybackDurationChanged>(_onPlaybackDurationChanged);
   }
 
+  static EventTransformer<PersistedTrackPreferenceChanged>
+  _sequentialPreferenceChanges() {
+    return (events, mapper) => events.asyncExpand(mapper);
+  }
+
   @override
   Future<void> close() async {
     await _isPlayingSubscription?.cancel();
@@ -444,19 +489,40 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   Future<void> _onPlayTrack(PlayTrack event, Emitter<PlayerState> emit) async {
     try {
-      final initialIndex = event.queue.indexOf(event.track);
-      if (initialIndex < 0) {
+      final sourceInitialIndex = _selectedTrackIndex(
+        queue: event.queue,
+        selectedTrack: event.track,
+      );
+      if (sourceInitialIndex < 0) {
         throw StateError('Selected track must exist in playback queue');
+      }
+      _rememberDislikedTracks([...event.queue, event.track]);
+
+      final eligibleQueue = <Track>[];
+      var eligibleInitialIndex = 0;
+      for (var index = 0; index < event.queue.length; index++) {
+        final isExplicitlySelected = index == sourceInitialIndex;
+        final track = isExplicitlySelected ? event.track : event.queue[index];
+        if (isExplicitlySelected) {
+          eligibleInitialIndex = eligibleQueue.length;
+          eligibleQueue.add(track);
+
+          continue;
+        }
+        if (track.isAvailable && !_isKnownDisliked(track)) {
+          eligibleQueue.add(track);
+        }
       }
 
       await _startPlayback(
         emit,
         track: event.track,
-        queue: event.queue,
-        initialIndex: initialIndex,
+        queue: eligibleQueue,
+        initialIndex: eligibleInitialIndex,
         autoplayContext: event.autoplayContext,
         reason: 'user_selected_track',
         shouldPrefetchAutoplayAfterStart: true,
+        seededExcludedTrackIds: event.queue.map((track) => track.id),
       );
     } catch (error, stackTrace) {
       emit(state.copyWith(isPlaying: false));
@@ -495,21 +561,23 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         recentTrackIds: const <int>[],
         excludedTrackIds: const <int>[],
       );
-      final availableTracks = batch.tracks
-          .where((track) => track.isAvailable)
+      _rememberDislikedTracks(batch.tracks);
+      final eligibleTracks = batch.tracks
+          .where((track) => track.isAvailable && !_isKnownDisliked(track))
           .toList(growable: false);
-      if (availableTracks.isEmpty) {
+      if (eligibleTracks.isEmpty) {
         return;
       }
 
       await _startPlayback(
         emit,
-        track: availableTracks.first,
-        queue: availableTracks,
+        track: eligibleTracks.first,
+        queue: eligibleTracks,
         initialIndex: 0,
         autoplayContext: event.autoplayContext,
         reason: 'autoplay',
         shouldPrefetchAutoplayAfterStart: false,
+        seededExcludedTrackIds: batch.tracks.map((track) => track.id),
       );
     } catch (error, stackTrace) {
       await _handleAutoplayFailure(
@@ -526,6 +594,96 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
+  Future<void> _onPersistedTrackPreferenceChanged(
+    PersistedTrackPreferenceChanged event,
+    Emitter<PlayerState> emit,
+  ) async {
+    _persistedTrackDislikeOverrides[event.trackId] = event.isDisliked;
+    if (event.isDisliked) {
+      _knownDislikedTrackIds.add(event.trackId);
+    } else {
+      _knownDislikedTrackIds.remove(event.trackId);
+    }
+
+    if (event.collectDislikeAnalytics) {
+      await _collectTrackPreferenceAnalytics(event);
+    }
+    if (!event.isDisliked) {
+      return;
+    }
+
+    final selectedTrack = state.selectedTrack;
+    final isCurrentTrack = selectedTrack?.id == event.trackId;
+
+    try {
+      await _errorReporter.addBreadcrumb(
+        Breadcrumb(
+          message: 'Applying persisted track dislike to playback queue',
+          data: {
+            'trackId': event.trackId,
+            'isCurrentTrack': isCurrentTrack,
+            'knownDislikedTracksCount': _knownDislikedTrackIds.length,
+          },
+        ),
+      );
+
+      final currentIndex = _player.currentIndex;
+      await _player.removeUpcomingTracks(
+        Set<int>.unmodifiable(_knownDislikedTrackIds),
+      );
+      _removeKnownDislikedUpcomingTracks(currentIndex);
+
+      if (!isCurrentTrack) {
+        await _ensureAutoplayQueuePrefilled();
+
+        return;
+      }
+
+      var nextTrack = _nextTrackAfter(selectedTrack);
+      if (nextTrack == null) {
+        await _ensureAutoplayQueuePrefilled();
+        nextTrack = _nextTrackAfter(selectedTrack);
+      }
+      if (nextTrack == null) {
+        final shouldSuppressPauseAnalytics = state.isPlaying;
+        _suppressNextPauseAnalyticsEvent = shouldSuppressPauseAnalytics;
+        try {
+          await _player.stop();
+        } catch (_) {
+          if (shouldSuppressPauseAnalytics) {
+            _suppressNextPauseAnalyticsEvent = false;
+          }
+          rethrow;
+        }
+
+        return;
+      }
+
+      await _collectTrackSkip(
+        reason: 'dislike',
+        skipDirection: 'forward',
+        nextTrack: nextTrack,
+      );
+      _pendingTrackChangeReason = 'dislike';
+      await _player.skipToNextTrack();
+    } catch (error, stackTrace) {
+      _pendingTrackChangeReason = null;
+      await _errorReporter.reportError(
+        AppError(
+          'Failed to apply disliked track ${event.trackId} to playback',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
+      );
+      await _collectPlaybackError(
+        selectedTrack,
+        error: error,
+        stackTrace: stackTrace,
+        fatal: false,
+      );
+    }
+  }
+
   Future<void> _startPlayback(
     Emitter<PlayerState> emit, {
     required Track track,
@@ -534,9 +692,14 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required AutoplayContext? autoplayContext,
     required String reason,
     required bool shouldPrefetchAutoplayAfterStart,
+    Iterable<int>? seededExcludedTrackIds,
   }) async {
     _replaceManagedQueue(queue);
-    _configureAutoplaySession(autoplayContext, seededQueue: queue);
+    _configureAutoplaySession(
+      autoplayContext,
+      seededExcludedTrackIds:
+          seededExcludedTrackIds ?? queue.map((track) => track.id),
+    );
     _skipNextSelectedTrackAutoplayPrefetch = !shouldPrefetchAutoplayAfterStart;
 
     emit(state.copyWith(selectedTrack: NullableOption.value(track)));
@@ -573,15 +736,47 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       ..addAll(queue);
   }
 
+  void _removeKnownDislikedUpcomingTracks(int? currentIndex) {
+    if (currentIndex == null ||
+        currentIndex < 0 ||
+        currentIndex >= _queue.length) {
+      return;
+    }
+
+    final updatedQueue = <Track>[
+      ..._queue.take(currentIndex + 1),
+      ..._queue
+          .skip(currentIndex + 1)
+          .where((track) => !_isKnownDisliked(track)),
+    ];
+    _replaceManagedQueue(updatedQueue);
+  }
+
+  void _rememberDislikedTracks(Iterable<Track> tracks) {
+    for (final track in tracks) {
+      final isDisliked =
+          _persistedTrackDislikeOverrides[track.id] ?? track.isDisliked;
+      if (isDisliked) {
+        _knownDislikedTrackIds.add(track.id);
+      } else {
+        _knownDislikedTrackIds.remove(track.id);
+      }
+    }
+  }
+
+  bool _isKnownDisliked(Track track) {
+    return _knownDislikedTrackIds.contains(track.id);
+  }
+
   void _configureAutoplaySession(
     AutoplayContext? autoplayContext, {
-    required List<Track> seededQueue,
+    required Iterable<int> seededExcludedTrackIds,
   }) {
     _autoplayContext = autoplayContext;
     _recentTrackIds.clear();
     _excludedTrackIds
       ..clear()
-      ..addAll(seededQueue.map((track) => track.id));
+      ..addAll(seededExcludedTrackIds);
     _isAutoplayRequestInProgress = false;
     _isAutoplayExhausted = false;
     _skipNextSelectedTrackAutoplayPrefetch = false;
@@ -638,12 +833,16 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         recentTrackIds: List<int>.unmodifiable(_recentTrackIds),
         excludedTrackIds: List<int>.unmodifiable(_excludedTrackIds),
       );
+      _rememberDislikedTracks(batch.tracks);
       final newTracks = batch.tracks
           .where(
             (track) =>
-                track.isAvailable && !_excludedTrackIds.contains(track.id),
+                track.isAvailable &&
+                !_isKnownDisliked(track) &&
+                !_excludedTrackIds.contains(track.id),
           )
           .toList(growable: false);
+      _excludedTrackIds.addAll(batch.tracks.map((track) => track.id));
       if (newTracks.isEmpty) {
         _isAutoplayExhausted = true;
 
@@ -651,7 +850,6 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       }
 
       _queue.addAll(newTracks);
-      _excludedTrackIds.addAll(newTracks.map((track) => track.id));
       await _player.appendToQueue(newTracks);
     } catch (error, stackTrace) {
       await _handleAutoplayFailure(
@@ -665,7 +863,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   int _remainingTracksCountAfter(Track track) {
-    final currentIndex = _queue.indexWhere((item) => item.id == track.id);
+    final currentIndex = _managedCurrentIndex(track);
     if (currentIndex < 0) {
       return 0;
     }
@@ -822,6 +1020,35 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
   }
 
+  Future<void> _collectTrackPreferenceAnalytics(
+    PersistedTrackPreferenceChanged event,
+  ) async {
+    final isCurrentTrack = state.selectedTrack?.id == event.trackId;
+    final sourceContext =
+        event.sourceContext ?? (isCurrentTrack ? _autoplayContext : null);
+    final sourceQueueIndex =
+        event.sourceQueueIndex ??
+        (isCurrentTrack ? _player.currentIndex : null);
+    final sourceWasPlaying =
+        event.sourceWasPlaying ?? (isCurrentTrack ? state.isPlaying : null);
+
+    await _collectAnalytics(
+      AnalyticsEvent(
+        type: event.isDisliked
+            ? AnalyticsEventType.trackDislike
+            : AnalyticsEventType.trackUndislike,
+        trackId: event.trackId,
+        playlistId: _playlistIdFrom(sourceContext),
+        albumId: _albumIdFrom(sourceContext),
+        metadata: {
+          ..._playbackSourceMetadata(sourceContext),
+          'queueIndex': ?sourceQueueIndex,
+          'wasPlaying': ?sourceWasPlaying,
+        },
+      ),
+    );
+  }
+
   Future<void> _collectAnalytics(AnalyticsEvent event) async {
     try {
       await _analytics.collect(event);
@@ -869,7 +1096,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (track == null) {
       return null;
     }
-    final currentIndex = _queue.indexWhere((item) => item.id == track.id);
+    final currentIndex = _managedCurrentIndex(track);
     if (currentIndex < 0 || currentIndex >= _queue.length - 1) {
       return null;
     }
@@ -881,12 +1108,42 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (track == null) {
       return null;
     }
-    final currentIndex = _queue.indexWhere((item) => item.id == track.id);
+    final currentIndex = _managedCurrentIndex(track);
     if (currentIndex <= 0) {
       return null;
     }
 
     return _queue[currentIndex - 1];
+  }
+
+  int _managedCurrentIndex(Track track) {
+    final playerCurrentIndex = _player.currentIndex;
+    if (playerCurrentIndex != null &&
+        playerCurrentIndex >= 0 &&
+        playerCurrentIndex < _queue.length) {
+      return playerCurrentIndex;
+    }
+
+    return _queue.indexWhere((item) => item.id == track.id);
+  }
+
+  int _selectedTrackIndex({
+    required List<Track> queue,
+    required Track selectedTrack,
+  }) {
+    final identicalIndex = queue.indexWhere(
+      (track) => identical(track, selectedTrack),
+    );
+    if (identicalIndex >= 0) {
+      return identicalIndex;
+    }
+
+    final equalIndex = queue.indexOf(selectedTrack);
+    if (equalIndex >= 0) {
+      return equalIndex;
+    }
+
+    return queue.indexWhere((track) => track.id == selectedTrack.id);
   }
 
   int? get _durationMs => _latestDuration?.inMilliseconds;

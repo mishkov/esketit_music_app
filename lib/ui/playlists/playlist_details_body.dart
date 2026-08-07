@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
+import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,11 @@ class PlaylistDetailsBody extends StatelessWidget {
                         ),
                         track: track,
                         queue: _availableTracks(tracks),
-                        showAddToPlaylistsAction: true,
+                        autoplayContext: AutoplayContext(
+                          sourceType: AutoplaySourceType.playlist,
+                          sourceId: playlist.id,
+                        ),
+                        showAddToPlaylistsAction: !playlist.system,
                         showImage: true,
                       );
                     },

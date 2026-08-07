@@ -35,7 +35,10 @@ Future<void> showAddToPlaylistsSheet({
             _loadMissingPlaylistDetails(context.read<PlaylistsBloc>()),
         builder: (context, state) {
           final playlists = state.playlists
-              .where((playlist) => !playlist.isFavorites)
+              .where(
+                (playlist) =>
+                    !playlist.system && playlist.kind == PlaylistKind.custom,
+              )
               .toList(growable: false);
           final selectedPlaylistIds = _playlistIdsContainingTrack(
             state,
@@ -130,7 +133,10 @@ bool _isLoadingPlaylistMembership(
 void _loadMissingPlaylistDetails(PlaylistsBloc playlistsBloc) {
   final state = playlistsBloc.state;
   for (final playlist in state.playlists.where(
-    (playlist) => !playlist.isFavorites && playlist.trackCount > 0,
+    (playlist) =>
+        !playlist.system &&
+        playlist.kind == PlaylistKind.custom &&
+        playlist.trackCount > 0,
   )) {
     if (state.playlistTracksById.containsKey(playlist.id) ||
         state.loadingPlaylistIds.contains(playlist.id) ||

@@ -130,7 +130,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fullscreenInactiveControlFavoriteButton =>
-      'Кнопка добавления в избранное';
+      'Кнопки избранного и дизлайка';
 
   @override
   String get guestModeLabel => 'Гостевой режим';
@@ -187,7 +187,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get playlistsDescription =>
-      'Избранное управляется автоматически. Все остальное можно редактировать.';
+      'Избранное и дизлайки управляются автоматически. Остальные плейлисты можно редактировать.';
 
   @override
   String get noPlaylistsYet => 'Плейлистов пока нет. Создайте первый.';
@@ -454,6 +454,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addToFavoritesTooltip => 'Добавить в избранное';
+
+  @override
+  String get removeFromDislikesTooltip => 'Убрать из дизлайков';
+
+  @override
+  String get addToDislikesTooltip => 'Добавить в дизлайки';
+
+  @override
+  String get trackDisliked => 'Не нравится';
+
+  @override
+  String get favoriteUpdateFailed => 'Не удалось обновить избранное.';
+
+  @override
+  String get dislikeUpdateFailed => 'Не удалось обновить дизлайк.';
 
   @override
   String get addToPlaylistsTooltip => 'Добавить в плейлисты';

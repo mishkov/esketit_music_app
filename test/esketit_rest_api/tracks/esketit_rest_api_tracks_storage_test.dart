@@ -24,6 +24,7 @@ void main() {
             'coverImagePath': 'cover.jpg',
             'authorIds': [7],
             'isFavorite': false,
+            'isDisliked': true,
             'isAvailable': true,
           },
         ),
@@ -40,6 +41,7 @@ void main() {
     expect(track?.id, 123);
     expect(track?.name, 'Shared track');
     expect(track?.authors.single.currentName, 'Artist Name');
+    expect(track?.isDisliked, isTrue);
   });
 
   test('returns null when a directly requested track does not exist', () async {
@@ -74,6 +76,7 @@ void main() {
               'albumId': 9,
               'authorIds': [],
               'isFavorite': false,
+              'isDisliked': false,
               'isAvailable': true,
             },
           ),
@@ -163,6 +166,7 @@ void main() {
                     'coverImagePath': '/api/album-covers/album.jpg',
                     'authorIds': [7],
                     'isFavorite': false,
+                    'isDisliked': true,
                     'isAvailable': true,
                   },
                 ],
@@ -188,6 +192,7 @@ void main() {
     final track = page.items.single;
 
     expect(track.name, 'Track name');
+    expect(track.isDisliked, isTrue);
     expect(track.authors.single.currentName, 'Artist Name');
     expect(
       track.authors.single.primaryPhotoUrl,

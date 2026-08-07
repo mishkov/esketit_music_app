@@ -17,15 +17,21 @@ class JustAudioAudioPlayer implements AudioPlayer {
   Duration get currentPosition => _audioPlayer.position;
 
   @override
+  int? get currentIndex => _audioPlayer.currentIndex;
+
+  @override
   Stream<bool> get isPlayingStream => _audioPlayer.playingStream;
 
   @override
   Stream<Duration?> get durationStream => _audioPlayer.durationStream;
 
   @override
-  Stream<bool> get hasNextTrackStream => _audioPlayer.currentIndexStream
-      .map((index) => index != null && index >= 0 && index < _queue.length - 1)
-      .distinct();
+  Stream<bool> get hasNextTrackStream =>
+      _audioPlayer.sequenceStateStream.map((state) {
+        final index = state.currentIndex;
+
+        return index != null && index >= 0 && index < state.sequence.length - 1;
+      }).distinct();
 
   @override
   Stream<bool> get hasPreviousTrackStream => _audioPlayer.currentIndexStream
@@ -80,6 +86,31 @@ class JustAudioAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> removeUpcomingTracks(Set<int> trackIds) async {
+    final safeCurrentIndex = currentIndex;
+    if (safeCurrentIndex == null || trackIds.isEmpty) {
+      return;
+    }
+
+    final indexesToRemove = <int>[
+      for (var index = _queue.length - 1; index > safeCurrentIndex; index--)
+        if (trackIds.contains(_queue[index].id)) index,
+    ];
+    for (final index in indexesToRemove) {
+      final previousQueue = _queue;
+      final updatedQueue = previousQueue.toList()..removeAt(index);
+      _queue = List<Track>.unmodifiable(updatedQueue);
+
+      try {
+        await _audioPlayer.removeAudioSourceAt(index);
+      } catch (_) {
+        _queue = previousQueue;
+        rethrow;
+      }
+    }
+  }
+
+  @override
   Future<void> dispose() async {
     await _audioPlayer.dispose();
   }
@@ -87,6 +118,11 @@ class JustAudioAudioPlayer implements AudioPlayer {
   @override
   Future<void> seekTo(Duration position) async {
     await _audioPlayer.seek(position);
+  }
+
+  @override
+  Future<void> stop() async {
+    await _audioPlayer.stop();
   }
 
   @override

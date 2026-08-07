@@ -68,6 +68,10 @@ abstract class PlaylistsStorage {
   Future<void> addTrackToFavorites({required int trackId});
 
   Future<void> removeTrackFromFavorites({required int trackId});
+
+  Future<void> addTrackToDislikes({required int trackId});
+
+  Future<void> removeTrackFromDislikes({required int trackId});
 }
 
 abstract class ShareablePlaylistsStorage {

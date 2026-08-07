@@ -12,6 +12,7 @@ import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
+import 'package:esketit_music_app/ui/player/track_preference_synchronizer.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
@@ -29,7 +30,9 @@ void main() {
   ) async {
     final track = _track(1);
     final playlist = _playlist(7, name: 'Road');
-    final playlistsStorage = _FakePlaylistsStorage();
+    final playlistsStorage = _FakePlaylistsStorage(
+      deferEmptyPlaylistsResponse: true,
+    );
     final authBloc = AuthBloc(
       authRepository: _FakeAuthRepository(),
       errorReporter: _FakeErrorReporter(),
@@ -38,9 +41,10 @@ void main() {
       playlistsStorage: playlistsStorage,
       errorReporter: _FakeErrorReporter(),
     );
+    final audioPlayer = _FakeAudioPlayer();
     final playerBloc = PlayerBloc(
       initialState: const PlayerState(selectedTrack: null, isPlaying: false),
-      player: _FakeAudioPlayer(),
+      player: audioPlayer,
       autoplayStorage: _FakeAutoplayStorage(),
       errorReporter: _FakeErrorReporter(),
     );
@@ -197,6 +201,79 @@ void main() {
 
     expect(find.byIcon(Icons.download_rounded), findsOneWidget);
   });
+
+  testWidgets('keeps disliked track visible and rolls back failed dislike', (
+    tester,
+  ) async {
+    final track = _track(1).copyWith(isFavorite: true);
+    final dislikeCompleter = Completer<void>();
+    final playlistsStorage = _FakePlaylistsStorage()
+      ..addDislikeCompleter = dislikeCompleter;
+    final authBloc = AuthBloc(
+      authRepository: _FakeAuthRepository(),
+      errorReporter: _FakeErrorReporter(),
+    )..add(const AuthSessionRestoreRequested());
+    final playlistsBloc = PlaylistsBloc(
+      playlistsStorage: playlistsStorage,
+      errorReporter: _FakeErrorReporter(),
+    );
+    final audioPlayer = _FakeAudioPlayer();
+    final playerBloc = PlayerBloc(
+      initialState: const PlayerState(selectedTrack: null, isPlaying: false),
+      player: audioPlayer,
+      autoplayStorage: _FakeAutoplayStorage(),
+      errorReporter: _FakeErrorReporter(),
+    );
+
+    addTearDown(authBloc.close);
+    addTearDown(playlistsBloc.close);
+    addTearDown(playerBloc.close);
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TrackPreferenceSynchronizer(
+            child: Scaffold(
+              body: TrackListCard(track: track, queue: [track]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.thumb_down_outlined));
+    await tester.pump();
+    await tester.pump();
+
+    expect(playlistsStorage.addDislikeCallCount, 1);
+    expect(find.text(track.name), findsOneWidget);
+    expect(find.textContaining('Disliked'), findsOneWidget);
+    expect(find.byIcon(Icons.thumb_down_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+
+    dislikeCompleter.completeError(StateError('dislike failed'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(track.name), findsOneWidget);
+    expect(find.textContaining('Disliked'), findsNothing);
+    expect(find.byIcon(Icons.thumb_down_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
+    expect(audioPlayer.removeUpcomingTracksCallCount, 0);
+
+    playlistsStorage.addDislikeCompleter = null;
+    await tester.tap(find.byIcon(Icons.thumb_down_outlined));
+    await tester.pumpAndSettle();
+
+    expect(audioPlayer.removeUpcomingTracksCallCount, 1);
+  });
 }
 
 class _FakeAuthRepository implements AuthRepository {
@@ -240,15 +317,19 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   _FakePlaylistsStorage({
     List<Playlist> playlists = const [],
     Map<int, List<Track>> playlistTracksById = const {},
+    this.deferEmptyPlaylistsResponse = false,
   }) : _playlists = playlists,
        _playlistTracksById = playlistTracksById;
 
   Completer<List<Playlist>>? _playlistsCompleter;
   List<Playlist> _playlists;
   final Map<int, List<Track>> _playlistTracksById;
+  final bool deferEmptyPlaylistsResponse;
   int getPlaylistsCallCount = 0;
   final List<int> removedTrackIds = <int>[];
   final List<int> removedTrackPlaylistIds = <int>[];
+  Completer<void>? addDislikeCompleter;
+  int addDislikeCallCount = 0;
 
   void completePlaylists(List<Playlist> playlists) {
     _playlists = playlists;
@@ -258,7 +339,7 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
   @override
   Future<List<Playlist>> getPlaylists() {
     getPlaylistsCallCount++;
-    if (_playlists.isNotEmpty) {
+    if (_playlists.isNotEmpty || !deferEmptyPlaylistsResponse) {
       return Future.value(_playlists);
     }
 
@@ -270,6 +351,12 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 
   @override
   Future<void> addTrackToFavorites({required int trackId}) async {}
+
+  @override
+  Future<void> addTrackToDislikes({required int trackId}) async {
+    addDislikeCallCount++;
+    await addDislikeCompleter?.future;
+  }
 
   @override
   Future<void> addTrackToPlaylists({
@@ -294,6 +381,9 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 
   @override
   Future<void> removeTrackFromFavorites({required int trackId}) async {}
+
+  @override
+  Future<void> removeTrackFromDislikes({required int trackId}) async {}
 
   @override
   Future<void> removeTrackFromPlaylist({
@@ -324,8 +414,13 @@ class _FakePlaylistsStorage implements PlaylistsStorage {
 }
 
 class _FakeAudioPlayer implements AudioPlayer {
+  int removeUpcomingTracksCallCount = 0;
+
   @override
   Duration get currentPosition => Duration.zero;
+
+  @override
+  int? get currentIndex => null;
 
   @override
   Stream<Track?> get currentTrackStream => const Stream.empty();
@@ -361,10 +456,18 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> seekTo(Duration position) async {}
 
   @override
+  Future<void> removeUpcomingTracks(Set<int> trackIds) async {
+    removeUpcomingTracksCallCount++;
+  }
+
+  @override
   Future<void> skipToNextTrack() async {}
 
   @override
   Future<void> skipToPreviousTrack() async {}
+
+  @override
+  Future<void> stop() async {}
 
   @override
   Future<void> togglePlay() async {}
@@ -403,7 +506,7 @@ Playlist _playlist(int id, {required String name, int trackCount = 0}) {
     visibility: PlaylistVisibility.private,
     trackCount: trackCount,
     system: false,
-    isFavorites: false,
+    kind: PlaylistKind.custom,
   );
 }
 
@@ -416,6 +519,7 @@ Track _track(int id) {
     file: _FakeFile(),
     image: _FakeFile(),
     isFavorite: false,
+    isDisliked: false,
     isAvailable: true,
   );
 }

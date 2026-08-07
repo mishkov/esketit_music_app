@@ -197,6 +197,7 @@ Track _track(int id) {
     file: _FakeFile(),
     image: _FakeFile(),
     isFavorite: false,
+    isDisliked: false,
     isAvailable: true,
   );
 }

@@ -38,8 +38,10 @@ class _SystemPlayerFavoriteSynchronizerState
     int? trackId,
     bool isAvailable,
     bool isFavorite,
+    bool isDisliked,
     bool isPending,
-    String localizedTitle,
+    String localizedFavoriteTitle,
+    String localizedDislikeTitle,
   })?
   _lastConfiguration;
 
@@ -89,7 +91,7 @@ class _SystemPlayerFavoriteSynchronizerState
 
       // audio_service activates the Apple command center on first playback
       // and disables feedback commands while doing so. Once playback advances,
-      // reapply the favorite configuration after that activation has completed.
+      // reapply the preference configuration after that activation has completed.
       _hasRefreshedAfterSystemPlayerActivation = true;
       _lastConfiguration = null;
       _synchronizePlatform();
@@ -118,7 +120,9 @@ class _SystemPlayerFavoriteSynchronizerState
     _authSubscription = authBloc.stream.listen((_) {
       _synchronizePlatform();
     });
-    unawaited(initializeSystemPlayerFavorite(_onFavoriteChanged));
+    unawaited(
+      initializeSystemPlayerFavorite(_onFavoriteChanged, _onDislikeChanged),
+    );
   }
 
   void _synchronizePlatform() {
@@ -134,17 +138,23 @@ class _SystemPlayerFavoriteSynchronizerState
     final playlistsState = _playlistsBloc!.state;
     final isFavorite = track == null
         ? false
-        : playlistsState.favoriteOverrides[track.id] ?? track.isFavorite;
+        : playlistsState.effectiveIsFavorite(track);
+    final isDisliked = track == null
+        ? false
+        : playlistsState.effectiveIsDisliked(track);
     final configuration = (
       trackId: track?.id,
       isAvailable: track != null && _authBloc!.state.isAuthenticated,
       isFavorite: isFavorite,
+      isDisliked: isDisliked,
       isPending:
-          track != null &&
-          playlistsState.pendingFavoriteTrackIds.contains(track.id),
-      localizedTitle: isFavorite
+          track != null && playlistsState.isTrackPreferencePending(track.id),
+      localizedFavoriteTitle: isFavorite
           ? context.l10n.removeFromFavoritesTooltip
           : context.l10n.addToFavoritesTooltip,
+      localizedDislikeTitle: isDisliked
+          ? context.l10n.removeFromDislikesTooltip
+          : context.l10n.addToDislikesTooltip,
     );
     final playbackStateChanged = _lastPlayerIsPlaying != playerState.isPlaying;
     _lastPlayerIsPlaying = playerState.isPlaying;
@@ -161,8 +171,10 @@ class _SystemPlayerFavoriteSynchronizerState
       int? trackId,
       bool isAvailable,
       bool isFavorite,
+      bool isDisliked,
       bool isPending,
-      String localizedTitle,
+      String localizedFavoriteTitle,
+      String localizedDislikeTitle,
     })
     configuration,
   ) async {
@@ -171,13 +183,15 @@ class _SystemPlayerFavoriteSynchronizerState
         trackId: configuration.trackId,
         isAvailable: configuration.isAvailable,
         isFavorite: configuration.isFavorite,
+        isDisliked: configuration.isDisliked,
         isPending: configuration.isPending,
-        localizedTitle: configuration.localizedTitle,
+        localizedFavoriteTitle: configuration.localizedFavoriteTitle,
+        localizedDislikeTitle: configuration.localizedDislikeTitle,
       );
     } catch (error, stackTrace) {
       await _errorReporter?.reportError(
         AppError(
-          'Failed to synchronize the system player favorite control',
+          'Failed to synchronize the system player preference controls',
           cause: error,
           stackTrace: stackTrace,
         ),
@@ -192,14 +206,12 @@ class _SystemPlayerFavoriteSynchronizerState
     if (!mounted ||
         _playerBloc?.state.selectedTrack?.id != trackId ||
         !(_authBloc?.state.isAuthenticated ?? false) ||
-        (_playlistsBloc?.state.pendingFavoriteTrackIds.contains(trackId) ??
-            true)) {
+        (_playlistsBloc?.state.isTrackPreferencePending(trackId) ?? true)) {
       return false;
     }
 
     final track = _playerBloc!.state.selectedTrack!;
-    final isFavorite =
-        _playlistsBloc!.state.favoriteOverrides[trackId] ?? track.isFavorite;
+    final isFavorite = _playlistsBloc!.state.effectiveIsFavorite(track);
     if (isFavorite == shouldBeFavorite) {
       return true;
     }
@@ -208,6 +220,7 @@ class _SystemPlayerFavoriteSynchronizerState
       ToggleFavoriteRequested(
         trackId: trackId,
         shouldBeFavorite: shouldBeFavorite,
+        currentIsDisliked: _playlistsBloc!.state.effectiveIsDisliked(track),
       ),
     );
     unawaited(
@@ -216,6 +229,43 @@ class _SystemPlayerFavoriteSynchronizerState
           message: 'Toggle favorite from the Apple system player',
           category: Category.uiClick,
           data: {'trackId': trackId, 'shouldBeFavorite': shouldBeFavorite},
+        ),
+      ),
+    );
+
+    return true;
+  }
+
+  Future<bool> _onDislikeChanged({
+    required int trackId,
+    required bool shouldBeDisliked,
+  }) async {
+    if (!mounted ||
+        _playerBloc?.state.selectedTrack?.id != trackId ||
+        !(_authBloc?.state.isAuthenticated ?? false) ||
+        (_playlistsBloc?.state.isTrackPreferencePending(trackId) ?? true)) {
+      return false;
+    }
+
+    final track = _playerBloc!.state.selectedTrack!;
+    final isDisliked = _playlistsBloc!.state.effectiveIsDisliked(track);
+    if (isDisliked == shouldBeDisliked) {
+      return true;
+    }
+
+    _playlistsBloc!.add(
+      ToggleDislikeRequested(
+        trackId: trackId,
+        shouldBeDisliked: shouldBeDisliked,
+        sourceWasPlaying: _playerBloc!.state.isPlaying,
+      ),
+    );
+    unawaited(
+      _errorReporter?.addBreadcrumb(
+        Breadcrumb(
+          message: 'Toggle dislike from the Apple system player',
+          category: Category.uiClick,
+          data: {'trackId': trackId, 'shouldBeDisliked': shouldBeDisliked},
         ),
       ),
     );

@@ -21,16 +21,36 @@ class TrackControlsRow extends StatelessWidget {
     return BlocBuilder<PlaylistsBloc, PlaylistsState>(
       builder: (context, playlistsState) {
         final isCurrentTrack = state.selectedTrack?.id == track.id;
-        final effectiveIsFavorite =
-            playlistsState.favoriteOverrides[track.id] ?? track.isFavorite;
-        final favoritePending = playlistsState.pendingFavoriteTrackIds.contains(
+        final effectiveIsFavorite = playlistsState.effectiveIsFavorite(track);
+        final effectiveIsDisliked = playlistsState.effectiveIsDisliked(track);
+        final preferencePending = playlistsState.isTrackPreferencePending(
           track.id,
         );
 
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(child: const SizedBox.shrink()),
+            Expanded(
+              child: IconButton(
+                tooltip: effectiveIsDisliked
+                    ? l10n.removeFromDislikesTooltip
+                    : l10n.addToDislikesTooltip,
+                onPressed: preferencePending
+                    ? null
+                    : () => _toggleDislike(
+                        context,
+                        shouldBeDisliked: !effectiveIsDisliked,
+                        isCurrentTrack: isCurrentTrack,
+                        wasPlaying: isCurrentTrack && state.isPlaying,
+                      ),
+                icon: Icon(
+                  effectiveIsDisliked
+                      ? Icons.thumb_down_rounded
+                      : Icons.thumb_down_outlined,
+                ),
+                iconSize: 32,
+              ),
+            ),
             IconButton(
               onPressed: isCurrentTrack && state.hasPreviousTrack
                   ? () => context.read<PlayerBloc>().add(
@@ -84,11 +104,12 @@ class TrackControlsRow extends StatelessWidget {
                 tooltip: effectiveIsFavorite
                     ? l10n.removeFromFavoritesTooltip
                     : l10n.addToFavoritesTooltip,
-                onPressed: favoritePending
+                onPressed: preferencePending
                     ? null
                     : () => _toggleFavorite(
                         context,
                         shouldBeFavorite: !effectiveIsFavorite,
+                        currentIsDisliked: effectiveIsDisliked,
                       ),
                 icon: Icon(
                   effectiveIsFavorite
@@ -104,7 +125,11 @@ class TrackControlsRow extends StatelessWidget {
     );
   }
 
-  void _toggleFavorite(BuildContext context, {required bool shouldBeFavorite}) {
+  void _toggleFavorite(
+    BuildContext context, {
+    required bool shouldBeFavorite,
+    required bool currentIsDisliked,
+  }) {
     if (!context.read<AuthBloc>().state.isAuthenticated) {
       LoginRequiredPromptScope.of(context).show();
 
@@ -115,6 +140,35 @@ class TrackControlsRow extends StatelessWidget {
       ToggleFavoriteRequested(
         trackId: track.id,
         shouldBeFavorite: shouldBeFavorite,
+        currentIsDisliked: currentIsDisliked,
+      ),
+    );
+  }
+
+  void _toggleDislike(
+    BuildContext context, {
+    required bool shouldBeDisliked,
+    required bool isCurrentTrack,
+    required bool wasPlaying,
+  }) {
+    if (!context.read<AuthBloc>().state.isAuthenticated) {
+      LoginRequiredPromptScope.of(context).show();
+
+      return;
+    }
+
+    context.read<PlaylistsBloc>().add(
+      ToggleDislikeRequested(
+        trackId: track.id,
+        shouldBeDisliked: shouldBeDisliked,
+        sourceContext: isCurrentTrack
+            ? null
+            : AutoplayContext(
+                sourceType: AutoplaySourceType.track,
+                sourceId: track.id,
+              ),
+        sourceQueueIndex: isCurrentTrack ? null : 0,
+        sourceWasPlaying: wasPlaying,
       ),
     );
   }
