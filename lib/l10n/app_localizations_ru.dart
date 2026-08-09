@@ -236,6 +236,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get playMyVibeButton => 'Включить мой вайб';
 
   @override
+  String get playAuthorButton => 'Включить автора';
+
+  @override
+  String get noPlayableAuthorTracks =>
+      'У этого исполнителя нет доступных треков. Включаем «Мой вайб».';
+
+  @override
   String get noPublishedAuthorsYet => 'Опубликованных авторов пока нет.';
 
   @override

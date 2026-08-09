@@ -78,6 +78,8 @@
   "authorsTitle": "Authors",
   "featuredAuthorsTitle": "Featured Authors",
   "playMyVibeButton": "Play my vibe",
+  "playAuthorButton": "Play author",
+  "noPlayableAuthorTracks": "No playable tracks by this artist. Playing My Vibe.",
   "noPublishedAuthorsYet": "No published authors yet.",
   "authorNotFound": "Author not found.",
   "authorLoadFailed": "Failed to load the author.",

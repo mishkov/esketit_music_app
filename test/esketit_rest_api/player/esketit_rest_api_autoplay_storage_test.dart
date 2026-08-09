@@ -35,6 +35,33 @@ void main() {
       'excludedTrackIds': [2],
     });
   });
+
+  test('serializes author autoplay context', () async {
+    final httpClient = _FakeHttpClient();
+    final storage = EsketitRestApiAutoplayStorage(
+      httpClient: httpClient,
+      baseUri: Uri.parse('http://localhost:8080/api/'),
+    );
+
+    await storage.getNextTracks(
+      context: const AutoplayContext(
+        sourceType: AutoplaySourceType.author,
+        sourceId: 42,
+      ),
+      count: 10,
+      recentTrackIds: const [],
+      excludedTrackIds: const [],
+    );
+
+    expect(httpClient.postedBody, {
+      'sourceType': 'author',
+      'sourceId': 42,
+      'profile': 'default',
+      'count': 10,
+      'recentTrackIds': <int>[],
+      'excludedTrackIds': <int>[],
+    });
+  });
 }
 
 class _FakeHttpClient implements HttpClient {

@@ -555,16 +555,44 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         ),
       );
 
-      final batch = await _autoplayStorage.getNextTracks(
+      var autoplayContext = event.autoplayContext;
+      var batch = await _autoplayStorage.getNextTracks(
         context: event.autoplayContext,
         count: autoplayBatchSize,
         recentTrackIds: const <int>[],
         excludedTrackIds: const <int>[],
       );
       _rememberDislikedTracks(batch.tracks);
-      final eligibleTracks = batch.tracks
+      var attemptedTrackIds = batch.tracks.map((track) => track.id).toSet();
+      var eligibleTracks = batch.tracks
           .where((track) => track.isAvailable && !_isKnownDisliked(track))
           .toList(growable: false);
+      if (eligibleTracks.isEmpty &&
+          autoplayContext.sourceType == AutoplaySourceType.author) {
+        emit(
+          state.copyWith(
+            autoplayNotice: AutoplayNotice.authorHasNoPlayableTracks,
+            autoplayNoticeSequence: state.autoplayNoticeSequence + 1,
+          ),
+        );
+        autoplayContext = AutoplayContext.myVibe(
+          profile: autoplayContext.profile,
+        );
+        batch = await _autoplayStorage.getNextTracks(
+          context: autoplayContext,
+          count: autoplayBatchSize,
+          recentTrackIds: const <int>[],
+          excludedTrackIds: attemptedTrackIds.toList(growable: false),
+        );
+        _rememberDislikedTracks(batch.tracks);
+        attemptedTrackIds = {
+          ...attemptedTrackIds,
+          ...batch.tracks.map((track) => track.id),
+        };
+        eligibleTracks = batch.tracks
+            .where((track) => track.isAvailable && !_isKnownDisliked(track))
+            .toList(growable: false);
+      }
       if (eligibleTracks.isEmpty) {
         return;
       }
@@ -574,10 +602,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         track: eligibleTracks.first,
         queue: eligibleTracks,
         initialIndex: 0,
-        autoplayContext: event.autoplayContext,
+        autoplayContext: autoplayContext,
         reason: 'autoplay',
         shouldPrefetchAutoplayAfterStart: false,
-        seededExcludedTrackIds: batch.tracks.map((track) => track.id),
+        seededExcludedTrackIds: attemptedTrackIds,
       );
     } catch (error, stackTrace) {
       await _handleAutoplayFailure(
@@ -844,6 +872,44 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           .toList(growable: false);
       _excludedTrackIds.addAll(batch.tracks.map((track) => track.id));
       if (newTracks.isEmpty) {
+        if (autoplayContext.sourceType == AutoplaySourceType.author) {
+          final myVibeContext = AutoplayContext.myVibe(
+            profile: autoplayContext.profile,
+          );
+          _autoplayContext = myVibeContext;
+          await _errorReporter.addBreadcrumb(
+            Breadcrumb(
+              message: 'Author queue exhausted; continuing with My Vibe',
+              data: _autoplayBreadcrumbData(autoplayContext),
+            ),
+          );
+          final myVibeBatch = await _autoplayStorage.getNextTracks(
+            context: myVibeContext,
+            count: autoplayBatchSize,
+            recentTrackIds: List<int>.unmodifiable(_recentTrackIds),
+            excludedTrackIds: List<int>.unmodifiable(_excludedTrackIds),
+          );
+          _rememberDislikedTracks(myVibeBatch.tracks);
+          final myVibeTracks = myVibeBatch.tracks
+              .where(
+                (track) =>
+                    track.isAvailable &&
+                    !_isKnownDisliked(track) &&
+                    !_excludedTrackIds.contains(track.id),
+              )
+              .toList(growable: false);
+          _excludedTrackIds.addAll(myVibeBatch.tracks.map((track) => track.id));
+          if (myVibeTracks.isEmpty) {
+            _isAutoplayExhausted = true;
+
+            return;
+          }
+
+          _queue.addAll(myVibeTracks);
+          await _player.appendToQueue(myVibeTracks);
+
+          return;
+        }
         _isAutoplayExhausted = true;
 
         return;
@@ -1190,17 +1256,23 @@ class PlayerPlaybackProgress extends Equatable {
   List<Object> get props => [position, duration];
 }
 
+enum AutoplayNotice { authorHasNoPlayableTracks }
+
 class PlayerState extends Equatable {
   final Track? selectedTrack;
   final bool isPlaying;
   final bool hasPreviousTrack;
   final bool hasNextTrack;
+  final AutoplayNotice? autoplayNotice;
+  final int autoplayNoticeSequence;
 
   const PlayerState({
     required this.selectedTrack,
     required this.isPlaying,
     this.hasPreviousTrack = false,
     this.hasNextTrack = false,
+    this.autoplayNotice,
+    this.autoplayNoticeSequence = 0,
   });
 
   PlayerState copyWith({
@@ -1208,6 +1280,8 @@ class PlayerState extends Equatable {
     bool? isPlaying,
     bool? hasPreviousTrack,
     bool? hasNextTrack,
+    AutoplayNotice? autoplayNotice,
+    int? autoplayNoticeSequence,
   }) {
     return PlayerState(
       selectedTrack: selectedTrack == null
@@ -1216,6 +1290,9 @@ class PlayerState extends Equatable {
       isPlaying: isPlaying ?? this.isPlaying,
       hasPreviousTrack: hasPreviousTrack ?? this.hasPreviousTrack,
       hasNextTrack: hasNextTrack ?? this.hasNextTrack,
+      autoplayNotice: autoplayNotice ?? this.autoplayNotice,
+      autoplayNoticeSequence:
+          autoplayNoticeSequence ?? this.autoplayNoticeSequence,
     );
   }
 
@@ -1225,5 +1302,7 @@ class PlayerState extends Equatable {
     isPlaying,
     hasPreviousTrack,
     hasNextTrack,
+    autoplayNotice,
+    autoplayNoticeSequence,
   ];
 }

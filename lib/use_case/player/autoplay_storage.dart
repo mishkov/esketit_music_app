@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:esketit_music_app/domain/track.dart';
 
-enum AutoplaySourceType { myVibe, playlist, album, track }
+enum AutoplaySourceType { myVibe, playlist, album, track, author }
 
 class AutoplayContext extends Equatable {
   const AutoplayContext({
