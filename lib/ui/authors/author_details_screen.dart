@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
+import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/authors/author_details_content.dart';
 import 'package:esketit_music_app/ui/authors/author_details_menu.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
@@ -27,7 +28,10 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PlayerBloc, PlayerState>(
+    return BlocConsumer<PlayerBloc, PlayerState>(
+      listenWhen: (previous, current) =>
+          previous.autoplayNoticeSequence != current.autoplayNoticeSequence,
+      listener: _onPlayerStateChanged,
       buildWhen: (previous, current) =>
           previous.selectedTrack != current.selectedTrack,
       builder: (context, playerState) {
@@ -74,6 +78,16 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _onPlayerStateChanged(BuildContext context, PlayerState state) {
+    if (state.autoplayNotice != AutoplayNotice.authorHasNoPlayableTracks) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.noPlayableAuthorTracks)),
     );
   }
 }

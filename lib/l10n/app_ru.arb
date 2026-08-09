@@ -78,6 +78,8 @@
   "authorsTitle": "Авторы",
   "featuredAuthorsTitle": "Избранные авторы",
   "playMyVibeButton": "Включить мой вайб",
+  "playAuthorButton": "Включить автора",
+  "noPlayableAuthorTracks": "У этого исполнителя нет доступных треков. Включаем «Мой вайб».",
   "noPublishedAuthorsYet": "Опубликованных авторов пока нет.",
   "authorNotFound": "Автор не найден.",
   "authorLoadFailed": "Не удалось загрузить автора.",

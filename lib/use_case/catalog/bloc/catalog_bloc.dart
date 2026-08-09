@@ -162,7 +162,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
       final rightReleaseDate = right.releaseDate;
 
       if (leftReleaseDate == null && rightReleaseDate == null) {
-        return 0;
+        return right.id.compareTo(left.id);
       }
       if (leftReleaseDate == null) {
         return 1;
@@ -171,7 +171,12 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         return -1;
       }
 
-      return rightReleaseDate.compareTo(leftReleaseDate);
+      final releaseDateComparison = rightReleaseDate.compareTo(leftReleaseDate);
+      if (releaseDateComparison != 0) {
+        return releaseDateComparison;
+      }
+
+      return right.id.compareTo(left.id);
     });
 
     return sortedAlbums;

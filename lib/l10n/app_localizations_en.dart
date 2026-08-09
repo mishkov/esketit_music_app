@@ -234,6 +234,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playMyVibeButton => 'Play my vibe';
 
   @override
+  String get playAuthorButton => 'Play author';
+
+  @override
+  String get noPlayableAuthorTracks =>
+      'No playable tracks by this artist. Playing My Vibe.';
+
+  @override
   String get noPublishedAuthorsYet => 'No published authors yet.';
 
   @override

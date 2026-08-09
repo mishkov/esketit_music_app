@@ -270,6 +270,7 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
       AutoplaySourceType.playlist => 'playlist',
       AutoplaySourceType.album => 'album',
       AutoplaySourceType.track => 'track',
+      AutoplaySourceType.author => 'author',
     };
   }
 }

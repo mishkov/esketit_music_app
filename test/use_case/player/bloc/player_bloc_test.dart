@@ -480,6 +480,75 @@ void main() {
     },
   );
 
+  test('empty author playback starts My Vibe and emits a notice', () async {
+    final audioPlayer = _FakeAudioPlayer();
+    const authorContext = AutoplayContext(
+      sourceType: AutoplaySourceType.author,
+      sourceId: 7,
+    );
+    const myVibeContext = AutoplayContext.myVibe();
+    final autoplayStorage = _FakeAutoplayStorage(
+      batches: [
+        _batch(authorContext, const []),
+        _batch(myVibeContext, [_track(9)]),
+      ],
+    );
+    final bloc = _createBloc(
+      audioPlayer: audioPlayer,
+      autoplayStorage: autoplayStorage,
+    );
+
+    bloc.add(const StartAutoplayPlaybackRequested(authorContext));
+    await _settleBloc();
+
+    expect(autoplayStorage.requests.map((request) => request.context), [
+      authorContext,
+      myVibeContext,
+    ]);
+    expect(audioPlayer.startedTrackIds, [9]);
+    expect(bloc.state.autoplayNotice, AutoplayNotice.authorHasNoPlayableTracks);
+    expect(bloc.state.autoplayNoticeSequence, 1);
+
+    await _dispose(bloc, audioPlayer);
+  });
+
+  test('exhausted author queue continues with My Vibe', () async {
+    final audioPlayer = _FakeAudioPlayer();
+    const authorContext = AutoplayContext(
+      sourceType: AutoplaySourceType.author,
+      sourceId: 7,
+    );
+    const myVibeContext = AutoplayContext.myVibe();
+    final autoplayStorage = _FakeAutoplayStorage(
+      batches: [
+        _batch(authorContext, [_track(1)]),
+        _batch(authorContext, const []),
+        _batch(myVibeContext, [_track(9), _track(10), _track(11), _track(12)]),
+      ],
+    );
+    final bloc = _createBloc(
+      audioPlayer: audioPlayer,
+      autoplayStorage: autoplayStorage,
+    );
+
+    bloc.add(const StartAutoplayPlaybackRequested(authorContext));
+    await _settleBloc();
+    bloc.add(const SkipToNextTrackRequested());
+    await _settleBloc();
+
+    expect(autoplayStorage.requests.map((request) => request.context), [
+      authorContext,
+      authorContext,
+      myVibeContext,
+    ]);
+    expect(autoplayStorage.requests.last.recentTrackIds, [1]);
+    expect(autoplayStorage.requests.last.excludedTrackIds, contains(1));
+    expect(audioPlayer.queueTrackIds, [1, 9, 10, 11, 12]);
+    expect(bloc.state.selectedTrack?.id, 9);
+
+    await _dispose(bloc, audioPlayer);
+  });
+
   test(
     'empty eligible autoplay continuation becomes exhausted without a loop',
     () async {

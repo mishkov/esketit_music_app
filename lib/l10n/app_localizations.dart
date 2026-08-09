@@ -524,6 +524,18 @@ abstract class AppLocalizations {
   /// **'Play my vibe'**
   String get playMyVibeButton;
 
+  /// No description provided for @playAuthorButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Play author'**
+  String get playAuthorButton;
+
+  /// No description provided for @noPlayableAuthorTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'No playable tracks by this artist. Playing My Vibe.'**
+  String get noPlayableAuthorTracks;
+
   /// No description provided for @noPublishedAuthorsYet.
   ///
   /// In en, this message translates to:

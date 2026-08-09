@@ -49,6 +49,29 @@ void main() {
   );
 
   blocTest<CatalogBloc, CatalogState>(
+    'albums with equal release dates are sorted by ID descending',
+    build: () => CatalogBloc(
+      initialState: _catalogState(),
+      catalogStorage: _FakeCatalogStorage(
+        albumsByAuthorId: {
+          _author.id: [_equalDateLowerIdAlbum, _equalDateHigherIdAlbum],
+        },
+      ),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      errorReporter: _FakeErrorReporter(),
+    ),
+    act: (bloc) => bloc.add(LoadPublishedAlbumsByAuthor(_author)),
+    expect: () => [
+      _catalogState(loadingAuthorIds: {_author.id}),
+      _catalogState(
+        albumsByAuthorId: {
+          _author.id: [_equalDateHigherIdAlbum, _equalDateLowerIdAlbum],
+        },
+      ),
+    ],
+  );
+
+  blocTest<CatalogBloc, CatalogState>(
     'loads recent search queries into state',
     build: () => CatalogBloc(
       initialState: _catalogState(),
@@ -243,6 +266,11 @@ const _author = Author(id: 7, currentName: 'Author', photos: []);
 final _newestAlbum = _album(id: 1, releaseDate: DateTime(2024, 6, 1));
 final _oldestAlbum = _album(id: 2, releaseDate: DateTime(2020, 1, 1));
 final _undatedAlbum = _album(id: 3, releaseDate: null);
+final _equalDateLowerIdAlbum = _album(id: 4, releaseDate: DateTime(2025, 1, 1));
+final _equalDateHigherIdAlbum = _album(
+  id: 5,
+  releaseDate: DateTime(2025, 1, 1),
+);
 const _searchResultItem = CatalogSearchResultItem.author(_author);
 
 Album _album({required int id, required DateTime? releaseDate}) {
