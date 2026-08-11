@@ -97,6 +97,27 @@ final class SeekToPositionRequested extends PlayerEvent {
   List<Object?> get props => [position];
 }
 
+final class StopPlaybackRequested extends PlayerEvent {
+  const StopPlaybackRequested();
+
+  @override
+  List<Object?> get props => [];
+}
+
+/// Keeps the playback queue from retaining file-backed sources after their
+/// cached files have been removed.
+final class DownloadedTracksRemoved extends PlayerEvent {
+  DownloadedTracksRemoved(Iterable<int> trackIds, {Completer<void>? completion})
+    : trackIds = Set<int>.unmodifiable(trackIds),
+      _completion = completion;
+
+  final Set<int> trackIds;
+  final Completer<void>? _completion;
+
+  @override
+  List<Object?> get props => [trackIds];
+}
+
 final class _PlaybackStateChanged extends PlayerEvent {
   final bool isPlaying;
 
@@ -189,6 +210,18 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Duration get currentPosition => _player.currentPosition;
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
+
+  Future<void> prepareForDownloadedTrackRemoval(Iterable<int> trackIds) {
+    final normalizedTrackIds = Set<int>.of(trackIds);
+    if (normalizedTrackIds.isEmpty || isClosed) {
+      return Future<void>.value();
+    }
+    final completion = Completer<void>();
+    add(DownloadedTracksRemoved(normalizedTrackIds, completion: completion));
+
+    return completion.future;
+  }
+
   Stream<PlayerPlaybackProgress> get playbackProgressStream {
     return Stream<PlayerPlaybackProgress>.multi((controller) {
       var latestPosition = Duration.zero;
@@ -374,6 +407,46 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           stackTrace: stackTrace,
           fatal: false,
         );
+      }
+    });
+
+    on<StopPlaybackRequested>((event, emit) async {
+      try {
+        await _player.stop();
+      } catch (error, stackTrace) {
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to stop playback',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      }
+    });
+
+    on<DownloadedTracksRemoved>((event, emit) async {
+      if (event.trackIds.isEmpty) {
+        event._completion?.complete();
+
+        return;
+      }
+
+      try {
+        if (state.selectedTrack case final selectedTrack?
+            when event.trackIds.contains(selectedTrack.id)) {
+          await _player.stop();
+        }
+        await _player.removeTracks(event.trackIds);
+      } catch (error, stackTrace) {
+        await _errorReporter.reportError(
+          AppError(
+            'Failed to update playback after removing downloaded tracks',
+            cause: error,
+            stackTrace: stackTrace,
+          ),
+        );
+      } finally {
+        event._completion?.complete();
       }
     });
 

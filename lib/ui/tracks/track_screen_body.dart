@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/domain/file/abstract_file.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/single_line_overflow_marquee_text.dart';
@@ -6,7 +7,6 @@ import 'package:esketit_music_app/ui/tracks/author_picker_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_controls_row.dart';
 import 'package:esketit_music_app/ui/tracks/track_lyrics_section.dart';
 import 'package:esketit_music_app/ui/tracks/track_progress_section.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -23,7 +23,7 @@ class TrackScreenBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final artworkUrl = _trackImageUrl(track);
+    final artwork = track.image;
     final isCurrentTrack = state.selectedTrack?.id == track.id;
 
     return SafeArea(
@@ -33,8 +33,8 @@ class TrackScreenBody extends StatelessWidget {
           final useDesktopLayout =
               constraints.maxWidth >= _desktopLayoutBreakpoint;
           final content = useDesktopLayout
-              ? _buildDesktopLayout(context, theme, artworkUrl, isCurrentTrack)
-              : _buildMobileLayout(context, theme, artworkUrl, isCurrentTrack);
+              ? _buildDesktopLayout(context, theme, artwork, isCurrentTrack)
+              : _buildMobileLayout(context, theme, artwork, isCurrentTrack);
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -56,14 +56,14 @@ class TrackScreenBody extends StatelessWidget {
   Widget _buildMobileLayout(
     BuildContext context,
     ThemeData theme,
-    String? artworkUrl,
+    AbstractFile artwork,
     bool isCurrentTrack,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildArtwork(
-          artworkUrl,
+          artwork,
           borderRadius: 24,
           padding: const EdgeInsets.all(16),
         ),
@@ -84,7 +84,7 @@ class TrackScreenBody extends StatelessWidget {
   Widget _buildDesktopLayout(
     BuildContext context,
     ThemeData theme,
-    String? artworkUrl,
+    AbstractFile artwork,
     bool isCurrentTrack,
   ) {
     return Row(
@@ -95,7 +95,7 @@ class TrackScreenBody extends StatelessWidget {
           child: _buildDesktopPlaybackPanel(
             context,
             theme,
-            artworkUrl,
+            artwork,
             isCurrentTrack,
           ),
         ),
@@ -114,7 +114,7 @@ class TrackScreenBody extends StatelessWidget {
   Widget _buildDesktopPlaybackPanel(
     BuildContext context,
     ThemeData theme,
-    String? artworkUrl,
+    AbstractFile artwork,
     bool isCurrentTrack,
   ) {
     return Card.outlined(
@@ -123,7 +123,7 @@ class TrackScreenBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildArtwork(artworkUrl, borderRadius: 20),
+            _buildArtwork(artwork, borderRadius: 20),
             const SizedBox(height: 16),
             _buildTrackTitleBlock(context, theme),
             const SizedBox(height: 12),
@@ -137,7 +137,7 @@ class TrackScreenBody extends StatelessWidget {
   }
 
   Widget _buildArtwork(
-    String? artworkUrl, {
+    AbstractFile artwork, {
     required double borderRadius,
     EdgeInsets padding = EdgeInsets.zero,
   }) {
@@ -148,10 +148,7 @@ class TrackScreenBody extends StatelessWidget {
           aspectRatio: 1,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(borderRadius),
-            child: RemoteImage(
-              imageUrl: artworkUrl,
-              icon: Icons.music_note_rounded,
-            ),
+            child: RemoteImage(file: artwork, icon: Icons.music_note_rounded),
           ),
         ),
       ),
@@ -214,16 +211,5 @@ class TrackScreenBody extends StatelessWidget {
     }
 
     return context.l10n.bottomPlayerUnknownArtist;
-  }
-
-  String? _trackImageUrl(Track track) {
-    final image = track.image;
-    if (image is! HttpFile) {
-      return null;
-    }
-
-    final imageUrl = image.uri.toString();
-
-    return imageUrl.isEmpty ? null : imageUrl;
   }
 }

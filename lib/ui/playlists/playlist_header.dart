@@ -5,9 +5,14 @@ import 'package:esketit_music_app/ui/shared/ui_localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class PlaylistHeader extends StatelessWidget {
-  const PlaylistHeader({required this.playlist, super.key});
+  const PlaylistHeader({
+    required this.playlist,
+    this.downloadAction,
+    super.key,
+  });
 
   final Playlist playlist;
+  final Widget? downloadAction;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +75,10 @@ class PlaylistHeader extends StatelessWidget {
                       Chip(label: Text(l10n.systemPlaylistLabel)),
                   ],
                 ),
+                if (downloadAction != null) ...[
+                  const SizedBox(height: 12),
+                  downloadAction!,
+                ],
               ],
             ),
           ),

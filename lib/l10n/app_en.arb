@@ -60,10 +60,171 @@
     }
   },
   "signInToSeeYourPlaylists": "Sign in to see your playlists.",
+  "likesTitle": "Likes",
+  "dislikesTitle": "Dislikes",
+  "signInToViewLibraryItem": "Sign in to view",
+  "playlistsSectionTitle": "Playlists",
+  "createPlaylistTooltip": "Create playlist",
+  "signInToManagePlaylists": "Sign in to create and manage playlists.",
+  "playlistsLoadFailed": "Failed to load playlists.",
   "yourPlaylistsTitle": "Your playlists",
   "newPlaylistButton": "New",
   "playlistsDescription": "Favorites and Dislikes are managed automatically. Everything else is fully editable.",
   "noPlaylistsYet": "No playlists yet. Create your first one.",
+  "downloadedTitle": "Downloaded",
+  "deleteAllDownloadsTooltip": "Delete all downloads",
+  "downloadedTracksTitle": "Tracks",
+  "downloadedAuthorsTitle": "Authors",
+  "downloadedAlbumsTitle": "Albums",
+  "downloadedPlaylistsTitle": "Playlists",
+  "downloadedItemsCount": "{count, plural, =0{0 items} =1{1 item} other{{count} items}}",
+  "@downloadedItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trackDownloadQueuedTooltip": "Queued for download",
+  "trackDownloadingTooltip": "Downloading",
+  "trackDownloadedTooltip": "Downloaded",
+  "trackDownloadFailedTooltip": "Download failed",
+  "downloadManagerTitle": "Downloads",
+  "currentDownloadSectionTitle": "Current",
+  "queuedDownloadsSectionTitle": "Queued",
+  "failedDownloadsSectionTitle": "Failed",
+  "noDownloadActivity": "There are no active or failed downloads.",
+  "cancelDownloadTooltip": "Cancel download",
+  "clearButton": "Clear",
+  "downloadQueuedStatus": "Queued",
+  "downloadInProgressStatus": "Downloading",
+  "downloadWaitingToRetryStatus": "Waiting to try again",
+  "downloadProgressPercent": "{percent}%",
+  "@downloadProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadsQueuedCount": "{count, plural, =0{No tracks queued} =1{1 track queued} other{{count} tracks queued}}",
+  "@downloadsQueuedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadsFailedCount": "{count, plural, =1{Failed to download 1 track} other{Failed to download {count} tracks}}",
+  "@downloadsFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailuresRemainMessage": "Open downloads for details or clear this message.",
+  "downloadWaitingToStart": "Waiting to start",
+  "downloadingTrackName": "Downloading {trackName}",
+  "@downloadingTrackName": {
+    "placeholders": {
+      "trackName": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadWaitingToRetryTrack": "Waiting to try {trackName} again",
+  "@downloadWaitingToRetryTrack": {
+    "placeholders": {
+      "trackName": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailureNetwork": "Network error",
+  "downloadFailureServer": "Server error",
+  "downloadFailureStorage": "Storage error",
+  "downloadFailureInsufficientStorage": "Not enough storage",
+  "downloadFailureInvalidResponse": "Invalid server response",
+  "downloadFailureUnknown": "Unknown error",
+  "downloadAlbumButton": "Download album",
+  "downloadPlaylistButton": "Download playlist",
+  "cancelDownloadButton": "Cancel download",
+  "removeDownloadButton": "Remove download",
+  "deleteAllDownloadsTitle": "Delete all downloads?",
+  "deleteAllDownloadsMessage": "{count, plural, =0{Delete all downloaded content? Current and queued downloads will also be canceled.} =1{Delete 1 downloaded track? Current and queued downloads will also be canceled.} other{Delete {count} downloaded tracks? Current and queued downloads will also be canceled.}}",
+  "@deleteAllDownloadsMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAllDownloadsMessageWithSize": "{count, plural, =0{Delete all downloaded content ({size})? Current and queued downloads will also be canceled.} =1{Delete 1 downloaded track ({size})? Current and queued downloads will also be canceled.} other{Delete {count} downloaded tracks ({size})? Current and queued downloads will also be canceled.}}",
+  "@deleteAllDownloadsMessageWithSize": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAllDownloadsButton": "Delete all",
+  "downloadSizeBytes": "{count} B",
+  "@downloadSizeBytes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadSizeKilobytes": "{value} KB",
+  "@downloadSizeKilobytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadSizeMegabytes": "{value} MB",
+  "@downloadSizeMegabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadSizeGigabytes": "{value} GB",
+  "@downloadSizeGigabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadsUnavailableMessage": "Downloads are not available on this device.",
+  "noDownloadedTracksMessage": "No downloaded tracks yet.",
+  "noDownloadedAuthorsMessage": "No authors with downloaded tracks yet.",
+  "noDownloadedAlbumsMessage": "No albums with downloaded tracks yet.",
+  "noDownloadedPlaylistsMessage": "No downloaded playlists yet.",
+  "downloadedAuthorNotFound": "This downloaded author is no longer available.",
+  "downloadedAlbumNotFound": "This downloaded album is no longer available.",
+  "downloadedPlaylistNotFound": "This downloaded playlist is no longer available.",
+  "noDownloadedTracksForAuthor": "There are no downloaded tracks by this author.",
+  "noDownloadedTracksInAlbum": "There are no downloaded tracks in this album.",
+  "noDownloadedTracksInPlaylist": "There are no downloaded tracks in this playlist.",
+  "downloadedPlaylistLoadFailed": "Failed to load the downloaded playlist.",
+  "downloadNotificationRunningTitle": "Downloading tracks",
+  "downloadNotificationRunningBody": "Download progress",
+  "downloadNotificationFailedTitle": "Downloads finished",
+  "downloadNotificationFailedBody": "Failed to download some tracks.",
+  "downloadNotificationCancelAction": "Cancel",
+  "downloadNotificationChannelName": "Track downloads",
+  "downloadNotificationChannelDescription": "Track download progress and errors",
+  "downloadLowStorageNotificationTitle": "Downloads stopped",
+  "downloadLowStorageNotificationBody": "Not enough storage. Free some space before downloading again.",
   "tracksTitle": "Tracks",
   "lastAddedTracksTitle": "Last added",
   "viewMoreButton": "View more",

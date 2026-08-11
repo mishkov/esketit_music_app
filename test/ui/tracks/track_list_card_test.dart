@@ -10,11 +10,11 @@ import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/ui/player/track_preference_synchronizer.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -48,10 +48,12 @@ void main() {
       autoplayStorage: _FakeAutoplayStorage(),
       errorReporter: _FakeErrorReporter(),
     );
+    final downloadsBloc = DownloadsBloc.unsupported();
 
     addTearDown(authBloc.close);
     addTearDown(playlistsBloc.close);
     addTearDown(playerBloc.close);
+    addTearDown(downloadsBloc.close);
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -59,6 +61,7 @@ void main() {
           BlocProvider<AuthBloc>.value(value: authBloc),
           BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
           BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -111,10 +114,12 @@ void main() {
       autoplayStorage: _FakeAutoplayStorage(),
       errorReporter: _FakeErrorReporter(),
     );
+    final downloadsBloc = DownloadsBloc.unsupported();
 
     addTearDown(authBloc.close);
     addTearDown(playlistsBloc.close);
     addTearDown(playerBloc.close);
+    addTearDown(downloadsBloc.close);
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -122,6 +127,7 @@ void main() {
           BlocProvider<AuthBloc>.value(value: authBloc),
           BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
           BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -152,56 +158,6 @@ void main() {
     expect(playlistsStorage.removedTrackIds, [track.id]);
   });
 
-  testWidgets('shows save-to-downloads action when explicitly enabled', (
-    tester,
-  ) async {
-    final track = _track(1).copyWith(
-      file: HttpFile(uri: Uri.parse('https://example.com/audio/track.mp3')),
-    );
-    final playlistsBloc = PlaylistsBloc(
-      playlistsStorage: _FakePlaylistsStorage(),
-      errorReporter: _FakeErrorReporter(),
-    );
-    final playerBloc = PlayerBloc(
-      initialState: const PlayerState(selectedTrack: null, isPlaying: false),
-      player: _FakeAudioPlayer(),
-      autoplayStorage: _FakeAutoplayStorage(),
-      errorReporter: _FakeErrorReporter(),
-    );
-    final authBloc = AuthBloc(
-      authRepository: _FakeAuthRepository(),
-      errorReporter: _FakeErrorReporter(),
-    )..add(const AuthSessionRestoreRequested());
-
-    addTearDown(authBloc.close);
-    addTearDown(playlistsBloc.close);
-    addTearDown(playerBloc.close);
-
-    await tester.pumpWidget(
-      MultiBlocProvider(
-        providers: [
-          BlocProvider<AuthBloc>.value(value: authBloc),
-          BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
-          BlocProvider<PlayerBloc>.value(value: playerBloc),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: TrackListCard(
-              track: track,
-              queue: [track],
-              showSaveToDownloadsAction: true,
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    expect(find.byIcon(Icons.download_rounded), findsOneWidget);
-  });
-
   testWidgets('keeps disliked track visible and rolls back failed dislike', (
     tester,
   ) async {
@@ -224,10 +180,12 @@ void main() {
       autoplayStorage: _FakeAutoplayStorage(),
       errorReporter: _FakeErrorReporter(),
     );
+    final downloadsBloc = DownloadsBloc.unsupported();
 
     addTearDown(authBloc.close);
     addTearDown(playlistsBloc.close);
     addTearDown(playerBloc.close);
+    addTearDown(downloadsBloc.close);
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -235,6 +193,7 @@ void main() {
           BlocProvider<AuthBloc>.value(value: authBloc),
           BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
           BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -454,6 +413,9 @@ class _FakeAudioPlayer implements AudioPlayer {
 
   @override
   Future<void> seekTo(Duration position) async {}
+
+  @override
+  Future<void> removeTracks(Set<int> trackIds) async {}
 
   @override
   Future<void> removeUpcomingTracks(Set<int> trackIds) async {

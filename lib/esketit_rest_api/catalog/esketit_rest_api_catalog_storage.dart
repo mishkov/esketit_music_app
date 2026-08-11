@@ -235,6 +235,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
 
           return Track(
             id: _asInt(item['id']) ?? 0,
+            albumId: album.id,
             name: (item['name'] as String?) ?? '',
             authors: authors,
             addionalInfo: _parseAdditionalInfo(item['additionalInfo']),
@@ -245,6 +246,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
             isFavorite: (item['isFavorite'] as bool?) ?? false,
             isDisliked: (item['isDisliked'] as bool?) ?? false,
             isAvailable: (item['isAvailable'] as bool?) ?? true,
+            createdAt: DateTime.tryParse((item['createdAt'] as String?) ?? ''),
           );
         })
         .where((track) => track.id > 0)
@@ -358,6 +360,11 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
 
     return Track(
       id: _asInt(item['id']) ?? 0,
+      albumId:
+          _asInt(item['albumId']) ??
+          (item['album'] is Map<String, dynamic>
+              ? _asInt((item['album'] as Map<String, dynamic>)['id'])
+              : null),
       name: (item['name'] as String?) ?? '',
       authors: authorItems.isNotEmpty ? authorItems : fallbackAuthorIds,
       addionalInfo: _parseAdditionalInfo(item['additionalInfo']),
@@ -368,6 +375,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
       isFavorite: (item['isFavorite'] as bool?) ?? false,
       isDisliked: (item['isDisliked'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
+      createdAt: DateTime.tryParse((item['createdAt'] as String?) ?? ''),
     );
   }
 

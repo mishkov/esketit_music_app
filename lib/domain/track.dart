@@ -5,6 +5,7 @@ import 'package:esketit_music_app/domain/track_info/track_info.dart';
 
 class Track extends Equatable {
   final int id;
+  final int? albumId;
   final String name;
   final List<Author> authors;
   final AbstractFile file;
@@ -12,6 +13,7 @@ class Track extends Equatable {
   final bool isFavorite;
   final bool isDisliked;
   final bool isAvailable;
+  final DateTime? createdAt;
 
   /// Any related info like history of track, who inspired, how it was written,
   /// link to videos, link to tik toks, link to covers etc.
@@ -27,10 +29,13 @@ class Track extends Equatable {
     required this.isFavorite,
     required this.isDisliked,
     required this.isAvailable,
+    this.albumId,
+    this.createdAt,
   });
 
   Track copyWith({
     int? id,
+    int? albumId,
     String? name,
     List<Author>? authors,
     AbstractFile? file,
@@ -39,9 +44,11 @@ class Track extends Equatable {
     bool? isFavorite,
     bool? isDisliked,
     bool? isAvailable,
+    DateTime? createdAt,
   }) {
     return Track(
       id: id ?? this.id,
+      albumId: albumId ?? this.albumId,
       name: name ?? this.name,
       authors: authors ?? this.authors,
       addionalInfo: addionalInfo ?? this.addionalInfo,
@@ -50,12 +57,14 @@ class Track extends Equatable {
       isFavorite: isFavorite ?? this.isFavorite,
       isDisliked: isDisliked ?? this.isDisliked,
       isAvailable: isAvailable ?? this.isAvailable,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     id,
+    albumId,
     name,
     authors,
     file,
@@ -64,5 +73,6 @@ class Track extends Equatable {
     isFavorite,
     isDisliked,
     isAvailable,
+    createdAt,
   ];
 }

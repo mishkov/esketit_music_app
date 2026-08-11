@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
+import 'package:esketit_music_app/domain/track_info/track_info.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/esketit_rest_api_url_resolver.dart';
@@ -223,14 +225,20 @@ class EsketitRestApiTracksStorage implements TracksStorage {
       tracks.add(
         Track(
           id: _asInt(item['id']) ?? 0,
+          albumId:
+              _asInt(item['albumId']) ??
+              (item['album'] is Map<String, dynamic>
+                  ? _asInt((item['album'] as Map<String, dynamic>)['id'])
+                  : null),
           name: name,
           authors: authors.isNotEmpty ? authors : fallbackAuthors,
-          addionalInfo: const [],
+          addionalInfo: _parseAdditionalInfo(item['additionalInfo']),
           file: HttpFile(uri: _resolveSongUri(audioFilePath)),
           image: HttpFile(uri: _resolveAlbumCoverUri(albumImagePath)),
           isFavorite: (item['isFavorite'] as bool?) ?? false,
           isDisliked: (item['isDisliked'] as bool?) ?? false,
           isAvailable: (item['isAvailable'] as bool?) ?? true,
+          createdAt: DateTime.tryParse((item['createdAt'] as String?) ?? ''),
         ),
       );
     }
@@ -322,6 +330,21 @@ class EsketitRestApiTracksStorage implements TracksStorage {
       TracksSort.id => 'id',
       TracksSort.addedAt => 'createdAt',
     };
+  }
+
+  List<TrackInfo> _parseAdditionalInfo(Object? value) {
+    final items = value is List ? value : const [];
+
+    return items
+        .whereType<Map<String, dynamic>>()
+        .where((item) => item['type'] == 'text')
+        .map(
+          (item) => TextTrackInfo(
+            title: (item['title'] as String?) ?? '',
+            text: (item['text'] as String?) ?? '',
+          ),
+        )
+        .toList(growable: false);
   }
 
   String _toOrderParameter(TracksSortOrder order) {

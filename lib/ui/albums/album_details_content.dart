@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/ui/albums/album_download_action.dart';
 import 'package:esketit_music_app/ui/albums/album_summary_card.dart';
 import 'package:esketit_music_app/ui/albums/album_tracks_section.dart';
 import 'package:esketit_music_app/ui/authors/author_desktop_layout.dart';
@@ -33,7 +34,10 @@ class AlbumDetailsContent extends StatelessWidget {
         final useDesktopLayout =
             constraints.maxWidth >= _desktopLayoutBreakpoint;
 
-        final summary = AlbumSummaryCard(album: album);
+        final summary = AlbumSummaryCard(
+          album: album,
+          downloadAction: AlbumDownloadAction(album: album, tracks: tracks),
+        );
         final tracksSection = AlbumTracksSection(
           tracks: tracks,
           tracksQueue: tracksQueue,

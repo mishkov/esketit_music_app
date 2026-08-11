@@ -1,12 +1,14 @@
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
-import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/bottom_navigation_bar/esketit_bottom_navigation_bar.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_browse_screen.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_screen.dart';
 import 'package:esketit_music_app/ui/drawer/esketit_drawer.dart';
+import 'package:esketit_music_app/ui/downloads/download_routes.dart';
+import 'package:esketit_music_app/ui/downloads/download_status_banner.dart';
 import 'package:esketit_music_app/ui/library/my_library_page.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
+import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,28 +50,47 @@ class _HomeScreenState extends State<HomeScreen> {
           currentIndex: _currentTabIndex,
           onTap: _onTabSelected,
         ),
-        body: [
-          const CatalogBrowseScreen(),
-          const CatalogScreen(),
-          const MyLibraryPage(),
-        ][_currentTabIndex],
+        body: Column(
+          children: [
+            BlocBuilder<DownloadsBloc, DownloadsState>(
+              buildWhen: (previous, current) =>
+                  previous.availability != current.availability ||
+                  previous.queue != current.queue,
+              builder: (context, downloadsState) {
+                if (!downloadsState.isReady) {
+                  return const SizedBox.shrink();
+                }
+
+                return DownloadStatusBanner(
+                  queue: downloadsState.queue,
+                  onOpen: () =>
+                      Navigator.of(context).pushNamed(downloadManagerRoutePath),
+                  onClearFailures: () => context.read<DownloadsBloc>().add(
+                    const ClearDownloadFailuresRequested(),
+                  ),
+                );
+              },
+            ),
+            Expanded(
+              child: [
+                const CatalogBrowseScreen(),
+                const CatalogScreen(),
+                const MyLibraryPage(),
+              ][_currentTabIndex],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _onTabSelected(int index) {
-    if (index == _libraryTabIndex &&
-        !context.read<AuthBloc>().state.isAuthenticated) {
-      LoginRequiredPromptScope.of(context).show();
-
-      return;
-    }
-
     setState(() {
       _currentTabIndex = index;
     });
 
-    if (index == _libraryTabIndex) {
+    if (index == _libraryTabIndex &&
+        context.read<AuthBloc>().state.isAuthenticated) {
       context.read<PlaylistsBloc>().add(const LoadPlaylists());
     }
   }
@@ -77,11 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onAuthStateChanged(BuildContext context, AuthState state) {
     if (!state.isAuthenticated) {
       context.read<PlaylistsBloc>().add(const ClearPlaylists());
-      if (_currentTabIndex == _libraryTabIndex) {
-        setState(() {
-          _currentTabIndex = _browseTabIndex;
-        });
-      }
 
       return;
     }

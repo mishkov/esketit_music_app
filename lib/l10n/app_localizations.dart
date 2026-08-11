@@ -416,6 +416,48 @@ abstract class AppLocalizations {
   /// **'Sign in to see your playlists.'**
   String get signInToSeeYourPlaylists;
 
+  /// No description provided for @likesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get likesTitle;
+
+  /// No description provided for @dislikesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dislikes'**
+  String get dislikesTitle;
+
+  /// No description provided for @signInToViewLibraryItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to view'**
+  String get signInToViewLibraryItem;
+
+  /// No description provided for @playlistsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists'**
+  String get playlistsSectionTitle;
+
+  /// No description provided for @createPlaylistTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Create playlist'**
+  String get createPlaylistTooltip;
+
+  /// No description provided for @signInToManagePlaylists.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to create and manage playlists.'**
+  String get signInToManagePlaylists;
+
+  /// No description provided for @playlistsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load playlists.'**
+  String get playlistsLoadFailed;
+
   /// No description provided for @yourPlaylistsTitle.
   ///
   /// In en, this message translates to:
@@ -439,6 +481,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No playlists yet. Create your first one.'**
   String get noPlaylistsYet;
+
+  /// No description provided for @downloadedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded'**
+  String get downloadedTitle;
+
+  /// No description provided for @deleteAllDownloadsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all downloads'**
+  String get deleteAllDownloadsTooltip;
+
+  /// No description provided for @downloadedTracksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracks'**
+  String get downloadedTracksTitle;
+
+  /// No description provided for @downloadedAuthorsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Authors'**
+  String get downloadedAuthorsTitle;
+
+  /// No description provided for @downloadedAlbumsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get downloadedAlbumsTitle;
+
+  /// No description provided for @downloadedPlaylistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists'**
+  String get downloadedPlaylistsTitle;
+
+  /// No description provided for @downloadedItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 items} =1{1 item} other{{count} items}}'**
+  String downloadedItemsCount(int count);
+
+  /// No description provided for @trackDownloadQueuedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued for download'**
+  String get trackDownloadQueuedTooltip;
+
+  /// No description provided for @trackDownloadingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading'**
+  String get trackDownloadingTooltip;
+
+  /// No description provided for @trackDownloadedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded'**
+  String get trackDownloadedTooltip;
+
+  /// No description provided for @trackDownloadFailedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed'**
+  String get trackDownloadFailedTooltip;
+
+  /// No description provided for @downloadManagerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads'**
+  String get downloadManagerTitle;
+
+  /// No description provided for @currentDownloadSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get currentDownloadSectionTitle;
+
+  /// No description provided for @queuedDownloadsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get queuedDownloadsSectionTitle;
+
+  /// No description provided for @failedDownloadsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get failedDownloadsSectionTitle;
+
+  /// No description provided for @noDownloadActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no active or failed downloads.'**
+  String get noDownloadActivity;
+
+  /// No description provided for @cancelDownloadTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel download'**
+  String get cancelDownloadTooltip;
+
+  /// No description provided for @clearButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearButton;
+
+  /// No description provided for @downloadQueuedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get downloadQueuedStatus;
+
+  /// No description provided for @downloadInProgressStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading'**
+  String get downloadInProgressStatus;
+
+  /// No description provided for @downloadWaitingToRetryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to try again'**
+  String get downloadWaitingToRetryStatus;
+
+  /// No description provided for @downloadProgressPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String downloadProgressPercent(int percent);
+
+  /// No description provided for @downloadsQueuedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No tracks queued} =1{1 track queued} other{{count} tracks queued}}'**
+  String downloadsQueuedCount(int count);
+
+  /// No description provided for @downloadsFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Failed to download 1 track} other{Failed to download {count} tracks}}'**
+  String downloadsFailedCount(int count);
+
+  /// No description provided for @downloadFailuresRemainMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open downloads for details or clear this message.'**
+  String get downloadFailuresRemainMessage;
+
+  /// No description provided for @downloadWaitingToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to start'**
+  String get downloadWaitingToStart;
+
+  /// No description provided for @downloadingTrackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {trackName}'**
+  String downloadingTrackName(String trackName);
+
+  /// No description provided for @downloadWaitingToRetryTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to try {trackName} again'**
+  String downloadWaitingToRetryTrack(String trackName);
+
+  /// No description provided for @downloadFailureNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error'**
+  String get downloadFailureNetwork;
+
+  /// No description provided for @downloadFailureServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error'**
+  String get downloadFailureServer;
+
+  /// No description provided for @downloadFailureStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage error'**
+  String get downloadFailureStorage;
+
+  /// No description provided for @downloadFailureInsufficientStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage'**
+  String get downloadFailureInsufficientStorage;
+
+  /// No description provided for @downloadFailureInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid server response'**
+  String get downloadFailureInvalidResponse;
+
+  /// No description provided for @downloadFailureUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown error'**
+  String get downloadFailureUnknown;
+
+  /// No description provided for @downloadAlbumButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download album'**
+  String get downloadAlbumButton;
+
+  /// No description provided for @downloadPlaylistButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download playlist'**
+  String get downloadPlaylistButton;
+
+  /// No description provided for @cancelDownloadButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel download'**
+  String get cancelDownloadButton;
+
+  /// No description provided for @removeDownloadButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove download'**
+  String get removeDownloadButton;
+
+  /// No description provided for @deleteAllDownloadsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all downloads?'**
+  String get deleteAllDownloadsTitle;
+
+  /// No description provided for @deleteAllDownloadsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Delete all downloaded content? Current and queued downloads will also be canceled.} =1{Delete 1 downloaded track? Current and queued downloads will also be canceled.} other{Delete {count} downloaded tracks? Current and queued downloads will also be canceled.}}'**
+  String deleteAllDownloadsMessage(int count);
+
+  /// No description provided for @deleteAllDownloadsMessageWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Delete all downloaded content ({size})? Current and queued downloads will also be canceled.} =1{Delete 1 downloaded track ({size})? Current and queued downloads will also be canceled.} other{Delete {count} downloaded tracks ({size})? Current and queued downloads will also be canceled.}}'**
+  String deleteAllDownloadsMessageWithSize(int count, String size);
+
+  /// No description provided for @deleteAllDownloadsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all'**
+  String get deleteAllDownloadsButton;
+
+  /// No description provided for @downloadSizeBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} B'**
+  String downloadSizeBytes(int count);
+
+  /// No description provided for @downloadSizeKilobytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} KB'**
+  String downloadSizeKilobytes(String value);
+
+  /// No description provided for @downloadSizeMegabytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} MB'**
+  String downloadSizeMegabytes(String value);
+
+  /// No description provided for @downloadSizeGigabytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} GB'**
+  String downloadSizeGigabytes(String value);
+
+  /// No description provided for @downloadsUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads are not available on this device.'**
+  String get downloadsUnavailableMessage;
+
+  /// No description provided for @noDownloadedTracksMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloaded tracks yet.'**
+  String get noDownloadedTracksMessage;
+
+  /// No description provided for @noDownloadedAuthorsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No authors with downloaded tracks yet.'**
+  String get noDownloadedAuthorsMessage;
+
+  /// No description provided for @noDownloadedAlbumsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No albums with downloaded tracks yet.'**
+  String get noDownloadedAlbumsMessage;
+
+  /// No description provided for @noDownloadedPlaylistsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloaded playlists yet.'**
+  String get noDownloadedPlaylistsMessage;
+
+  /// No description provided for @downloadedAuthorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloaded author is no longer available.'**
+  String get downloadedAuthorNotFound;
+
+  /// No description provided for @downloadedAlbumNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloaded album is no longer available.'**
+  String get downloadedAlbumNotFound;
+
+  /// No description provided for @downloadedPlaylistNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloaded playlist is no longer available.'**
+  String get downloadedPlaylistNotFound;
+
+  /// No description provided for @noDownloadedTracksForAuthor.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no downloaded tracks by this author.'**
+  String get noDownloadedTracksForAuthor;
+
+  /// No description provided for @noDownloadedTracksInAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no downloaded tracks in this album.'**
+  String get noDownloadedTracksInAlbum;
+
+  /// No description provided for @noDownloadedTracksInPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no downloaded tracks in this playlist.'**
+  String get noDownloadedTracksInPlaylist;
+
+  /// No description provided for @downloadedPlaylistLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load the downloaded playlist.'**
+  String get downloadedPlaylistLoadFailed;
+
+  /// No description provided for @downloadNotificationRunningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading tracks'**
+  String get downloadNotificationRunningTitle;
+
+  /// No description provided for @downloadNotificationRunningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Download progress'**
+  String get downloadNotificationRunningBody;
+
+  /// No description provided for @downloadNotificationFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads finished'**
+  String get downloadNotificationFailedTitle;
+
+  /// No description provided for @downloadNotificationFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download some tracks.'**
+  String get downloadNotificationFailedBody;
+
+  /// No description provided for @downloadNotificationCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get downloadNotificationCancelAction;
+
+  /// No description provided for @downloadNotificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Track downloads'**
+  String get downloadNotificationChannelName;
+
+  /// No description provided for @downloadNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Track download progress and errors'**
+  String get downloadNotificationChannelDescription;
+
+  /// No description provided for @downloadLowStorageNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads stopped'**
+  String get downloadLowStorageNotificationTitle;
+
+  /// No description provided for @downloadLowStorageNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage. Free some space before downloading again.'**
+  String get downloadLowStorageNotificationBody;
 
   /// No description provided for @tracksTitle.
   ///

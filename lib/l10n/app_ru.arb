@@ -60,10 +60,171 @@
     }
   },
   "signInToSeeYourPlaylists": "Войдите, чтобы увидеть свои плейлисты.",
+  "likesTitle": "Лайки",
+  "dislikesTitle": "Дизлайки",
+  "signInToViewLibraryItem": "Войдите для просмотра",
+  "playlistsSectionTitle": "Плейлисты",
+  "createPlaylistTooltip": "Создать плейлист",
+  "signInToManagePlaylists": "Войдите, чтобы создавать плейлисты и управлять ими.",
+  "playlistsLoadFailed": "Не удалось загрузить плейлисты.",
   "yourPlaylistsTitle": "Ваши плейлисты",
   "newPlaylistButton": "Новый",
   "playlistsDescription": "Избранное и дизлайки управляются автоматически. Остальные плейлисты можно редактировать.",
   "noPlaylistsYet": "Плейлистов пока нет. Создайте первый.",
+  "downloadedTitle": "Скачанное",
+  "deleteAllDownloadsTooltip": "Удалить все скачанные треки",
+  "downloadedTracksTitle": "Треки",
+  "downloadedAuthorsTitle": "Авторы",
+  "downloadedAlbumsTitle": "Альбомы",
+  "downloadedPlaylistsTitle": "Плейлисты",
+  "downloadedItemsCount": "{count, plural, =0{0 элементов} one{{count} элемент} few{{count} элемента} many{{count} элементов} other{{count} элемента}}",
+  "@downloadedItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trackDownloadQueuedTooltip": "В очереди на скачивание",
+  "trackDownloadingTooltip": "Скачивается",
+  "trackDownloadedTooltip": "Скачано",
+  "trackDownloadFailedTooltip": "Не удалось скачать",
+  "downloadManagerTitle": "Загрузки",
+  "currentDownloadSectionTitle": "Текущая загрузка",
+  "queuedDownloadsSectionTitle": "В очереди",
+  "failedDownloadsSectionTitle": "Не удалось скачать",
+  "noDownloadActivity": "Нет активных или неудачных загрузок.",
+  "cancelDownloadTooltip": "Отменить скачивание",
+  "clearButton": "Очистить",
+  "downloadQueuedStatus": "В очереди",
+  "downloadInProgressStatus": "Скачивается",
+  "downloadWaitingToRetryStatus": "Ожидание новой попытки",
+  "downloadProgressPercent": "{percent}%",
+  "@downloadProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadsQueuedCount": "{count, plural, =0{В очереди нет треков} one{В очереди {count} трек} few{В очереди {count} трека} many{В очереди {count} треков} other{В очереди {count} трека}}",
+  "@downloadsQueuedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadsFailedCount": "{count, plural, one{Не удалось скачать {count} трек} few{Не удалось скачать {count} трека} many{Не удалось скачать {count} треков} other{Не удалось скачать {count} трека}}",
+  "@downloadsFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadFailuresRemainMessage": "Откройте загрузки, чтобы увидеть подробности, или очистите это сообщение.",
+  "downloadWaitingToStart": "Ожидание начала",
+  "downloadingTrackName": "Скачивается {trackName}",
+  "@downloadingTrackName": {
+    "placeholders": {
+      "trackName": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadWaitingToRetryTrack": "Ожидание новой попытки скачать {trackName}",
+  "@downloadWaitingToRetryTrack": {
+    "placeholders": {
+      "trackName": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailureNetwork": "Ошибка сети",
+  "downloadFailureServer": "Ошибка сервера",
+  "downloadFailureStorage": "Ошибка хранилища",
+  "downloadFailureInsufficientStorage": "Недостаточно места",
+  "downloadFailureInvalidResponse": "Некорректный ответ сервера",
+  "downloadFailureUnknown": "Неизвестная ошибка",
+  "downloadAlbumButton": "Скачать альбом",
+  "downloadPlaylistButton": "Скачать плейлист",
+  "cancelDownloadButton": "Отменить скачивание",
+  "removeDownloadButton": "Удалить скачанное",
+  "deleteAllDownloadsTitle": "Удалить все загрузки?",
+  "deleteAllDownloadsMessage": "{count, plural, =0{Удалить все скачанные материалы? Текущая загрузка и очередь также будут отменены.} one{Удалить {count} скачанный трек? Текущая загрузка и очередь также будут отменены.} few{Удалить {count} скачанных трека? Текущая загрузка и очередь также будут отменены.} many{Удалить {count} скачанных треков? Текущая загрузка и очередь также будут отменены.} other{Удалить {count} скачанного трека? Текущая загрузка и очередь также будут отменены.}}",
+  "@deleteAllDownloadsMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAllDownloadsMessageWithSize": "{count, plural, =0{Удалить все скачанные материалы ({size})? Текущая загрузка и очередь также будут отменены.} one{Удалить {count} скачанный трек ({size})? Текущая загрузка и очередь также будут отменены.} few{Удалить {count} скачанных трека ({size})? Текущая загрузка и очередь также будут отменены.} many{Удалить {count} скачанных треков ({size})? Текущая загрузка и очередь также будут отменены.} other{Удалить {count} скачанного трека ({size})? Текущая загрузка и очередь также будут отменены.}}",
+  "@deleteAllDownloadsMessageWithSize": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAllDownloadsButton": "Удалить всё",
+  "downloadSizeBytes": "{count} Б",
+  "@downloadSizeBytes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadSizeKilobytes": "{value} КБ",
+  "@downloadSizeKilobytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadSizeMegabytes": "{value} МБ",
+  "@downloadSizeMegabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadSizeGigabytes": "{value} ГБ",
+  "@downloadSizeGigabytes": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadsUnavailableMessage": "Загрузки недоступны на этом устройстве.",
+  "noDownloadedTracksMessage": "Скачанных треков пока нет.",
+  "noDownloadedAuthorsMessage": "Авторов со скачанными треками пока нет.",
+  "noDownloadedAlbumsMessage": "Альбомов со скачанными треками пока нет.",
+  "noDownloadedPlaylistsMessage": "Скачанных плейлистов пока нет.",
+  "downloadedAuthorNotFound": "Этот скачанный автор больше недоступен.",
+  "downloadedAlbumNotFound": "Этот скачанный альбом больше недоступен.",
+  "downloadedPlaylistNotFound": "Этот скачанный плейлист больше недоступен.",
+  "noDownloadedTracksForAuthor": "У этого автора нет скачанных треков.",
+  "noDownloadedTracksInAlbum": "В этом альбоме нет скачанных треков.",
+  "noDownloadedTracksInPlaylist": "В этом плейлисте нет скачанных треков.",
+  "downloadedPlaylistLoadFailed": "Не удалось загрузить скачанный плейлист.",
+  "downloadNotificationRunningTitle": "Скачивание треков",
+  "downloadNotificationRunningBody": "Прогресс скачивания",
+  "downloadNotificationFailedTitle": "Загрузки завершены",
+  "downloadNotificationFailedBody": "Некоторые треки скачать не удалось.",
+  "downloadNotificationCancelAction": "Отменить",
+  "downloadNotificationChannelName": "Скачивание треков",
+  "downloadNotificationChannelDescription": "Прогресс и ошибки скачивания треков",
+  "downloadLowStorageNotificationTitle": "Загрузки остановлены",
+  "downloadLowStorageNotificationBody": "Недостаточно места. Освободите память перед новой попыткой.",
   "tracksTitle": "Треки",
   "lastAddedTracksTitle": "Последние добавленные",
   "viewMoreButton": "Показать ещё",

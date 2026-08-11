@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:esketit_music_app/ui/theme/album_cover_average_color.dart';
 import 'package:esketit_music_app/ui/theme/album_cover_average_color_calculator.dart';
+import 'package:esketit_music_app/ui/theme/uri_image_provider.dart';
 import 'package:flutter/material.dart';
 
 class AlbumCoverColorSchemeSeedBuilder extends StatefulWidget {
@@ -108,7 +109,7 @@ class _AlbumCoverColorSchemeSeedBuilderState
     final imageProvider = ResizeImage.resizeIfNeeded(
       _decodeSize,
       _decodeSize,
-      NetworkImage(albumCoverUri.toString()),
+      imageProviderForUri(albumCoverUri),
     );
     final imageInfo = await _resolveImage(imageProvider);
     try {

@@ -14,6 +14,7 @@ import 'package:esketit_music_app/ui/tracks/show_add_to_playlists_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen_body.dart';
 import 'package:esketit_music_app/ui/tracks/track_routes.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
+import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +38,14 @@ class TrackScreen extends StatelessWidget {
         final authors = displayedTrack?.authors ?? const <Author>[];
         final album = displayedTrack == null
             ? null
-            : _albumForTrack(context.read<CatalogBloc>().state, displayedTrack);
+            : _downloadedAlbumForTrack(
+                    context.read<DownloadsBloc>().state,
+                    displayedTrack,
+                  ) ??
+                  _albumForTrack(
+                    context.read<CatalogBloc>().state,
+                    displayedTrack,
+                  );
         final hasMenuActions =
             displayedTrack != null || album != null || authors.isNotEmpty;
 
@@ -53,22 +61,36 @@ class TrackScreen extends StatelessWidget {
                   onPressed: () => _copyTrackLink(context, displayedTrack),
                   icon: const Icon(Icons.ios_share_rounded),
                 ),
-              PopupMenuButton<_TrackScreenMenuAction>(
-                enabled: hasMenuActions,
-                onSelected: (action) => _onMenuActionSelected(
-                  context,
-                  action,
-                  displayedTrack,
-                  album,
-                  authors,
-                ),
-                itemBuilder: (context) => _buildTrackScreenMenuItems(
-                  context,
-                  displayedTrack,
-                  album,
-                  authors,
-                ),
-                icon: const Icon(Icons.more_vert_rounded),
+              BlocBuilder<DownloadsBloc, DownloadsState>(
+                buildWhen: (previous, current) => displayedTrack != null
+                    ? previous.statusForTrack(displayedTrack.id) !=
+                              current.statusForTrack(displayedTrack.id) ||
+                          previous.availability != current.availability
+                    : previous.availability != current.availability,
+                builder: (context, downloadsState) {
+                  final downloadStatus = displayedTrack == null
+                      ? TrackDownloadState.notDownloaded
+                      : downloadsState.statusForTrack(displayedTrack.id);
+
+                  return PopupMenuButton<_TrackScreenMenuAction>(
+                    enabled: hasMenuActions,
+                    onSelected: (action) => _onMenuActionSelected(
+                      context,
+                      action,
+                      displayedTrack,
+                      album,
+                      authors,
+                    ),
+                    itemBuilder: (context) => _buildTrackScreenMenuItems(
+                      context,
+                      displayedTrack,
+                      album,
+                      authors,
+                      downloadsState.isReady ? downloadStatus : null,
+                    ),
+                    icon: const Icon(Icons.more_vert_rounded),
+                  );
+                },
               ),
             ],
           ),
@@ -123,6 +145,24 @@ class TrackScreen extends StatelessWidget {
         }
       case _TrackScreenMenuAction.goToAuthor:
         await openAuthorSelection(context, authors);
+      case _TrackScreenMenuAction.download:
+        if (track != null) {
+          context.read<DownloadsBloc>().add(
+            DownloadTrackRequested(track: track, album: album),
+          );
+        }
+      case _TrackScreenMenuAction.cancelDownload:
+        if (track != null) {
+          context.read<DownloadsBloc>().add(
+            CancelTrackDownloadRequested(track.id),
+          );
+        }
+      case _TrackScreenMenuAction.removeDownload:
+        if (track != null) {
+          context.read<DownloadsBloc>().add(
+            RemoveTrackDownloadRequested(track.id),
+          );
+        }
     }
   }
 
@@ -131,8 +171,27 @@ class TrackScreen extends StatelessWidget {
     Track? track,
     Album? album,
     List<Author> authors,
+    TrackDownloadState? downloadStatus,
   ) {
     return [
+      if (track != null && downloadStatus != null)
+        PopupMenuItem<_TrackScreenMenuAction>(
+          value: switch (downloadStatus) {
+            TrackDownloadState.notDownloaded ||
+            TrackDownloadState.failed => _TrackScreenMenuAction.download,
+            TrackDownloadState.queued || TrackDownloadState.downloading =>
+              _TrackScreenMenuAction.cancelDownload,
+            TrackDownloadState.downloaded =>
+              _TrackScreenMenuAction.removeDownload,
+          },
+          child: Text(switch (downloadStatus) {
+            TrackDownloadState.notDownloaded || TrackDownloadState.failed =>
+              context.l10n.saveTrackToDownloadsTooltip,
+            TrackDownloadState.queued ||
+            TrackDownloadState.downloading => context.l10n.cancelDownloadButton,
+            TrackDownloadState.downloaded => context.l10n.removeDownloadButton,
+          }),
+        ),
       if (track != null)
         PopupMenuItem<_TrackScreenMenuAction>(
           value: _TrackScreenMenuAction.addToPlaylists,
@@ -174,6 +233,24 @@ class TrackScreen extends StatelessWidget {
 
     return null;
   }
+
+  Album? _downloadedAlbumForTrack(DownloadsState state, Track track) {
+    final albumId = track.albumId;
+    if (albumId == null) {
+      return null;
+    }
+
+    return state.library.albums
+        .where((album) => album.id == albumId)
+        .firstOrNull;
+  }
 }
 
-enum _TrackScreenMenuAction { addToPlaylists, goToAlbum, goToAuthor }
+enum _TrackScreenMenuAction {
+  download,
+  cancelDownload,
+  removeDownload,
+  addToPlaylists,
+  goToAlbum,
+  goToAuthor,
+}

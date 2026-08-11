@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/domain/track_info/text_track_info.dart';
+import 'package:esketit_music_app/domain/track_info/track_info.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/esketit_rest_api_url_resolver.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
@@ -86,9 +88,14 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
 
     return Track(
       id: _asInt(item['id']) ?? 0,
+      albumId:
+          _asInt(item['albumId']) ??
+          (item['album'] is Map<String, dynamic>
+              ? _asInt((item['album'] as Map<String, dynamic>)['id'])
+              : null),
       name: (item['name'] as String?) ?? '',
       authors: authorItems.isNotEmpty ? authorItems : fallbackAuthors,
-      addionalInfo: const [],
+      addionalInfo: _parseAdditionalInfo(item['additionalInfo']),
       file: HttpFile(
         uri: _resolveSongUri((item['audioFilePath'] as String?) ?? ''),
       ),
@@ -96,7 +103,23 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
       isFavorite: (item['isFavorite'] as bool?) ?? false,
       isDisliked: (item['isDisliked'] as bool?) ?? false,
       isAvailable: (item['isAvailable'] as bool?) ?? true,
+      createdAt: DateTime.tryParse((item['createdAt'] as String?) ?? ''),
     );
+  }
+
+  List<TrackInfo> _parseAdditionalInfo(Object? value) {
+    final items = value is List ? value : const [];
+
+    return items
+        .whereType<Map<String, dynamic>>()
+        .where((item) => item['type'] == 'text')
+        .map(
+          (item) => TextTrackInfo(
+            title: (item['title'] as String?) ?? '',
+            text: (item['text'] as String?) ?? '',
+          ),
+        )
+        .toList(growable: false);
   }
 
   Author _parseAuthor(Map<String, dynamic> item) {

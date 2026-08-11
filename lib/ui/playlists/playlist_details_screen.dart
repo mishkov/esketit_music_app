@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/playlist.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/downloads/playlist_download_action.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_editor_dialog.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_routes.dart';
@@ -82,7 +83,15 @@ class _PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                   ),
                   child: Column(
                     children: [
-                      PlaylistHeader(playlist: playlist),
+                      PlaylistHeader(
+                        playlist: playlist,
+                        downloadAction: tracks == null
+                            ? null
+                            : PlaylistDownloadAction(
+                                playlist: playlist,
+                                tracks: tracks,
+                              ),
+                      ),
                       Expanded(
                         child: tracks == null
                             ? const Center(child: CircularProgressIndicator())

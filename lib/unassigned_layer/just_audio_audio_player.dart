@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/domain/file/local_file.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:just_audio/just_audio.dart' as just_audio;
@@ -86,6 +87,29 @@ class JustAudioAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> removeTracks(Set<int> trackIds) async {
+    if (trackIds.isEmpty) {
+      return;
+    }
+    final indexesToRemove = <int>[
+      for (var index = _queue.length - 1; index >= 0; index--)
+        if (trackIds.contains(_queue[index].id)) index,
+    ];
+    for (final index in indexesToRemove) {
+      final previousQueue = _queue;
+      final updatedQueue = previousQueue.toList()..removeAt(index);
+      _queue = List<Track>.unmodifiable(updatedQueue);
+
+      try {
+        await _audioPlayer.removeAudioSourceAt(index);
+      } catch (_) {
+        _queue = previousQueue;
+        rethrow;
+      }
+    }
+  }
+
+  @override
   Future<void> removeUpcomingTracks(Set<int> trackIds) async {
     final safeCurrentIndex = currentIndex;
     if (safeCurrentIndex == null || trackIds.isEmpty) {
@@ -135,18 +159,25 @@ class JustAudioAudioPlayer implements AudioPlayer {
     await _audioPlayer.seekToPrevious();
   }
 
-  String _extractTrackPath(Track track) {
+  Uri _extractTrackUri(Track track) {
     final file = track.file;
-    if (file is! HttpFile) {
-      throw StateError('Track file must be HttpFile');
+    if (file is LocalFile) {
+      if (file.path.isEmpty) {
+        throw StateError('Local track file path is empty');
+      }
+
+      return Uri.file(file.path);
+    }
+    if (file is HttpFile) {
+      final path = file.uri.toString();
+      if (path.isEmpty) {
+        throw StateError('Track file path is empty');
+      }
+
+      return _resolveTrackUri(path);
     }
 
-    final path = file.uri.toString();
-    if (path.isEmpty) {
-      throw StateError('Track file path is empty');
-    }
-
-    return path;
+    throw StateError('Unsupported track file type: ${file.runtimeType}');
   }
 
   Uri _resolveTrackUri(String path) {
@@ -164,16 +195,19 @@ class JustAudioAudioPlayer implements AudioPlayer {
 
   Uri? _extractImageUri(Track track) {
     final image = track.image;
-    if (image is! HttpFile) {
-      return null;
+    if (image is LocalFile) {
+      return image.path.isEmpty ? null : Uri.file(image.path);
+    }
+    if (image is HttpFile) {
+      final imagePath = image.uri.toString();
+      if (imagePath.isEmpty) {
+        return null;
+      }
+
+      return _resolveTrackUri(imagePath);
     }
 
-    final imagePath = image.uri.toString();
-    if (imagePath.isEmpty) {
-      return null;
-    }
-
-    return _resolveTrackUri(imagePath);
+    return null;
   }
 
   @override
@@ -187,8 +221,7 @@ class JustAudioAudioPlayer implements AudioPlayer {
   }
 
   just_audio.AudioSource _buildAudioSource(Track track) {
-    final path = _extractTrackPath(track);
-    final uri = _resolveTrackUri(path);
+    final uri = _extractTrackUri(track);
     final imageUri = _extractImageUri(track);
 
     return just_audio.AudioSource.uri(

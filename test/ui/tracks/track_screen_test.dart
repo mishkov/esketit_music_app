@@ -19,6 +19,7 @@ import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
+import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/lyrics/lyrics_storage.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
@@ -61,12 +62,14 @@ void main() {
       errorReporter: errorReporter,
     );
     final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+    final downloadsBloc = DownloadsBloc.unsupported();
 
     addTearDown(authBloc.close);
     addTearDown(playlistsBloc.close);
     addTearDown(playerBloc.close);
     addTearDown(catalogBloc.close);
     addTearDown(lyricsBloc.close);
+    addTearDown(downloadsBloc.close);
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -76,6 +79,7 @@ void main() {
           BlocProvider<PlayerBloc>.value(value: playerBloc),
           BlocProvider<CatalogBloc>.value(value: catalogBloc),
           BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
         ],
         child: RepositoryProvider<ErrorReporter>.value(
           value: errorReporter,
@@ -146,12 +150,14 @@ void main() {
         errorReporter: errorReporter,
       );
       final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+      final downloadsBloc = DownloadsBloc.unsupported();
 
       addTearDown(authBloc.close);
       addTearDown(playlistsBloc.close);
       addTearDown(playerBloc.close);
       addTearDown(catalogBloc.close);
       addTearDown(lyricsBloc.close);
+      addTearDown(downloadsBloc.close);
 
       await tester.pumpWidget(
         MultiRepositoryProvider(
@@ -168,6 +174,7 @@ void main() {
               BlocProvider<PlayerBloc>.value(value: playerBloc),
               BlocProvider<CatalogBloc>.value(value: catalogBloc),
               BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+              BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
             ],
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -229,12 +236,14 @@ void main() {
       errorReporter: errorReporter,
     );
     final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+    final downloadsBloc = DownloadsBloc.unsupported();
 
     addTearDown(authBloc.close);
     addTearDown(playlistsBloc.close);
     addTearDown(playerBloc.close);
     addTearDown(catalogBloc.close);
     addTearDown(lyricsBloc.close);
+    addTearDown(downloadsBloc.close);
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -244,6 +253,7 @@ void main() {
           BlocProvider<PlayerBloc>.value(value: playerBloc),
           BlocProvider<CatalogBloc>.value(value: catalogBloc),
           BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -301,12 +311,14 @@ void main() {
       errorReporter: errorReporter,
     );
     final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+    final downloadsBloc = DownloadsBloc.unsupported();
 
     addTearDown(authBloc.close);
     addTearDown(playlistsBloc.close);
     addTearDown(playerBloc.close);
     addTearDown(catalogBloc.close);
     addTearDown(lyricsBloc.close);
+    addTearDown(downloadsBloc.close);
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -316,6 +328,7 @@ void main() {
           BlocProvider<PlayerBloc>.value(value: playerBloc),
           BlocProvider<CatalogBloc>.value(value: catalogBloc),
           BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -597,6 +610,9 @@ class _FakeAudioPlayer implements AudioPlayer {
 
   @override
   Future<void> seekTo(Duration position) async {}
+
+  @override
+  Future<void> removeTracks(Set<int> trackIds) async {}
 
   @override
   Future<void> removeUpcomingTracks(Set<int> trackIds) async {}

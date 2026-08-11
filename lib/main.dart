@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:esketit_music_app/errors/error_reporter/app_errors_bloc_observer.dart';
+import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/encrypter_stub.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter_console_logger_proxy.dart';
@@ -15,9 +16,13 @@ import 'package:esketit_music_app/esketit_rest_api/playlists/esketit_rest_api_pl
 import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_lyrics_storage.dart';
 import 'package:esketit_music_app/esketit_rest_api/tracks/esketit_rest_api_tracks_storage.dart';
 import 'package:esketit_music_app/ui/esketit_app.dart';
+import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/unassigned_layer/audio_player_factory.dart';
 import 'package:esketit_music_app/unassigned_layer/base_uri_configuration.dart';
 import 'package:esketit_music_app/unassigned_layer/flutter_secure_auth_session_storage.dart';
+import 'package:esketit_music_app/unassigned_layer/downloads/downloads_runtime.dart';
+import 'package:esketit_music_app/unassigned_layer/downloads/downloads_runtime_factory.dart';
+import 'package:esketit_music_app/unassigned_layer/downloads/http_download_source_resolver.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
@@ -29,11 +34,15 @@ import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
+import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
+import 'package:esketit_music_app/use_case/downloads/download_transfer.dart';
+import 'package:esketit_music_app/use_case/lyrics/cache_first_lyrics_storage.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:esketit_music_app/use_case/settings/app_theme_mode.dart';
+import 'package:esketit_music_app/use_case/settings/app_locale.dart';
 import 'package:esketit_music_app/use_case/settings/author_albums_display_mode.dart';
 import 'package:esketit_music_app/use_case/settings/bloc/settings_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/fullscreen_player_inactive_controls.dart';
@@ -89,6 +98,20 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       await settingsStorage.getFullscreenPlayerInactiveControls() ??
       FullscreenPlayerInactiveControls.defaults;
   final packageInfo = await PackageInfo.fromPlatform();
+  DownloadsRuntime? downloadsRuntime;
+  try {
+    downloadsRuntime = await createDownloadsRuntime(
+      errorReporter: errorReporter,
+    );
+  } catch (error, stackTrace) {
+    await errorReporter.reportError(
+      AppError(
+        'Failed to open offline downloads storage',
+        cause: error,
+        stackTrace: stackTrace,
+      ),
+    );
+  }
 
   final unauthenticatedHttpClient = HttpPackageHttpClient(baseUri: baseUri);
   final sessionRefresher = DelegatingAuthSessionRefresher();
@@ -122,9 +145,15 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     httpClient: optionallyAuthenticatedHttpClient,
     baseUri: baseUri,
   );
-  final lyricsStorage = EsketitRestApiLyricsStorage(
+  final remoteLyricsStorage = EsketitRestApiLyricsStorage(
     httpClient: optionallyAuthenticatedHttpClient,
   );
+  final lyricsStorage = downloadsRuntime == null
+      ? remoteLyricsStorage
+      : CacheFirstLyricsStorage(
+          downloadsStorage: downloadsRuntime.storage,
+          remoteStorage: remoteLyricsStorage,
+        );
   final tracksStorage = EsketitRestApiTracksStorage(
     httpClient: optionallyAuthenticatedHttpClient,
     baseUri: baseUri,
@@ -202,11 +231,56 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
           BlocProvider(
             create: (context) => PlayerBloc(
               initialState: PlayerState(selectedTrack: null, isPlaying: false),
-              player: createAudioPlayer(baseUri: baseUri),
+              player: createAudioPlayer(
+                baseUri: baseUri,
+                downloadedLibraryStorage: downloadsRuntime?.storage,
+              ),
               autoplayStorage: autoplayStorage,
               errorReporter: errorReporter,
               analytics: analyticsCollector,
             ),
+          ),
+          BlocProvider(
+            create: (context) {
+              final runtime = downloadsRuntime;
+              if (runtime == null) {
+                return DownloadsBloc.unsupported();
+              }
+              final localizations = _downloadLocalizations(selectedLocale);
+
+              return DownloadsBloc(
+                storage: runtime.storage,
+                transfer: runtime.transfer,
+                alertNotifications: runtime.alertNotifications,
+                sourceResolver: const HttpDownloadSourceResolver(),
+                lyricsStorage: remoteLyricsStorage,
+                catalogStorage: catalogStorage,
+                errorReporter: errorReporter,
+                transferMessages: DownloadTransferNotificationMessages(
+                  runningTitle: localizations.downloadNotificationRunningTitle,
+                  runningBody: localizations.downloadNotificationRunningBody,
+                  failedTitle: localizations.downloadNotificationFailedTitle,
+                  failedBody: localizations.downloadNotificationFailedBody,
+                  cancelActionLabel:
+                      localizations.downloadNotificationCancelAction,
+                ),
+                alertMessages: DownloadAlertNotificationMessages(
+                  channelName: localizations.downloadNotificationChannelName,
+                  channelDescription:
+                      localizations.downloadNotificationChannelDescription,
+                  failedTitle: localizations.downloadNotificationFailedTitle,
+                  failedBody: localizations.downloadNotificationFailedBody,
+                  lowStorageTitle:
+                      localizations.downloadLowStorageNotificationTitle,
+                  lowStorageBody:
+                      localizations.downloadLowStorageNotificationBody,
+                ),
+                preparePlaybackForTrackRemoval: context
+                    .read<PlayerBloc>()
+                    .prepareForDownloadedTrackRemoval,
+                storageDisposer: runtime.closeStorage,
+              )..add(const DownloadsStarted());
+            },
           ),
           BlocProvider(
             create: (context) => PlaylistsBloc(
@@ -235,6 +309,20 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       ),
     ),
   );
+}
+
+AppLocalizations _downloadLocalizations(AppLocale? selectedLocale) {
+  final languageCode =
+      selectedLocale?.languageCode ??
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+  final locale =
+      AppLocalizations.supportedLocales.any(
+        (supportedLocale) => supportedLocale.languageCode == languageCode,
+      )
+      ? Locale(languageCode)
+      : const Locale('en');
+
+  return lookupAppLocalizations(locale);
 }
 
 Duration _analyticsFlushInterval() {

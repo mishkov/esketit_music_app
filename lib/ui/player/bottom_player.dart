@@ -10,7 +10,6 @@ import 'package:esketit_music_app/ui/player/fullscreen_player_platform.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_player_screen.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/tracks/track_routes.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,9 +26,6 @@ class BottomPlayer extends StatelessWidget {
           previous.isPlaying != current.isPlaying,
       builder: (context, state) {
         final selectedTrack = state.selectedTrack;
-        final selectedTrackImageUrl = _selectedTrackImageUrl(
-          selectedTrack?.image,
-        );
 
         return Container(
           padding: const EdgeInsets.all(4.0),
@@ -42,7 +38,7 @@ class BottomPlayer extends StatelessWidget {
               children: [
                 SizedBox.square(
                   dimension: 48,
-                  child: _buildTrackArtwork(imageUrl: selectedTrackImageUrl),
+                  child: _buildTrackArtwork(track: selectedTrack),
                 ),
                 Expanded(
                   child: Column(
@@ -156,24 +152,14 @@ class BottomPlayer extends StatelessWidget {
     context.read<PlayerBloc>().add(TogglePlay());
   }
 
-  Widget _buildTrackArtwork({required String? imageUrl}) {
-    if (imageUrl == null) {
+  Widget _buildTrackArtwork({required Track? track}) {
+    if (track == null) {
       return const SizedBox.shrink();
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: RemoteImage(imageUrl: imageUrl, icon: Icons.music_note_rounded),
+      child: RemoteImage(file: track.image, icon: Icons.music_note_rounded),
     );
-  }
-
-  String? _selectedTrackImageUrl(Object? image) {
-    if (image is! HttpFile) {
-      return null;
-    }
-
-    final imageUrl = image.uri.toString();
-
-    return imageUrl.isEmpty ? null : imageUrl;
   }
 }
