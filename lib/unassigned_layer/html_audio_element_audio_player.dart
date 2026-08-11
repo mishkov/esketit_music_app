@@ -109,6 +109,32 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> removeTracks(Set<int> trackIds) async {
+    final currentTrack = _currentTrack;
+    if (trackIds.isEmpty ||
+        !_queue.any((track) => trackIds.contains(track.id))) {
+      return;
+    }
+
+    _queue = List<Track>.unmodifiable(
+      _queue.where((track) => !trackIds.contains(track.id)),
+    );
+    if (currentTrack == null || trackIds.contains(currentTrack.id)) {
+      _currentIndex = null;
+      _loadGeneration += 1;
+      _stopPositionTimer();
+      _clearAudioSource();
+      _clearMediaSession();
+      _emitCurrentTrack();
+      _emitDuration();
+      _emitPosition();
+    } else {
+      _currentIndex = _queue.indexWhere((track) => track.id == currentTrack.id);
+    }
+    _emitNavigationState();
+  }
+
+  @override
   Future<void> removeUpcomingTracks(Set<int> trackIds) async {
     final safeCurrentIndex = _currentIndex;
     if (safeCurrentIndex == null || trackIds.isEmpty) {

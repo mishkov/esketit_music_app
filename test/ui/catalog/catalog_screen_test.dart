@@ -207,6 +207,9 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> seekTo(Duration position) async {}
 
   @override
+  Future<void> removeTracks(Set<int> trackIds) async {}
+
+  @override
   Future<void> removeUpcomingTracks(Set<int> trackIds) async {}
 
   @override

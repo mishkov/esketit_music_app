@@ -180,6 +180,28 @@ class AppLocalizationsRu extends AppLocalizations {
       'Войдите, чтобы увидеть свои плейлисты.';
 
   @override
+  String get likesTitle => 'Лайки';
+
+  @override
+  String get dislikesTitle => 'Дизлайки';
+
+  @override
+  String get signInToViewLibraryItem => 'Войдите для просмотра';
+
+  @override
+  String get playlistsSectionTitle => 'Плейлисты';
+
+  @override
+  String get createPlaylistTooltip => 'Создать плейлист';
+
+  @override
+  String get signInToManagePlaylists =>
+      'Войдите, чтобы создавать плейлисты и управлять ими.';
+
+  @override
+  String get playlistsLoadFailed => 'Не удалось загрузить плейлисты.';
+
+  @override
   String get yourPlaylistsTitle => 'Ваши плейлисты';
 
   @override
@@ -191,6 +213,299 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noPlaylistsYet => 'Плейлистов пока нет. Создайте первый.';
+
+  @override
+  String get downloadedTitle => 'Скачанное';
+
+  @override
+  String get deleteAllDownloadsTooltip => 'Удалить все скачанные треки';
+
+  @override
+  String get downloadedTracksTitle => 'Треки';
+
+  @override
+  String get downloadedAuthorsTitle => 'Авторы';
+
+  @override
+  String get downloadedAlbumsTitle => 'Альбомы';
+
+  @override
+  String get downloadedPlaylistsTitle => 'Плейлисты';
+
+  @override
+  String downloadedItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count элемента',
+      many: '$count элементов',
+      few: '$count элемента',
+      one: '$count элемент',
+      zero: '0 элементов',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trackDownloadQueuedTooltip => 'В очереди на скачивание';
+
+  @override
+  String get trackDownloadingTooltip => 'Скачивается';
+
+  @override
+  String get trackDownloadedTooltip => 'Скачано';
+
+  @override
+  String get trackDownloadFailedTooltip => 'Не удалось скачать';
+
+  @override
+  String get downloadManagerTitle => 'Загрузки';
+
+  @override
+  String get currentDownloadSectionTitle => 'Текущая загрузка';
+
+  @override
+  String get queuedDownloadsSectionTitle => 'В очереди';
+
+  @override
+  String get failedDownloadsSectionTitle => 'Не удалось скачать';
+
+  @override
+  String get noDownloadActivity => 'Нет активных или неудачных загрузок.';
+
+  @override
+  String get cancelDownloadTooltip => 'Отменить скачивание';
+
+  @override
+  String get clearButton => 'Очистить';
+
+  @override
+  String get downloadQueuedStatus => 'В очереди';
+
+  @override
+  String get downloadInProgressStatus => 'Скачивается';
+
+  @override
+  String get downloadWaitingToRetryStatus => 'Ожидание новой попытки';
+
+  @override
+  String downloadProgressPercent(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String downloadsQueuedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'В очереди $count трека',
+      many: 'В очереди $count треков',
+      few: 'В очереди $count трека',
+      one: 'В очереди $count трек',
+      zero: 'В очереди нет треков',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String downloadsFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Не удалось скачать $count трека',
+      many: 'Не удалось скачать $count треков',
+      few: 'Не удалось скачать $count трека',
+      one: 'Не удалось скачать $count трек',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get downloadFailuresRemainMessage =>
+      'Откройте загрузки, чтобы увидеть подробности, или очистите это сообщение.';
+
+  @override
+  String get downloadWaitingToStart => 'Ожидание начала';
+
+  @override
+  String downloadingTrackName(String trackName) {
+    return 'Скачивается $trackName';
+  }
+
+  @override
+  String downloadWaitingToRetryTrack(String trackName) {
+    return 'Ожидание новой попытки скачать $trackName';
+  }
+
+  @override
+  String get downloadFailureNetwork => 'Ошибка сети';
+
+  @override
+  String get downloadFailureServer => 'Ошибка сервера';
+
+  @override
+  String get downloadFailureStorage => 'Ошибка хранилища';
+
+  @override
+  String get downloadFailureInsufficientStorage => 'Недостаточно места';
+
+  @override
+  String get downloadFailureInvalidResponse => 'Некорректный ответ сервера';
+
+  @override
+  String get downloadFailureUnknown => 'Неизвестная ошибка';
+
+  @override
+  String get downloadAlbumButton => 'Скачать альбом';
+
+  @override
+  String get downloadPlaylistButton => 'Скачать плейлист';
+
+  @override
+  String get cancelDownloadButton => 'Отменить скачивание';
+
+  @override
+  String get removeDownloadButton => 'Удалить скачанное';
+
+  @override
+  String get deleteAllDownloadsTitle => 'Удалить все загрузки?';
+
+  @override
+  String deleteAllDownloadsMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Удалить $count скачанного трека? Текущая загрузка и очередь также будут отменены.',
+      many:
+          'Удалить $count скачанных треков? Текущая загрузка и очередь также будут отменены.',
+      few:
+          'Удалить $count скачанных трека? Текущая загрузка и очередь также будут отменены.',
+      one:
+          'Удалить $count скачанный трек? Текущая загрузка и очередь также будут отменены.',
+      zero:
+          'Удалить все скачанные материалы? Текущая загрузка и очередь также будут отменены.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAllDownloadsMessageWithSize(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Удалить $count скачанного трека ($size)? Текущая загрузка и очередь также будут отменены.',
+      many:
+          'Удалить $count скачанных треков ($size)? Текущая загрузка и очередь также будут отменены.',
+      few:
+          'Удалить $count скачанных трека ($size)? Текущая загрузка и очередь также будут отменены.',
+      one:
+          'Удалить $count скачанный трек ($size)? Текущая загрузка и очередь также будут отменены.',
+      zero:
+          'Удалить все скачанные материалы ($size)? Текущая загрузка и очередь также будут отменены.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAllDownloadsButton => 'Удалить всё';
+
+  @override
+  String downloadSizeBytes(int count) {
+    return '$count Б';
+  }
+
+  @override
+  String downloadSizeKilobytes(String value) {
+    return '$value КБ';
+  }
+
+  @override
+  String downloadSizeMegabytes(String value) {
+    return '$value МБ';
+  }
+
+  @override
+  String downloadSizeGigabytes(String value) {
+    return '$value ГБ';
+  }
+
+  @override
+  String get downloadsUnavailableMessage =>
+      'Загрузки недоступны на этом устройстве.';
+
+  @override
+  String get noDownloadedTracksMessage => 'Скачанных треков пока нет.';
+
+  @override
+  String get noDownloadedAuthorsMessage =>
+      'Авторов со скачанными треками пока нет.';
+
+  @override
+  String get noDownloadedAlbumsMessage =>
+      'Альбомов со скачанными треками пока нет.';
+
+  @override
+  String get noDownloadedPlaylistsMessage => 'Скачанных плейлистов пока нет.';
+
+  @override
+  String get downloadedAuthorNotFound =>
+      'Этот скачанный автор больше недоступен.';
+
+  @override
+  String get downloadedAlbumNotFound =>
+      'Этот скачанный альбом больше недоступен.';
+
+  @override
+  String get downloadedPlaylistNotFound =>
+      'Этот скачанный плейлист больше недоступен.';
+
+  @override
+  String get noDownloadedTracksForAuthor =>
+      'У этого автора нет скачанных треков.';
+
+  @override
+  String get noDownloadedTracksInAlbum =>
+      'В этом альбоме нет скачанных треков.';
+
+  @override
+  String get noDownloadedTracksInPlaylist =>
+      'В этом плейлисте нет скачанных треков.';
+
+  @override
+  String get downloadedPlaylistLoadFailed =>
+      'Не удалось загрузить скачанный плейлист.';
+
+  @override
+  String get downloadNotificationRunningTitle => 'Скачивание треков';
+
+  @override
+  String get downloadNotificationRunningBody => 'Прогресс скачивания';
+
+  @override
+  String get downloadNotificationFailedTitle => 'Загрузки завершены';
+
+  @override
+  String get downloadNotificationFailedBody =>
+      'Некоторые треки скачать не удалось.';
+
+  @override
+  String get downloadNotificationCancelAction => 'Отменить';
+
+  @override
+  String get downloadNotificationChannelName => 'Скачивание треков';
+
+  @override
+  String get downloadNotificationChannelDescription =>
+      'Прогресс и ошибки скачивания треков';
+
+  @override
+  String get downloadLowStorageNotificationTitle => 'Загрузки остановлены';
+
+  @override
+  String get downloadLowStorageNotificationBody =>
+      'Недостаточно места. Освободите память перед новой попыткой.';
 
   @override
   String get tracksTitle => 'Треки';

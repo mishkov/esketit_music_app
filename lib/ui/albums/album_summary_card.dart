@@ -1,12 +1,12 @@
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:flutter/material.dart';
 
 class AlbumSummaryCard extends StatelessWidget {
-  const AlbumSummaryCard({required this.album, super.key});
+  const AlbumSummaryCard({required this.album, this.downloadAction, super.key});
 
   final Album album;
+  final Widget? downloadAction;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class AlbumSummaryCard extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: RemoteImage(
-                  imageUrl: _albumCoverUrl(album),
+                  file: album.coverImage,
                   icon: Icons.album_rounded,
                 ),
               ),
@@ -31,19 +31,13 @@ class AlbumSummaryCard extends StatelessWidget {
               album.title,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            if (downloadAction != null) ...[
+              const SizedBox(height: 12),
+              downloadAction!,
+            ],
           ],
         ),
       ),
     );
   }
-}
-
-String? _albumCoverUrl(Album album) {
-  final cover = album.coverImage;
-  if (cover is! HttpFile) {
-    return null;
-  }
-  final value = cover.uri.toString();
-
-  return value.isEmpty ? null : value;
 }

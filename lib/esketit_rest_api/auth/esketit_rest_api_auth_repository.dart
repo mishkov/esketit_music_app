@@ -23,6 +23,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
   final AuthSessionStorage _sessionStorage;
 
   AuthSession? _cachedSession;
+  Future<AuthSession?>? _refreshOperation;
 
   @override
   Future<AuthSession?> restoreSession() async {
@@ -41,13 +42,32 @@ class EsketitRestApiAuthRepository implements AuthRepository {
       return null;
     }
 
-    final meResponse = await _authenticatedHttpClient.get('/auth/me');
-    final meBody = _decodeJsonMap(meResponse.response, path: '/auth/me');
-    final user = _parseUser(meBody);
-    final restoredSession = refreshedSession.copyWith(user: user);
-    await _persistSession(restoredSession);
+    try {
+      final meResponse = await _authenticatedHttpClient.get('/auth/me');
+      _throwIfUnauthorizedOrForbidden(meResponse, path: '/auth/me');
+      if (meResponse.statusCode < 200 || meResponse.statusCode >= 300) {
+        throw HttpAppError(
+          message: 'Request failed',
+          path: '/auth/me',
+          statusCode: meResponse.statusCode,
+          responseBody: meResponse.response,
+        );
+      }
+      final meBody = _decodeJsonMap(meResponse.response, path: '/auth/me');
+      final user = _parseUser(meBody);
+      final restoredSession = refreshedSession.copyWith(user: user);
+      await _persistSession(restoredSession);
 
-    return restoredSession;
+      return restoredSession;
+    } on UnauthorizedAppError {
+      await _clearSession();
+
+      return null;
+    } on ForbiddenAppError {
+      await _clearSession();
+
+      return null;
+    }
   }
 
   @override
@@ -100,6 +120,11 @@ class EsketitRestApiAuthRepository implements AuthRepository {
 
   @override
   Future<AuthSession?> refreshSession({bool forceRefresh = false}) async {
+    final existingOperation = _refreshOperation;
+    if (existingOperation != null) {
+      return existingOperation;
+    }
+
     final currentSession = _cachedSession ?? await _sessionStorage.read();
     if (currentSession == null) {
       _cachedSession = null;
@@ -113,6 +138,24 @@ class EsketitRestApiAuthRepository implements AuthRepository {
       return currentSession;
     }
 
+    final operationAfterStorageRead = _refreshOperation;
+    if (operationAfterStorageRead != null) {
+      return operationAfterStorageRead;
+    }
+
+    _cachedSession = currentSession;
+    final operation = _refreshSession(currentSession);
+    _refreshOperation = operation;
+    try {
+      return await operation;
+    } finally {
+      if (identical(_refreshOperation, operation)) {
+        _refreshOperation = null;
+      }
+    }
+  }
+
+  Future<AuthSession?> _refreshSession(AuthSession currentSession) async {
     if (currentSession.isRefreshTokenExpired) {
       await _clearSession();
 
@@ -123,6 +166,11 @@ class EsketitRestApiAuthRepository implements AuthRepository {
       '/auth/refresh',
       body: {'refreshToken': currentSession.refreshToken},
     );
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      await _clearSession();
+
+      return null;
+    }
     final refreshedSession = _parseAuthResponse(
       response,
       path: '/auth/refresh',

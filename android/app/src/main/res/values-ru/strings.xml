@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bg_downloader_cancel">Отменить</string>
+    <string name="bg_downloader_notification_channel_name">Загрузки</string>
+    <string name="bg_downloader_notification_channel_description">Ход офлайн-загрузки и доступные действия</string>
+</resources>

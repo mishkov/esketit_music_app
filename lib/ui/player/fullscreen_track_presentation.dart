@@ -5,7 +5,6 @@ import 'package:esketit_music_app/ui/shared/animated_collapsible.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/single_line_overflow_marquee_text.dart';
 import 'package:esketit_music_app/ui/tracks/track_progress_section.dart';
-import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/settings/fullscreen_player_inactive_controls.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +61,7 @@ class FullscreenTrackPresentation extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: RemoteImage(
-                  imageUrl: _trackImageUrl(track),
+                  file: track.image,
                   icon: Icons.music_note_rounded,
                 ),
               ),
@@ -134,16 +133,5 @@ class FullscreenTrackPresentation extends StatelessWidget {
     }
 
     return context.l10n.bottomPlayerUnknownArtist;
-  }
-
-  String? _trackImageUrl(Track track) {
-    final image = track.image;
-    if (image is! HttpFile) {
-      return null;
-    }
-
-    final imageUrl = image.uri.toString();
-
-    return imageUrl.isEmpty ? null : imageUrl;
   }
 }

@@ -15,6 +15,7 @@ abstract class AudioPlayer {
     required int initialIndex,
   });
   Future<void> appendToQueue(List<Track> tracks);
+  Future<void> removeTracks(Set<int> trackIds);
   Future<void> removeUpcomingTracks(Set<int> trackIds);
 
   Future<void> togglePlay();

@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/downloads/playlist_download_action.dart';
 import 'package:esketit_music_app/ui/playlists/playlist_header.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
@@ -26,7 +27,13 @@ class PlaylistDetailsBody extends StatelessWidget {
       padding: EdgeInsets.only(bottom: selectedTrackExists ? 100 : 0),
       child: Column(
         children: [
-          PlaylistHeader(playlist: playlist),
+          PlaylistHeader(
+            playlist: playlist,
+            downloadAction: PlaylistDownloadAction(
+              playlist: playlist,
+              tracks: tracks,
+            ),
+          ),
           Expanded(
             child: tracks.isEmpty
                 ? Center(child: Text(l10n.playlistHasNoTracksYet))

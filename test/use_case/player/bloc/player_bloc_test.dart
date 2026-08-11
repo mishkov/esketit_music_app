@@ -123,6 +123,29 @@ void main() {
   });
 
   test(
+    'preparing cached track removal stops playback and removes its source',
+    () async {
+      final audioPlayer = _FakeAudioPlayer();
+      final bloc = _createBloc(audioPlayer: audioPlayer);
+
+      bloc.add(PlayTrack(_track(1), queue: [_track(1), _track(2)]));
+      await _settleBloc();
+
+      await bloc.prepareForDownloadedTrackRemoval({1});
+      await _settleBloc();
+
+      expect(audioPlayer.stopCallCount, 1);
+      expect(audioPlayer.removedTrackIdSets, [
+        {1},
+      ]);
+      expect(audioPlayer.queueTrackIds, [2]);
+      expect(bloc.state.selectedTrack, isNull);
+
+      await _dispose(bloc, audioPlayer);
+    },
+  );
+
+  test(
     'arbitrary repeated queue order retains one manual dislike bypass',
     () async {
       final audioPlayer = _FakeAudioPlayer();
@@ -741,6 +764,7 @@ class _FakeAudioPlayer implements AudioPlayer {
 
   final List<int> startedTrackIds = <int>[];
   final List<int> appendedTrackIds = <int>[];
+  final List<Set<int>> removedTrackIdSets = <Set<int>>[];
   final List<Set<int>> removedUpcomingTrackIdSets = <Set<int>>[];
   int? startedInitialIndex;
   int stopCallCount = 0;
@@ -801,6 +825,22 @@ class _FakeAudioPlayer implements AudioPlayer {
     await _currentTrackController.close();
     await _hasPreviousTrackController.close();
     await _hasNextTrackController.close();
+  }
+
+  @override
+  Future<void> removeTracks(Set<int> trackIds) async {
+    removedTrackIdSets.add(Set<int>.of(trackIds));
+    final currentTrack = _currentIndex == null ? null : _queue[_currentIndex!];
+    _queue = _queue
+        .where((track) => !trackIds.contains(track.id))
+        .toList(growable: false);
+    if (currentTrack != null && trackIds.contains(currentTrack.id)) {
+      _currentIndex = null;
+      _currentTrackController.add(null);
+    } else if (currentTrack != null) {
+      _currentIndex = _queue.indexWhere((track) => track.id == currentTrack.id);
+    }
+    _emitNavigationState();
   }
 
   @override

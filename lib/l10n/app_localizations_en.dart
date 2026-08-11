@@ -179,6 +179,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInToSeeYourPlaylists => 'Sign in to see your playlists.';
 
   @override
+  String get likesTitle => 'Likes';
+
+  @override
+  String get dislikesTitle => 'Dislikes';
+
+  @override
+  String get signInToViewLibraryItem => 'Sign in to view';
+
+  @override
+  String get playlistsSectionTitle => 'Playlists';
+
+  @override
+  String get createPlaylistTooltip => 'Create playlist';
+
+  @override
+  String get signInToManagePlaylists =>
+      'Sign in to create and manage playlists.';
+
+  @override
+  String get playlistsLoadFailed => 'Failed to load playlists.';
+
+  @override
   String get yourPlaylistsTitle => 'Your playlists';
 
   @override
@@ -190,6 +212,285 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noPlaylistsYet => 'No playlists yet. Create your first one.';
+
+  @override
+  String get downloadedTitle => 'Downloaded';
+
+  @override
+  String get deleteAllDownloadsTooltip => 'Delete all downloads';
+
+  @override
+  String get downloadedTracksTitle => 'Tracks';
+
+  @override
+  String get downloadedAuthorsTitle => 'Authors';
+
+  @override
+  String get downloadedAlbumsTitle => 'Albums';
+
+  @override
+  String get downloadedPlaylistsTitle => 'Playlists';
+
+  @override
+  String downloadedItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+      zero: '0 items',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trackDownloadQueuedTooltip => 'Queued for download';
+
+  @override
+  String get trackDownloadingTooltip => 'Downloading';
+
+  @override
+  String get trackDownloadedTooltip => 'Downloaded';
+
+  @override
+  String get trackDownloadFailedTooltip => 'Download failed';
+
+  @override
+  String get downloadManagerTitle => 'Downloads';
+
+  @override
+  String get currentDownloadSectionTitle => 'Current';
+
+  @override
+  String get queuedDownloadsSectionTitle => 'Queued';
+
+  @override
+  String get failedDownloadsSectionTitle => 'Failed';
+
+  @override
+  String get noDownloadActivity => 'There are no active or failed downloads.';
+
+  @override
+  String get cancelDownloadTooltip => 'Cancel download';
+
+  @override
+  String get clearButton => 'Clear';
+
+  @override
+  String get downloadQueuedStatus => 'Queued';
+
+  @override
+  String get downloadInProgressStatus => 'Downloading';
+
+  @override
+  String get downloadWaitingToRetryStatus => 'Waiting to try again';
+
+  @override
+  String downloadProgressPercent(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String downloadsQueuedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tracks queued',
+      one: '1 track queued',
+      zero: 'No tracks queued',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String downloadsFailedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Failed to download $count tracks',
+      one: 'Failed to download 1 track',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get downloadFailuresRemainMessage =>
+      'Open downloads for details or clear this message.';
+
+  @override
+  String get downloadWaitingToStart => 'Waiting to start';
+
+  @override
+  String downloadingTrackName(String trackName) {
+    return 'Downloading $trackName';
+  }
+
+  @override
+  String downloadWaitingToRetryTrack(String trackName) {
+    return 'Waiting to try $trackName again';
+  }
+
+  @override
+  String get downloadFailureNetwork => 'Network error';
+
+  @override
+  String get downloadFailureServer => 'Server error';
+
+  @override
+  String get downloadFailureStorage => 'Storage error';
+
+  @override
+  String get downloadFailureInsufficientStorage => 'Not enough storage';
+
+  @override
+  String get downloadFailureInvalidResponse => 'Invalid server response';
+
+  @override
+  String get downloadFailureUnknown => 'Unknown error';
+
+  @override
+  String get downloadAlbumButton => 'Download album';
+
+  @override
+  String get downloadPlaylistButton => 'Download playlist';
+
+  @override
+  String get cancelDownloadButton => 'Cancel download';
+
+  @override
+  String get removeDownloadButton => 'Remove download';
+
+  @override
+  String get deleteAllDownloadsTitle => 'Delete all downloads?';
+
+  @override
+  String deleteAllDownloadsMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Delete $count downloaded tracks? Current and queued downloads will also be canceled.',
+      one:
+          'Delete 1 downloaded track? Current and queued downloads will also be canceled.',
+      zero:
+          'Delete all downloaded content? Current and queued downloads will also be canceled.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAllDownloadsMessageWithSize(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Delete $count downloaded tracks ($size)? Current and queued downloads will also be canceled.',
+      one:
+          'Delete 1 downloaded track ($size)? Current and queued downloads will also be canceled.',
+      zero:
+          'Delete all downloaded content ($size)? Current and queued downloads will also be canceled.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAllDownloadsButton => 'Delete all';
+
+  @override
+  String downloadSizeBytes(int count) {
+    return '$count B';
+  }
+
+  @override
+  String downloadSizeKilobytes(String value) {
+    return '$value KB';
+  }
+
+  @override
+  String downloadSizeMegabytes(String value) {
+    return '$value MB';
+  }
+
+  @override
+  String downloadSizeGigabytes(String value) {
+    return '$value GB';
+  }
+
+  @override
+  String get downloadsUnavailableMessage =>
+      'Downloads are not available on this device.';
+
+  @override
+  String get noDownloadedTracksMessage => 'No downloaded tracks yet.';
+
+  @override
+  String get noDownloadedAuthorsMessage =>
+      'No authors with downloaded tracks yet.';
+
+  @override
+  String get noDownloadedAlbumsMessage =>
+      'No albums with downloaded tracks yet.';
+
+  @override
+  String get noDownloadedPlaylistsMessage => 'No downloaded playlists yet.';
+
+  @override
+  String get downloadedAuthorNotFound =>
+      'This downloaded author is no longer available.';
+
+  @override
+  String get downloadedAlbumNotFound =>
+      'This downloaded album is no longer available.';
+
+  @override
+  String get downloadedPlaylistNotFound =>
+      'This downloaded playlist is no longer available.';
+
+  @override
+  String get noDownloadedTracksForAuthor =>
+      'There are no downloaded tracks by this author.';
+
+  @override
+  String get noDownloadedTracksInAlbum =>
+      'There are no downloaded tracks in this album.';
+
+  @override
+  String get noDownloadedTracksInPlaylist =>
+      'There are no downloaded tracks in this playlist.';
+
+  @override
+  String get downloadedPlaylistLoadFailed =>
+      'Failed to load the downloaded playlist.';
+
+  @override
+  String get downloadNotificationRunningTitle => 'Downloading tracks';
+
+  @override
+  String get downloadNotificationRunningBody => 'Download progress';
+
+  @override
+  String get downloadNotificationFailedTitle => 'Downloads finished';
+
+  @override
+  String get downloadNotificationFailedBody =>
+      'Failed to download some tracks.';
+
+  @override
+  String get downloadNotificationCancelAction => 'Cancel';
+
+  @override
+  String get downloadNotificationChannelName => 'Track downloads';
+
+  @override
+  String get downloadNotificationChannelDescription =>
+      'Track download progress and errors';
+
+  @override
+  String get downloadLowStorageNotificationTitle => 'Downloads stopped';
+
+  @override
+  String get downloadLowStorageNotificationBody =>
+      'Not enough storage. Free some space before downloading again.';
 
   @override
   String get tracksTitle => 'Tracks';
