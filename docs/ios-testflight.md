@@ -114,13 +114,14 @@ make sure your Apple Distribution certificate and App Store provisioning profile
 are installed in a local keychain, then run:
 
 ```bash
-flutter --version # CI currently pins Flutter 3.41.9.
-flutter config --no-enable-swift-package-manager
-flutter pub get
+fvm install
+fvm flutter --version # Uses the version pinned in the root .fvmrc file.
+fvm flutter config --no-enable-swift-package-manager
+fvm flutter pub get --enforce-lockfile
 cd ios
 bundle install
 cd ..
-flutter build ios --release --no-codesign --config-only
+fvm flutter build ios --release --no-codesign --config-only --no-pub
 cd ios
 bundle exec pod install
 APPLE_TEAM_ID=HXKMZK959F \

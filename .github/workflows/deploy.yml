@@ -18,15 +18,17 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Test
-        run: flutter test
+        run: flutter test --no-pub
 
       - name: Build web
-        run: flutter build web --release --base-href / --dart-define BASE_URL=/api/
+        run: flutter build web --release --no-pub --base-href / --dart-define BASE_URL=/api/
 
       - name: Configure SSH
         run: |
