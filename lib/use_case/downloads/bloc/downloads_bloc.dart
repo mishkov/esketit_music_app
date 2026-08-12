@@ -261,6 +261,10 @@ class DownloadsState extends Equatable {
 }
 
 class DownloadsBloc extends Bloc<DownloadsEvent, DownloadsState> {
+  static final _fnv1aOffsetBasis = BigInt.parse('cbf29ce484222325', radix: 16);
+  static final _fnv1aPrime = BigInt.parse('100000001b3', radix: 16);
+  static final _positiveInt64Mask = BigInt.parse('7fffffffffffffff', radix: 16);
+
   DownloadsBloc({
     required DownloadsStorage storage,
     required DownloadTransfer transfer,
@@ -1365,10 +1369,10 @@ class DownloadsBloc extends Bloc<DownloadsEvent, DownloadsState> {
   String _audioTaskId(int jobId) => 'offline-audio-$jobId';
 
   String _stableUriHash(Uri uri) {
-    var hash = 0xcbf29ce484222325;
+    var hash = _fnv1aOffsetBasis;
     for (final codeUnit in uri.toString().codeUnits) {
-      hash ^= codeUnit;
-      hash = (hash * 0x100000001b3) & 0x7fffffffffffffff;
+      hash ^= BigInt.from(codeUnit);
+      hash = (hash * _fnv1aPrime) & _positiveInt64Mask;
     }
 
     return hash.toRadixString(16);

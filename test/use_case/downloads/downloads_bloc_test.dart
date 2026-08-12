@@ -261,6 +261,8 @@ void main() {
       final artworkTask = harness.transfer.enqueuedTasks.singleWhere(
         (item) => item.purpose == DownloadTransferPurpose.artwork,
       );
+      expect(artworkTask.id, 'offline-artwork-64b1a22d85017c94');
+      expect(artworkTask.destination.filename, '64b1a22d85017c94.jpg');
       harness.transfer.emitProgress(
         audioTask,
         progress: 0.4,
