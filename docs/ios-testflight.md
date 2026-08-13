@@ -3,13 +3,21 @@
 This project uploads iOS builds to TestFlight with Fastlane from
 `.github/workflows/ios-testflight.yml`.
 
-The workflow runs when you start it manually from GitHub Actions or when you
-push a tag that matches `ios-v*`, for example:
+The TestFlight workflow runs when you start it manually from GitHub Actions or
+when a commit is pushed to `main`.
 
-```bash
-git tag ios-v2.3.3-15
-git push origin ios-v2.3.3-15
+After a pull request is merged into `main`,
+`.github/workflows/create-version-tag.yml` creates a lightweight tag for the
+merged commit using the version in `pubspec.yaml`, for example:
+
+```text
+version: 2.10.1+31 -> v2.10.1+31
 ```
+
+Workflow reruns accept a tag that already points to the same commit. If that
+version tag belongs to another commit, the workflow fails without moving it;
+every merged pull request must therefore use a `pubspec.yaml` version that has
+not already been tagged for another commit.
 
 ## App Store Connect setup
 
@@ -111,16 +119,18 @@ Increment the number after `+` before uploading another build.
 
 The CI workflow installs signing assets before running Fastlane. For local runs,
 make sure your Apple Distribution certificate and App Store provisioning profile
-are installed in a local keychain, then run:
+are installed in a local keychain. Install the Ruby version declared in
+`ios/.ruby-version`, then run:
 
 ```bash
-flutter --version # CI currently pins Flutter 3.41.9.
-flutter config --no-enable-swift-package-manager
-flutter pub get
+fvm install
+fvm flutter --version # Uses the version pinned in the root .fvmrc file.
+fvm flutter config --no-enable-swift-package-manager
+fvm flutter pub get --enforce-lockfile
 cd ios
 bundle install
 cd ..
-flutter build ios --release --no-codesign --config-only
+fvm flutter build ios --release --no-codesign --config-only --no-pub
 cd ios
 bundle exec pod install
 APPLE_TEAM_ID=HXKMZK959F \

@@ -1,0 +1,103 @@
+name: Create version tag
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+jobs:
+  create-version-tag:
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout merged main commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Read version from pubspec
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version_line_count="$(
+            awk '/^version[[:space:]]*:/ { count++ } END { print count + 0 }' pubspec.yaml
+          )"
+          version="$(
+            sed -nE 's/^version[[:space:]]*:[[:space:]]*([^#[:space:]]+)[[:space:]]*(#.*)?$/\1/p' pubspec.yaml
+          )"
+
+          if [[ "$version_line_count" != "1" || ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[0-9]+$ ]]; then
+            echo "::error::pubspec.yaml must contain exactly one version in the form major.minor.patch+build."
+            exit 1
+          fi
+
+          tag_name="v${version}"
+
+          git check-ref-format "refs/tags/${tag_name}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Create version tag
+        env:
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
+          TARGET_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          checked_out_sha="$(git rev-parse HEAD)"
+          if [[ "$checked_out_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out ${checked_out_sha}, expected merged commit ${TARGET_SHA}."
+            exit 1
+          fi
+
+          git fetch --force origin \
+            "+refs/heads/main:refs/remotes/origin/main" \
+            "+refs/tags/*:refs/tags/*"
+
+          if ! git merge-base --is-ancestor "$TARGET_SHA" refs/remotes/origin/main; then
+            echo "::error::Merged commit ${TARGET_SHA} is not part of the current main branch."
+            exit 1
+          fi
+
+          if git show-ref --verify --quiet "refs/tags/${TAG_NAME}"; then
+            existing_sha="$(git rev-parse "${TAG_NAME}^{commit}")"
+            if [[ "$existing_sha" == "$TARGET_SHA" ]]; then
+              echo "${TAG_NAME} already points to ${TARGET_SHA}; nothing to do."
+              exit 0
+            fi
+
+            echo "::error::${TAG_NAME} already points to ${existing_sha}. Increase the version in pubspec.yaml before merging."
+            exit 1
+          fi
+
+          git tag "$TAG_NAME" "$TARGET_SHA"
+          if git push origin "refs/tags/${TAG_NAME}"; then
+            echo "Created ${TAG_NAME} for version ${VERSION} at ${TARGET_SHA}."
+            exit 0
+          fi
+
+          echo "Tag push failed; checking whether another run created it."
+          if git fetch --force origin \
+            "+refs/tags/${TAG_NAME}:refs/tags/${TAG_NAME}"; then
+            existing_sha="$(git rev-parse "${TAG_NAME}^{commit}")"
+            if [[ "$existing_sha" == "$TARGET_SHA" ]]; then
+              echo "${TAG_NAME} now points to ${TARGET_SHA}; nothing else to do."
+              exit 0
+            fi
+
+            echo "::error::${TAG_NAME} now points to ${existing_sha}, not ${TARGET_SHA}."
+          else
+            echo "::error::${TAG_NAME} was not created on the remote."
+          fi
+          exit 1

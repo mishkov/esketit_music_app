@@ -1,4 +1,7 @@
 source "https://rubygems.org"
 
+# Version 3.0.9 supports only Ruby versions older than 3.2. CocoaPods and
+# Fastlane still accept 3.0.8, which supports the Ruby version in .ruby-version.
+gem "CFPropertyList", "= 3.0.8"
 gem "cocoapods", "~> 1.16"
 gem "fastlane", "~> 2.227"

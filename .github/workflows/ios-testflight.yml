@@ -23,6 +23,8 @@ jobs:
       APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
+      BUNDLE_GEMFILE: ${{ github.workspace }}/ios/Gemfile
+      BUNDLE_FROZEN: 'true'
 
     steps:
       - name: Checkout
@@ -32,12 +34,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: '3.41.9'
+          flutter-version-file: .fvmrc
+          cache: true
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          working-directory: ios
+          bundler-cache: true
 
       - name: Configure Flutter
         run: |
@@ -46,10 +50,10 @@ jobs:
           flutter config --list
 
       - name: Install Flutter dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Run tests
-        run: flutter test
+        run: flutter test --no-pub
 
       - name: Validate iOS Flutter plugin metadata
         run: |
@@ -60,12 +64,8 @@ jobs:
             abort("Missing iOS Flutter plugins: #{missing.join(", ")}") unless missing.empty?
           '
 
-      - name: Install Ruby dependencies
-        working-directory: ios
-        run: bundle install
-
       - name: Prepare iOS Flutter project
-        run: flutter build ios --release --no-codesign --config-only
+        run: flutter build ios --release --no-codesign --config-only --no-pub
 
       - name: Install CocoaPods dependencies
         working-directory: ios

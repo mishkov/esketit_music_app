@@ -26,6 +26,8 @@ jobs:
       APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
+      BUNDLE_GEMFILE: ${{ github.workspace }}/ios/Gemfile
+      BUNDLE_FROZEN: 'true'
 
     steps:
       - name: Checkout
@@ -34,11 +36,8 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
-
-      - name: Install Ruby dependencies
-        working-directory: ios
-        run: bundle install
+          working-directory: ios
+          bundler-cache: true
 
       - name: Verify pubspec version is newer than TestFlight
         working-directory: ios

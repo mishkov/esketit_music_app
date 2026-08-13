@@ -53,8 +53,8 @@ Flutter music app (esketit_music_app). Clean architecture with Domain / Use-Case
 Run in order - fix any issues found before proceeding to the next step:
 
 ```bash
-dart analyze .
+fvm dart analyze .
 dcm analyze .
-flutter test .
-dart format .
+fvm flutter test .
+fvm dart format .
 ```

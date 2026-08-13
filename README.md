@@ -2,6 +2,23 @@
 
 A new Flutter project.
 
+## Development setup
+
+This project pins its Flutter SDK version with
+[FVM](https://fvm.app/documentation/getting-started/overview). Install FVM,
+then prepare the project SDK and dependencies:
+
+```bash
+fvm install
+fvm flutter pub get --enforce-lockfile
+```
+
+Run Flutter and Dart commands through FVM so they use the version declared in
+`.fvmrc`, for example `fvm flutter run`, `fvm flutter test`, and
+`fvm dart analyze .`. Commit `pubspec.lock`, `ios/Podfile.lock`,
+`macos/Podfile.lock`, and `ios/Gemfile.lock` when dependency changes update
+them. VS Code is configured to use the same SDK automatically.
+
 ## Deploy iOS to TestFlight
 
 The iOS app is built and uploaded to TestFlight with Fastlane through
@@ -16,7 +33,7 @@ Build the web app for serving from the domain root and route API calls through
 nginx `/api/`:
 
 ```bash
-flutter build web --release --base-href / --dart-define BASE_URL=/api/
+fvm flutter build web --release --base-href / --dart-define BASE_URL=/api/
 ```
 
 Make sure nginx serves the Flutter app for direct client-side routes such as
