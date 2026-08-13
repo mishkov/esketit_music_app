@@ -119,7 +119,8 @@ Increment the number after `+` before uploading another build.
 
 The CI workflow installs signing assets before running Fastlane. For local runs,
 make sure your Apple Distribution certificate and App Store provisioning profile
-are installed in a local keychain, then run:
+are installed in a local keychain. Install the Ruby version declared in
+`ios/.ruby-version`, then run:
 
 ```bash
 fvm install
