@@ -1,4 +1,4 @@
-package com.example.esketit_music_app
+package com.mishkov.esketitMusicApp
 
 import com.ryanheise.audioservice.AudioServiceActivity
 

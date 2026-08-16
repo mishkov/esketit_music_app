@@ -43,12 +43,6 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   sqflite_common_ffi: ^2.3.7
 
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: assets/icons/app_icon.png
-  remove_alpha_ios: true
-
 flutter:
   generate: true
   uses-material-design: true

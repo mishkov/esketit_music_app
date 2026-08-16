@@ -96,13 +96,21 @@ jobs:
         if: matrix.platform == 'web'
         run: flutter build web --release --no-pub --base-href / --dart-define BASE_URL=/api/
 
-      - name: Build Android APK
+      - name: Build Android production APK
         if: matrix.platform == 'android'
-        run: flutter build apk --release --no-pub
+        run: flutter build apk --release --no-pub --flavor production
 
-      - name: Build iOS without signing
+      - name: Smoke-build Android dev APK
+        if: matrix.platform == 'android'
+        run: flutter build apk --debug --no-pub --flavor dev
+
+      - name: Build iOS production without signing
         if: matrix.platform == 'ios'
         run: flutter build ios --release --no-codesign --no-pub
+
+      - name: Smoke-build iOS dev without signing
+        if: matrix.platform == 'ios'
+        run: flutter build ios --debug --no-codesign --no-pub --flavor dev
 
       - name: Build macOS without signing
         if: matrix.platform == 'macos'

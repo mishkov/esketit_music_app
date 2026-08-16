@@ -5,28 +5,56 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "esketit_music_app",
+      "name": "Mobile Dev (debug; select iOS or Android device)",
       "request": "launch",
       "type": "dart",
       "preLaunchTask": "Generate launch defines",
       "flutterMode": "debug",
-      "args": ["--web-port=8081"],
       "toolArgs": [
+        "--flavor",
+        "dev",
         "--dart-define-from-file=.vscode/launch_defines.json",
         "--dart-define=ANALYTICS_FLUSH_IMMEDIATELY=true"
       ]
     },
     {
-      "name": "esketit_music_app (profile mode)",
+      "name": "Web (debug; Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "preLaunchTask": "Generate launch defines",
+      "flutterMode": "debug",
+      "toolArgs": [
+        "--web-port=8081",
+        "--dart-define-from-file=.vscode/launch_defines.json",
+        "--dart-define=ANALYTICS_FLUSH_IMMEDIATELY=true"
+      ]
+    },
+    {
+      "name": "Production (profile; select iOS, macOS, or web)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "profile"
     },
     {
-      "name": "esketit_music_app (release mode)",
+      "name": "Android Production (profile; select Android device)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "toolArgs": ["--flavor", "production"]
+    },
+    {
+      "name": "Production (release; select iOS, macOS, or web)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "release"
+    },
+    {
+      "name": "Android Production (release; select Android device)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "toolArgs": ["--flavor", "production"]
     }
   ]
 }

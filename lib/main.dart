@@ -69,8 +69,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   configureUrlStrategy();
   if (!kIsWeb) {
     await JustAudioBackground.init(
-      androidNotificationChannelId:
-          'com.example.esketit_music_app.channel.audio',
+      androidNotificationChannelId: 'com.mishkov.esketitMusicApp.channel.audio',
       androidNotificationChannelName: 'Audio playback',
       androidNotificationOngoing: true,
     );

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Esketit Music</string>
     <string name="bg_downloader_cancel">Cancel</string>
     <string name="bg_downloader_notification_channel_name">Downloads</string>
     <string name="bg_downloader_notification_channel_description">Offline download progress and actions</string>

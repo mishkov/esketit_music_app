@@ -19,6 +19,13 @@ Run Flutter and Dart commands through FVM so they use the version declared in
 `macos/Podfile.lock`, and `ios/Gemfile.lock` when dependency changes update
 them. VS Code is configured to use the same SDK automatically.
 
+## Mobile flavors
+
+The separately installable mobile development build uses the `dev` flavor.
+See [docs/mobile-flavors.md](docs/mobile-flavors.md) for its app identities,
+local run and build commands, VS Code launch configurations, and iPhone
+signing requirements.
+
 ## Deploy iOS to TestFlight
 
 The iOS app is built and uploaded to TestFlight with Fastlane through
