@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.esketit_music_app"
+    namespace = "com.mishkov.esketitMusicApp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,8 +21,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.esketit_music_app"
+        applicationId = "com.mishkov.esketitMusicApp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -31,10 +30,23 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("production") {
+            dimension = "environment"
+        }
+
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Signing with the debug keys for now, so flavored release runs work locally.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

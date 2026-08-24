@@ -1,7 +1,7 @@
 name: esketit_music_app
 description: "A new Flutter project."
 publish_to: 'none'
-version: 2.10.2+32
+version: 2.10.3+33
 
 environment:
   sdk: ^3.11.1
@@ -42,12 +42,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   sqflite_common_ffi: ^2.3.7
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: assets/icons/app_icon.png
-  remove_alpha_ios: true
 
 flutter:
   generate: true
