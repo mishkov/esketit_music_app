@@ -110,6 +110,7 @@ class BottomPlayer extends StatelessWidget {
   }
 
   void _openTrackScreen(BuildContext context, Track track) {
+    FocusManager.instance.primaryFocus?.unfocus();
     Navigator.of(context).pushNamed(trackRoutePath(track.id), arguments: track);
   }
 

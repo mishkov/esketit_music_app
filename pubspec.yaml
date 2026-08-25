@@ -1,7 +1,7 @@
 name: esketit_music_app
 description: "A new Flutter project."
 publish_to: 'none'
-version: 2.10.3+33
+version: 2.10.4+34
 
 environment:
   sdk: ^3.11.1
