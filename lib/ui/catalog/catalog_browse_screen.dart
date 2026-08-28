@@ -24,7 +24,7 @@ class CatalogBrowseScreen extends StatefulWidget {
 }
 
 class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
-  static const int _popularAuthorsLimit = 10;
+  static const int _popularAuthorsLimit = 20;
 
   @override
   void initState() {
