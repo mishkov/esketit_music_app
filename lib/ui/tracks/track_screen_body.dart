@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/domain/file/abstract_file.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/player/playback_secondary_controls_row.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/single_line_overflow_marquee_text.dart';
 import 'package:esketit_music_app/ui/tracks/author_picker_sheet.dart';
@@ -75,6 +76,11 @@ class TrackScreenBody extends StatelessWidget {
         TrackProgressSection(enabled: isCurrentTrack),
         const SizedBox(height: 24),
         TrackControlsRow(state: state, track: track),
+        const SizedBox(height: 4),
+        PlaybackSecondaryControlsRow(
+          playerState: state,
+          enabled: isCurrentTrack,
+        ),
         const SizedBox(height: 24),
         TrackLyricsSection(trackId: track.id),
       ],
@@ -130,6 +136,11 @@ class TrackScreenBody extends StatelessWidget {
             TrackProgressSection(enabled: isCurrentTrack),
             const SizedBox(height: 24),
             TrackControlsRow(state: state, track: track),
+            const SizedBox(height: 4),
+            PlaybackSecondaryControlsRow(
+              playerState: state,
+              enabled: isCurrentTrack,
+            ),
           ],
         ),
       ),

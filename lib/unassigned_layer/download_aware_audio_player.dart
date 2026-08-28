@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/use_case/downloads/downloaded_library_storage.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 
 /// Resolves every queue item to its completed local copy before it reaches the
 /// platform player. Remote media remains the fallback when no cache exists.
@@ -67,6 +68,10 @@ class DownloadAwareAudioPlayer implements AudioPlayer {
 
   @override
   Future<void> seekTo(Duration position) => _delegate.seekTo(position);
+
+  @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) =>
+      _delegate.setRepeatMode(repeatMode);
 
   @override
   Future<void> skipToNextTrack() => _delegate.skipToNextTrack();

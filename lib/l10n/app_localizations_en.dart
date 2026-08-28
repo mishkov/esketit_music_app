@@ -103,6 +103,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullscreenPlayerCloseTooltip => 'Close fullscreen player';
 
   @override
+  String get repeatQueueTooltip => 'Repeat queue';
+
+  @override
+  String get repeatTrackTooltip => 'Repeat track';
+
+  @override
+  String get repeatOffTooltip => 'Turn repeat off';
+
+  @override
   String get fullscreenInactiveControlsSettingsTooltip =>
       'Customize inactive controls';
 

@@ -103,6 +103,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get fullscreenPlayerCloseTooltip => 'Закрыть полноэкранный плеер';
 
   @override
+  String get repeatQueueTooltip => 'Повторять очередь';
+
+  @override
+  String get repeatTrackTooltip => 'Повторять трек';
+
+  @override
+  String get repeatOffTooltip => 'Выключить повтор';
+
+  @override
   String get fullscreenInactiveControlsSettingsTooltip =>
       'Настроить элементы неактивного режима';
 

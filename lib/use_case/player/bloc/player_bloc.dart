@@ -11,6 +11,7 @@ import 'package:esketit_music_app/use_case/analytics/analytics_collecting.dart';
 import 'package:esketit_music_app/use_case/analytics/analytics_event.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:esketit_music_app/use_case/shared/nullable_option.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -83,6 +84,13 @@ final class SkipToPreviousTrackRequested extends PlayerEvent {
 
 final class SkipToNextTrackRequested extends PlayerEvent {
   const SkipToNextTrackRequested();
+
+  @override
+  List<Object?> get props => [];
+}
+
+final class CycleRepeatModeRequested extends PlayerEvent {
+  const CycleRepeatModeRequested();
 
   @override
   List<Object?> get props => [];
@@ -185,6 +193,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final List<int> _recentTrackIds = <int>[];
   final Set<int> _excludedTrackIds = <int>{};
   final Set<int> _knownDislikedTrackIds = <int>{};
+  final Set<int> _sourceQueueTrackIds = <int>{};
   final Map<int, bool> _persistedTrackDislikeOverrides = <int, bool>{};
 
   AutoplayContext? _autoplayContext;
@@ -373,6 +382,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       }
     });
 
+    on<CycleRepeatModeRequested>(
+      _onCycleRepeatModeRequested,
+      transformer: _sequentialRepeatModeChanges(),
+    );
+
     on<SeekToPositionRequested>((event, emit) async {
       try {
         final fromPosition = _latestPosition;
@@ -487,15 +501,21 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     on<_SelectedTrackChanged>((event, emit) async {
       final previousTrack = state.selectedTrack ?? _previousAnalyticsTrack;
+      final selectedTrack = event.track;
+      final isAutoplayActive =
+          selectedTrack != null &&
+          (state.isAutoplayActive ||
+              (_autoplayContext != null &&
+                  !_sourceQueueTrackIds.contains(selectedTrack.id)));
       emit(
         state.copyWith(
-          selectedTrack: event.track == null
+          selectedTrack: selectedTrack == null
               ? NullableOption.nullable()
-              : NullableOption.value(event.track!),
+              : NullableOption.value(selectedTrack),
+          isAutoplayActive: isAutoplayActive,
         ),
       );
 
-      final selectedTrack = event.track;
       if (selectedTrack == null) {
         _previousAnalyticsTrack = null;
         _completedAnalyticsTrackId = null;
@@ -548,6 +568,11 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     return (events, mapper) => events.asyncExpand(mapper);
   }
 
+  static EventTransformer<CycleRepeatModeRequested>
+  _sequentialRepeatModeChanges() {
+    return (events, mapper) => events.asyncExpand(mapper);
+  }
+
   @override
   Future<void> close() async {
     await _isPlayingSubscription?.cancel();
@@ -594,6 +619,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         initialIndex: eligibleInitialIndex,
         autoplayContext: event.autoplayContext,
         reason: 'user_selected_track',
+        startsInAutoplay: false,
         shouldPrefetchAutoplayAfterStart: true,
         seededExcludedTrackIds: event.queue.map((track) => track.id),
       );
@@ -611,6 +637,48 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         error: error,
         stackTrace: stackTrace,
         fatal: true,
+      );
+    }
+  }
+
+  Future<void> _onCycleRepeatModeRequested(
+    CycleRepeatModeRequested _,
+    Emitter<PlayerState> emit,
+  ) async {
+    final previousRepeatMode = state.repeatMode;
+    final isAutoplayActive = state.isAutoplayActive;
+    final nextRepeatMode = _nextRepeatMode(
+      previousRepeatMode,
+      isAutoplayActive: isAutoplayActive,
+    );
+
+    try {
+      if (nextRepeatMode == PlaybackRepeatMode.queue) {
+        await _removeAutoplayContinuationTracks();
+      }
+      await _player.setRepeatMode(nextRepeatMode);
+      emit(state.copyWith(repeatMode: nextRepeatMode));
+      await _errorReporter.addBreadcrumb(
+        Breadcrumb(
+          message: 'Changed playback repeat mode',
+          category: Category.uiClick,
+          data: {
+            'previousRepeatMode': previousRepeatMode.name,
+            'repeatMode': nextRepeatMode.name,
+            'isAutoplayActive': isAutoplayActive,
+          },
+        ),
+      );
+      if (previousRepeatMode == PlaybackRepeatMode.queue) {
+        await _ensureAutoplayQueuePrefilled();
+      }
+    } catch (error, stackTrace) {
+      await _errorReporter.reportError(
+        AppError(
+          'Failed to change playback repeat mode',
+          cause: error,
+          stackTrace: stackTrace,
+        ),
       );
     }
   }
@@ -677,6 +745,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         initialIndex: 0,
         autoplayContext: autoplayContext,
         reason: 'autoplay',
+        startsInAutoplay: true,
         shouldPrefetchAutoplayAfterStart: false,
         seededExcludedTrackIds: attemptedTrackIds,
       );
@@ -792,18 +861,40 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required int initialIndex,
     required AutoplayContext? autoplayContext,
     required String reason,
+    required bool startsInAutoplay,
     required bool shouldPrefetchAutoplayAfterStart,
     Iterable<int>? seededExcludedTrackIds,
   }) async {
+    var repeatMode = state.repeatMode;
+    if (startsInAutoplay &&
+        autoplayContext != null &&
+        repeatMode == PlaybackRepeatMode.queue) {
+      await _player.setRepeatMode(PlaybackRepeatMode.off);
+      repeatMode = PlaybackRepeatMode.off;
+      await _errorReporter.addBreadcrumb(
+        Breadcrumb(
+          message: 'Disabled repeat queue for autoplay playback',
+          data: _autoplayBreadcrumbData(autoplayContext),
+        ),
+      );
+    }
+
     _replaceManagedQueue(queue);
     _configureAutoplaySession(
       autoplayContext,
+      sourceQueueTrackIds: queue.map((track) => track.id),
       seededExcludedTrackIds:
           seededExcludedTrackIds ?? queue.map((track) => track.id),
     );
     _skipNextSelectedTrackAutoplayPrefetch = !shouldPrefetchAutoplayAfterStart;
 
-    emit(state.copyWith(selectedTrack: NullableOption.value(track)));
+    emit(
+      state.copyWith(
+        selectedTrack: NullableOption.value(track),
+        repeatMode: repeatMode,
+        isAutoplayActive: startsInAutoplay,
+      ),
+    );
 
     _suppressNextResumeAnalyticsEvent = true;
     await _player.beginPlayingQueue(queue, initialIndex: initialIndex);
@@ -871,9 +962,13 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   void _configureAutoplaySession(
     AutoplayContext? autoplayContext, {
+    required Iterable<int> sourceQueueTrackIds,
     required Iterable<int> seededExcludedTrackIds,
   }) {
     _autoplayContext = autoplayContext;
+    _sourceQueueTrackIds
+      ..clear()
+      ..addAll(sourceQueueTrackIds);
     _recentTrackIds.clear();
     _excludedTrackIds
       ..clear()
@@ -903,6 +998,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final selectedTrack = state.selectedTrack;
     if (autoplayContext == null ||
         selectedTrack == null ||
+        state.repeatMode == PlaybackRepeatMode.queue ||
         _isAutoplayRequestInProgress ||
         _isAutoplayExhausted) {
       return;
@@ -1001,6 +1097,38 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
+  Future<void> _removeAutoplayContinuationTracks() async {
+    final currentIndex = _player.currentIndex;
+    if (currentIndex == null ||
+        currentIndex < 0 ||
+        currentIndex >= _queue.length - 1) {
+      return;
+    }
+
+    final continuationTrackIds = _queue
+        .skip(currentIndex + 1)
+        .where((track) => !_sourceQueueTrackIds.contains(track.id))
+        .map((track) => track.id)
+        .toSet();
+    if (continuationTrackIds.isEmpty) {
+      return;
+    }
+
+    await _errorReporter.addBreadcrumb(
+      Breadcrumb(
+        message: 'Removing autoplay continuation for repeat queue',
+        data: {'tracksCount': continuationTrackIds.length},
+      ),
+    );
+    await _player.removeUpcomingTracks(continuationTrackIds);
+    _replaceManagedQueue([
+      ..._queue.take(currentIndex + 1),
+      ..._queue
+          .skip(currentIndex + 1)
+          .where((track) => !continuationTrackIds.contains(track.id)),
+    ]);
+  }
+
   int _remainingTracksCountAfter(Track track) {
     final currentIndex = _managedCurrentIndex(track);
     if (currentIndex < 0) {
@@ -1038,8 +1166,39 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _PlaybackPositionChanged event,
     Emitter<PlayerState> emit,
   ) {
+    final previousPosition = _latestPosition;
     _latestPosition = event.position;
+    if (_didRepeatedTrackRestart(
+      previousPosition: previousPosition,
+      currentPosition: event.position,
+    )) {
+      _completedAnalyticsTrackId = null;
+    }
     unawaited(_collectTrackCompleteIfNeeded());
+  }
+
+  bool _didRepeatedTrackRestart({
+    required Duration previousPosition,
+    required Duration currentPosition,
+  }) {
+    final selectedTrack = state.selectedTrack;
+    final duration = _latestDuration;
+    if (state.repeatMode != PlaybackRepeatMode.track ||
+        selectedTrack == null ||
+        duration == null ||
+        duration == Duration.zero ||
+        _completedAnalyticsTrackId != selectedTrack.id) {
+      return false;
+    }
+
+    final previousCompletionPercent = _completionPercent(
+      position: previousPosition,
+      duration: duration,
+    );
+
+    return previousCompletionPercent >= 98 &&
+        currentPosition < previousPosition &&
+        currentPosition <= const Duration(seconds: 2);
   }
 
   void _onPlaybackDurationChanged(
@@ -1287,6 +1446,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   int? get _durationMs => _latestDuration?.inMilliseconds;
 
+  PlaybackRepeatMode _nextRepeatMode(
+    PlaybackRepeatMode currentRepeatMode, {
+    required bool isAutoplayActive,
+  }) {
+    return switch (currentRepeatMode) {
+      PlaybackRepeatMode.off =>
+        isAutoplayActive ? PlaybackRepeatMode.track : PlaybackRepeatMode.queue,
+      PlaybackRepeatMode.queue =>
+        isAutoplayActive ? PlaybackRepeatMode.off : PlaybackRepeatMode.track,
+      PlaybackRepeatMode.track => PlaybackRepeatMode.off,
+    };
+  }
+
   double _completionPercent({
     required Duration position,
     required Duration duration,
@@ -1336,6 +1508,8 @@ class PlayerState extends Equatable {
   final bool isPlaying;
   final bool hasPreviousTrack;
   final bool hasNextTrack;
+  final PlaybackRepeatMode repeatMode;
+  final bool isAutoplayActive;
   final AutoplayNotice? autoplayNotice;
   final int autoplayNoticeSequence;
 
@@ -1344,6 +1518,8 @@ class PlayerState extends Equatable {
     required this.isPlaying,
     this.hasPreviousTrack = false,
     this.hasNextTrack = false,
+    this.repeatMode = PlaybackRepeatMode.off,
+    this.isAutoplayActive = false,
     this.autoplayNotice,
     this.autoplayNoticeSequence = 0,
   });
@@ -1353,6 +1529,8 @@ class PlayerState extends Equatable {
     bool? isPlaying,
     bool? hasPreviousTrack,
     bool? hasNextTrack,
+    PlaybackRepeatMode? repeatMode,
+    bool? isAutoplayActive,
     AutoplayNotice? autoplayNotice,
     int? autoplayNoticeSequence,
   }) {
@@ -1363,6 +1541,8 @@ class PlayerState extends Equatable {
       isPlaying: isPlaying ?? this.isPlaying,
       hasPreviousTrack: hasPreviousTrack ?? this.hasPreviousTrack,
       hasNextTrack: hasNextTrack ?? this.hasNextTrack,
+      repeatMode: repeatMode ?? this.repeatMode,
+      isAutoplayActive: isAutoplayActive ?? this.isAutoplayActive,
       autoplayNotice: autoplayNotice ?? this.autoplayNotice,
       autoplayNoticeSequence:
           autoplayNoticeSequence ?? this.autoplayNoticeSequence,
@@ -1375,6 +1555,8 @@ class PlayerState extends Equatable {
     isPlaying,
     hasPreviousTrack,
     hasNextTrack,
+    repeatMode,
+    isAutoplayActive,
     autoplayNotice,
     autoplayNoticeSequence,
   ];

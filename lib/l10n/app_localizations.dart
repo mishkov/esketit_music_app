@@ -284,6 +284,24 @@ abstract class AppLocalizations {
   /// **'Close fullscreen player'**
   String get fullscreenPlayerCloseTooltip;
 
+  /// No description provided for @repeatQueueTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat queue'**
+  String get repeatQueueTooltip;
+
+  /// No description provided for @repeatTrackTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat track'**
+  String get repeatTrackTooltip;
+
+  /// No description provided for @repeatOffTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn repeat off'**
+  String get repeatOffTooltip;
+
   /// No description provided for @fullscreenInactiveControlsSettingsTooltip.
   ///
   /// In en, this message translates to:

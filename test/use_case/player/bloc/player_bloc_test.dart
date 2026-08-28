@@ -11,9 +11,220 @@ import 'package:esketit_music_app/use_case/analytics/analytics_event.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('repeat mode cycles through queue, track, and off', () async {
+    final audioPlayer = _FakeAudioPlayer();
+    final bloc = _createBloc(audioPlayer: audioPlayer);
+
+    bloc.add(PlayTrack(_track(1), queue: [_track(1), _track(2)]));
+    await _settleBloc();
+
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.queue);
+
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.track);
+
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.off);
+    expect(audioPlayer.repeatModes, [
+      PlaybackRepeatMode.queue,
+      PlaybackRepeatMode.track,
+      PlaybackRepeatMode.off,
+    ]);
+
+    await _dispose(bloc, audioPlayer);
+  });
+
+  test(
+    'album playback offers repeat queue and removes autoplay continuation',
+    () async {
+      const autoplayContext = AutoplayContext(
+        sourceType: AutoplaySourceType.album,
+        sourceId: 7,
+      );
+      final audioPlayer = _FakeAudioPlayer();
+      final autoplayStorage = _FakeAutoplayStorage(
+        batches: [
+          _batch(autoplayContext, [_track(3), _track(4)]),
+        ],
+      );
+      final bloc = _createBloc(
+        audioPlayer: audioPlayer,
+        autoplayStorage: autoplayStorage,
+      );
+
+      bloc.add(
+        PlayTrack(
+          _track(1),
+          queue: [_track(1), _track(2)],
+          autoplayContext: autoplayContext,
+        ),
+      );
+      await _settleBloc();
+
+      expect(bloc.state.isAutoplayActive, isFalse);
+      expect(audioPlayer.queueTrackIds, [1, 2, 3, 4]);
+
+      bloc.add(const CycleRepeatModeRequested());
+      await _settleBloc();
+
+      expect(bloc.state.repeatMode, PlaybackRepeatMode.queue);
+      expect(audioPlayer.queueTrackIds, [1, 2]);
+      expect(audioPlayer.removedUpcomingTrackIdSets, [
+        {3, 4},
+      ]);
+
+      await audioPlayer.advanceAutomatically();
+      await _settleBloc();
+
+      expect(bloc.state.selectedTrack?.id, 2);
+      expect(bloc.state.isAutoplayActive, isFalse);
+      expect(autoplayStorage.requests, hasLength(1));
+
+      await _dispose(bloc, audioPlayer);
+    },
+  );
+
+  test('album continuation becomes autoplay after the album queue', () async {
+    const autoplayContext = AutoplayContext(
+      sourceType: AutoplaySourceType.album,
+      sourceId: 7,
+    );
+    final audioPlayer = _FakeAudioPlayer();
+    final bloc = _createBloc(
+      audioPlayer: audioPlayer,
+      autoplayStorage: _FakeAutoplayStorage(
+        batches: [
+          _batch(autoplayContext, [_track(3), _track(4)]),
+        ],
+      ),
+    );
+
+    bloc.add(
+      PlayTrack(
+        _track(1),
+        queue: [_track(1), _track(2)],
+        autoplayContext: autoplayContext,
+      ),
+    );
+    await _settleBloc();
+
+    await audioPlayer.advanceAutomatically();
+    await _settleBloc();
+    expect(bloc.state.selectedTrack?.id, 2);
+    expect(bloc.state.isAutoplayActive, isFalse);
+
+    await audioPlayer.advanceAutomatically();
+    await _settleBloc();
+    expect(bloc.state.selectedTrack?.id, 3);
+    expect(bloc.state.isAutoplayActive, isTrue);
+
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.track);
+
+    await _dispose(bloc, audioPlayer);
+  });
+
+  test('autoplay repeat mode skips queue repeat', () async {
+    const autoplayContext = AutoplayContext.myVibe();
+    final audioPlayer = _FakeAudioPlayer();
+    final bloc = _createBloc(
+      audioPlayer: audioPlayer,
+      autoplayStorage: _FakeAutoplayStorage(
+        batches: [
+          _batch(autoplayContext, [_track(1), _track(2)]),
+        ],
+      ),
+    );
+
+    bloc.add(const StartAutoplayPlaybackRequested(autoplayContext));
+    await _settleBloc();
+    expect(bloc.state.isAutoplayActive, isTrue);
+
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.track);
+
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.off);
+    expect(audioPlayer.repeatModes, [
+      PlaybackRepeatMode.track,
+      PlaybackRepeatMode.off,
+    ]);
+
+    await _dispose(bloc, audioPlayer);
+  });
+
+  test('starting autoplay disables active queue repeat', () async {
+    const autoplayContext = AutoplayContext.myVibe();
+    final audioPlayer = _FakeAudioPlayer();
+    final bloc = _createBloc(
+      audioPlayer: audioPlayer,
+      autoplayStorage: _FakeAutoplayStorage(
+        batches: [
+          _batch(autoplayContext, [_track(3), _track(4)]),
+        ],
+      ),
+    );
+
+    bloc.add(PlayTrack(_track(1), queue: [_track(1), _track(2)]));
+    await _settleBloc();
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.queue);
+
+    bloc.add(const StartAutoplayPlaybackRequested(autoplayContext));
+    await _settleBloc();
+
+    expect(bloc.state.repeatMode, PlaybackRepeatMode.off);
+    expect(bloc.state.isAutoplayActive, isTrue);
+    expect(audioPlayer.repeatModes, [
+      PlaybackRepeatMode.queue,
+      PlaybackRepeatMode.off,
+    ]);
+
+    await _dispose(bloc, audioPlayer);
+  });
+
+  test('repeat track records each completed iteration', () async {
+    final audioPlayer = _FakeAudioPlayer();
+    final analytics = _FakeAnalyticsCollector();
+    final bloc = _createBloc(audioPlayer: audioPlayer, analytics: analytics);
+
+    bloc.add(PlayTrack(_track(1)));
+    await _settleBloc();
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+    bloc.add(const CycleRepeatModeRequested());
+    await _settleBloc();
+
+    audioPlayer.emitDuration(const Duration(seconds: 100));
+    audioPlayer.emitPosition(const Duration(seconds: 99));
+    await _settleBloc();
+    audioPlayer.emitPosition(Duration.zero);
+    await _settleBloc();
+    audioPlayer.emitPosition(const Duration(seconds: 99));
+    await _settleBloc();
+
+    expect(
+      analytics.events.where(
+        (event) => event.type == AnalyticsEventType.trackComplete,
+      ),
+      hasLength(2),
+    );
+
+    await _dispose(bloc, audioPlayer);
+  });
+
   test(
     'play track seeds autoplay session and prefetches continuation',
     () async {
@@ -757,10 +968,15 @@ class _FakeAudioPlayer implements AudioPlayer {
       StreamController<bool>.broadcast();
   final StreamController<bool> _hasNextTrackController =
       StreamController<bool>.broadcast();
+  final StreamController<Duration> _positionController =
+      StreamController<Duration>.broadcast();
+  final StreamController<Duration?> _durationController =
+      StreamController<Duration?>.broadcast();
 
   List<Track> _queue = <Track>[];
   int? _currentIndex;
   bool _isPlaying = false;
+  Duration _currentPosition = Duration.zero;
 
   final List<int> startedTrackIds = <int>[];
   final List<int> appendedTrackIds = <int>[];
@@ -768,6 +984,7 @@ class _FakeAudioPlayer implements AudioPlayer {
   final List<Set<int>> removedUpcomingTrackIdSets = <Set<int>>[];
   int? startedInitialIndex;
   int stopCallCount = 0;
+  final List<PlaybackRepeatMode> repeatModes = <PlaybackRepeatMode>[];
 
   List<int> get queueTrackIds => _queue.map((track) => track.id).toList();
 
@@ -775,10 +992,10 @@ class _FakeAudioPlayer implements AudioPlayer {
   int? get currentIndex => _currentIndex;
 
   @override
-  Duration get currentPosition => Duration.zero;
+  Duration get currentPosition => _currentPosition;
 
   @override
-  Stream<Duration?> get durationStream => const Stream<Duration?>.empty();
+  Stream<Duration?> get durationStream => _durationController.stream;
 
   @override
   Stream<bool> get hasNextTrackStream => _hasNextTrackController.stream;
@@ -793,7 +1010,7 @@ class _FakeAudioPlayer implements AudioPlayer {
   Stream<Track?> get currentTrackStream => _currentTrackController.stream;
 
   @override
-  Stream<Duration> get positionStream => const Stream<Duration>.empty();
+  Stream<Duration> get positionStream => _positionController.stream;
 
   @override
   Future<void> appendToQueue(List<Track> tracks) async {
@@ -825,6 +1042,8 @@ class _FakeAudioPlayer implements AudioPlayer {
     await _currentTrackController.close();
     await _hasPreviousTrackController.close();
     await _hasNextTrackController.close();
+    await _positionController.close();
+    await _durationController.close();
   }
 
   @override
@@ -864,6 +1083,11 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> seekTo(Duration position) async {}
 
   @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {
+    repeatModes.add(repeatMode);
+  }
+
+  @override
   Future<void> skipToNextTrack() async {
     if (_currentIndex == null || _currentIndex == _queue.length - 1) {
       return;
@@ -898,6 +1122,15 @@ class _FakeAudioPlayer implements AudioPlayer {
   Future<void> togglePlay() async {
     _isPlaying = !_isPlaying;
     _isPlayingController.add(_isPlaying);
+  }
+
+  void emitDuration(Duration duration) {
+    _durationController.add(duration);
+  }
+
+  void emitPosition(Duration position) {
+    _currentPosition = position;
+    _positionController.add(position);
   }
 
   void _emitNavigationState() {

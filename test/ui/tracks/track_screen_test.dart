@@ -25,6 +25,7 @@ import 'package:esketit_music_app/use_case/lyrics/lyrics_storage.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
 import 'package:esketit_music_app/use_case/tracks/tracks_storage.dart';
@@ -610,6 +611,9 @@ class _FakeAudioPlayer implements AudioPlayer {
 
   @override
   Future<void> seekTo(Duration position) async {}
+
+  @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {}
 
   @override
   Future<void> removeTracks(Set<int> trackIds) async {}

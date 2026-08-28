@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/domain/track.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 
 abstract class AudioPlayer {
   Duration get currentPosition;
@@ -21,6 +22,7 @@ abstract class AudioPlayer {
   Future<void> togglePlay();
   Future<void> skipToPreviousTrack();
   Future<void> skipToNextTrack();
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode);
   Future<void> seekTo(Duration position);
   Future<void> stop();
 

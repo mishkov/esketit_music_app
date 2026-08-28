@@ -32,7 +32,9 @@ class TrackScreen extends StatelessWidget {
           previous.selectedTrack != current.selectedTrack ||
           previous.isPlaying != current.isPlaying ||
           previous.hasPreviousTrack != current.hasPreviousTrack ||
-          previous.hasNextTrack != current.hasNextTrack,
+          previous.hasNextTrack != current.hasNextTrack ||
+          previous.repeatMode != current.repeatMode ||
+          previous.isAutoplayActive != current.isAutoplayActive,
       builder: (context, state) {
         final displayedTrack = track ?? state.selectedTrack;
         final authors = displayedTrack?.authors ?? const <Author>[];

@@ -78,7 +78,9 @@ class _FullscreenPlayerScreenState extends State<FullscreenPlayerScreen> {
             previous.selectedTrack != current.selectedTrack ||
             previous.isPlaying != current.isPlaying ||
             previous.hasPreviousTrack != current.hasPreviousTrack ||
-            previous.hasNextTrack != current.hasNextTrack,
+            previous.hasNextTrack != current.hasNextTrack ||
+            previous.repeatMode != current.repeatMode ||
+            previous.isAutoplayActive != current.isAutoplayActive,
         builder: (context, playerState) {
           return Scaffold(
             backgroundColor: theme.colorScheme.surface,
