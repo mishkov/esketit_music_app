@@ -575,6 +575,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentSearchQueriesTitle => 'Recent searches';
 
   @override
+  String get recentSearchResultsTitle => 'Recently searched';
+
+  @override
   String searchResultsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

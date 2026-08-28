@@ -19,6 +19,7 @@ import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
+import 'package:esketit_music_app/use_case/catalog/recent_search_results_storage.dart';
 import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
 import 'package:esketit_music_app/use_case/lyrics/bloc/lyrics_bloc.dart';
 import 'package:esketit_music_app/use_case/lyrics/lyrics_storage.dart';
@@ -60,6 +61,7 @@ void main() {
       initialState: _emptyCatalogState(),
       catalogStorage: _FakeCatalogStorage(),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: errorReporter,
     );
     final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
@@ -148,6 +150,7 @@ void main() {
         initialState: _emptyCatalogState(),
         catalogStorage: _FakeCatalogStorage(),
         recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+        recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
         errorReporter: errorReporter,
       );
       final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
@@ -234,6 +237,7 @@ void main() {
       initialState: _emptyCatalogState(),
       catalogStorage: _FakeCatalogStorage(),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: errorReporter,
     );
     final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
@@ -309,6 +313,7 @@ void main() {
       initialState: _emptyCatalogState(),
       catalogStorage: _FakeCatalogStorage(),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: errorReporter,
     );
     final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
@@ -469,6 +474,17 @@ class _FakeRecentSearchQueriesStorage implements RecentSearchQueriesStorage {
 
   @override
   Future<List<String>> saveRecentSearchQuery(String query) async => [query];
+}
+
+class _FakeRecentSearchResultsStorage implements RecentSearchResultsStorage {
+  @override
+  Future<List<CatalogSearchResultItem>> getRecentSearchResults() async =>
+      const [];
+
+  @override
+  Future<List<CatalogSearchResultItem>> saveRecentSearchResult(
+    CatalogSearchResultItem result,
+  ) async => [result];
 }
 
 class _FakeLyricsStorage implements LyricsStorage {
@@ -687,6 +703,7 @@ CatalogState _emptyCatalogState() {
     albumTracksErrorMessages: {},
     searchQuery: '',
     recentSearchQueries: [],
+    recentSearchResults: [],
     searchPage: 0,
     searchPageSize: CatalogBloc.searchPageSize,
     searchResults: null,

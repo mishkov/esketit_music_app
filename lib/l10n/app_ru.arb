@@ -252,6 +252,7 @@
   "searchHint": "Искать авторов, альбомы, треки, плейлисты",
   "clearSearchTooltip": "Очистить поиск",
   "recentSearchQueriesTitle": "Недавние поисковые запросы",
+  "recentSearchResultsTitle": "Недавно искали",
   "searchResultsCount": "{count, plural, =0{0 результатов} one{{count} результат} few{{count} результата} many{{count} результатов} other{{count} результата}}",
   "@searchResultsCount": {
     "placeholders": {

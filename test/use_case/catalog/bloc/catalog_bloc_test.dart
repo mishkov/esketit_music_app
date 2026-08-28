@@ -10,6 +10,7 @@ import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
+import 'package:esketit_music_app/use_case/catalog/recent_search_results_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -19,6 +20,7 @@ void main() {
       initialState: _catalogState(searchQuery: 'old query', searchPage: 2),
       catalogStorage: _FakeCatalogStorage(),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: _FakeErrorReporter(),
     ),
     act: (bloc) => bloc.add(CatalogSearchQueryChanged('new query')),
@@ -35,6 +37,7 @@ void main() {
         },
       ),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: _FakeErrorReporter(),
     ),
     act: (bloc) => bloc.add(LoadPublishedAlbumsByAuthor(_author)),
@@ -58,6 +61,7 @@ void main() {
         },
       ),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: _FakeErrorReporter(),
     ),
     act: (bloc) => bloc.add(LoadPublishedAlbumsByAuthor(_author)),
@@ -72,13 +76,14 @@ void main() {
   );
 
   blocTest<CatalogBloc, CatalogState>(
-    'loads recent search queries into state',
+    'loads recent successful search queries into state',
     build: () => CatalogBloc(
       initialState: _catalogState(),
       catalogStorage: _FakeCatalogStorage(),
       recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(
         recentSearchQueries: const ['drake', 'metro'],
       ),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: _FakeErrorReporter(),
     ),
     act: (bloc) => bloc.add(LoadRecentSearchQueries()),
@@ -88,7 +93,40 @@ void main() {
   );
 
   blocTest<CatalogBloc, CatalogState>(
-    'saves recent search query after successful first-page search with results',
+    'loads recent selected search results into state',
+    build: () => CatalogBloc(
+      initialState: _catalogState(),
+      catalogStorage: _FakeCatalogStorage(),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(
+        recentSearchResults: const [_searchResultItem],
+      ),
+      errorReporter: _FakeErrorReporter(),
+    ),
+    act: (bloc) => bloc.add(LoadRecentSearchResults()),
+    expect: () => [
+      _catalogState(recentSearchResults: const [_searchResultItem]),
+    ],
+  );
+
+  blocTest<CatalogBloc, CatalogState>(
+    'saves a selected recent result without changing the empty query',
+    build: () => CatalogBloc(
+      initialState: _catalogState(),
+      catalogStorage: _FakeCatalogStorage(),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
+      errorReporter: _FakeErrorReporter(),
+    ),
+    act: (bloc) =>
+        bloc.add(SearchResultClicked(result: _searchResultItem, resultRank: 1)),
+    expect: () => [
+      _catalogState(recentSearchResults: const [_searchResultItem]),
+    ],
+  );
+
+  blocTest<CatalogBloc, CatalogState>(
+    'saves successful query but not an unselected result',
     build: () => CatalogBloc(
       initialState: _catalogState(searchQuery: 'future'),
       catalogStorage: _FakeCatalogStorage(
@@ -100,9 +138,8 @@ void main() {
           totalPages: 1,
         ),
       ),
-      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(
-        recentSearchQueries: const ['metro'],
-      ),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
       errorReporter: _FakeErrorReporter(),
     ),
     act: (bloc) => bloc.add(LoadCatalogSearchResults()),
@@ -110,55 +147,13 @@ void main() {
       _catalogState(searchQuery: 'future', isLoadingSearch: true),
       _catalogState(
         searchQuery: 'future',
-        recentSearchQueries: const ['future', 'metro'],
+        recentSearchQueries: const ['future'],
         searchResults: PaginatedCatalogSearchResults(
           items: const [_searchResultItem],
           page: 1,
           pageSize: CatalogBloc.searchPageSize,
           totalItems: 1,
           totalPages: 1,
-        ),
-      ),
-    ],
-  );
-
-  blocTest<CatalogBloc, CatalogState>(
-    'does not save recent search query when first-page search returns no results',
-    build: () => CatalogBloc(
-      initialState: _catalogState(
-        searchQuery: 'missing',
-        recentSearchQueries: const ['metro'],
-      ),
-      catalogStorage: _FakeCatalogStorage(
-        searchResults: const PaginatedCatalogSearchResults(
-          items: [],
-          page: 1,
-          pageSize: CatalogBloc.searchPageSize,
-          totalItems: 0,
-          totalPages: 0,
-        ),
-      ),
-      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(
-        recentSearchQueries: const ['metro'],
-      ),
-      errorReporter: _FakeErrorReporter(),
-    ),
-    act: (bloc) => bloc.add(LoadCatalogSearchResults()),
-    expect: () => [
-      _catalogState(
-        searchQuery: 'missing',
-        recentSearchQueries: const ['metro'],
-        isLoadingSearch: true,
-      ),
-      _catalogState(
-        searchQuery: 'missing',
-        recentSearchQueries: const ['metro'],
-        searchResults: const PaginatedCatalogSearchResults(
-          items: [],
-          page: 1,
-          pageSize: CatalogBloc.searchPageSize,
-          totalItems: 0,
-          totalPages: 0,
         ),
       ),
     ],
@@ -212,6 +207,29 @@ class _FakeRecentSearchQueriesStorage implements RecentSearchQueriesStorage {
   }
 }
 
+class _FakeRecentSearchResultsStorage implements RecentSearchResultsStorage {
+  _FakeRecentSearchResultsStorage({this.recentSearchResults = const []});
+
+  List<CatalogSearchResultItem> recentSearchResults;
+
+  @override
+  Future<List<CatalogSearchResultItem>> getRecentSearchResults() async {
+    return recentSearchResults;
+  }
+
+  @override
+  Future<List<CatalogSearchResultItem>> saveRecentSearchResult(
+    CatalogSearchResultItem result,
+  ) async {
+    recentSearchResults = [
+      result,
+      ...recentSearchResults.where((currentResult) => currentResult != result),
+    ].take(20).toList(growable: false);
+
+    return recentSearchResults;
+  }
+}
+
 class _FakeErrorReporter implements ErrorReporter {
   @override
   Future<void> addBreadcrumb(Breadcrumb breadcrumb) async {}
@@ -235,6 +253,7 @@ CatalogState _catalogState({
   Map<int, String> albumTracksErrorMessages = const {},
   String searchQuery = '',
   List<String> recentSearchQueries = const [],
+  List<CatalogSearchResultItem> recentSearchResults = const [],
   int searchPage = 1,
   int searchPageSize = CatalogBloc.searchPageSize,
   PaginatedCatalogSearchResults? searchResults,
@@ -253,6 +272,7 @@ CatalogState _catalogState({
     albumTracksErrorMessages: albumTracksErrorMessages,
     searchQuery: searchQuery,
     recentSearchQueries: recentSearchQueries,
+    recentSearchResults: recentSearchResults,
     searchPage: searchPage,
     searchPageSize: searchPageSize,
     searchResults: searchResults,

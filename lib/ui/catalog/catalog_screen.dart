@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/catalog/recent_search_queries_section.dart';
+import 'package:esketit_music_app/ui/catalog/recent_search_results_section.dart';
 import 'package:esketit_music_app/ui/catalog/search_catalog_view.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
@@ -95,7 +96,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           ),
                         )
                       : activeQuery.isEmpty
-                      ? const SizedBox.shrink()
+                      ? RecentSearchResultsSection(
+                          results: state.recentSearchResults,
+                          selectedTrackExists: selectedTrackExists,
+                        )
                       : SearchCatalogView(
                           state: state,
                           selectedTrackExists: selectedTrackExists,

@@ -591,6 +591,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recentSearchQueriesTitle => 'Недавние поисковые запросы';
 
   @override
+  String get recentSearchResultsTitle => 'Недавно искали';
+
+  @override
   String searchResultsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

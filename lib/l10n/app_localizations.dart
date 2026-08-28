@@ -1046,6 +1046,12 @@ abstract class AppLocalizations {
   /// **'Recent searches'**
   String get recentSearchQueriesTitle;
 
+  /// No description provided for @recentSearchResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently searched'**
+  String get recentSearchResultsTitle;
+
   /// No description provided for @searchResultsCount.
   ///
   /// In en, this message translates to:
