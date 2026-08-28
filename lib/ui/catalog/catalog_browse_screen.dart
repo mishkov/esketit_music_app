@@ -60,8 +60,6 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const LastAddedTracksSection(),
-                const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
@@ -80,6 +78,8 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                 ),
                 const SizedBox(height: 8),
                 _buildAuthorsSection(context, state),
+                const SizedBox(height: 24),
+                const LastAddedTracksSection(),
               ],
             );
           },
