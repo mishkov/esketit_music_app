@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/player/fullscreen_player_controls.dart';
+import 'package:esketit_music_app/ui/player/playback_secondary_controls_row.dart';
 import 'package:esketit_music_app/ui/shared/animated_collapsible.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
 import 'package:esketit_music_app/ui/shared/single_line_overflow_marquee_text.dart';
@@ -117,6 +118,11 @@ class FullscreenTrackPresentation extends StatelessWidget {
             showPlaybackButtons: showPlaybackButtons,
             showFavoriteButton: showFavoriteButton,
           ),
+        ),
+        AnimatedCollapsible(
+          visible: showPlaybackButtons,
+          topPadding: 4,
+          child: PlaybackSecondaryControlsRow(playerState: playerState),
         ),
       ],
     );

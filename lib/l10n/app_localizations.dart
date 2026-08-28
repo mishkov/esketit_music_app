@@ -284,6 +284,24 @@ abstract class AppLocalizations {
   /// **'Close fullscreen player'**
   String get fullscreenPlayerCloseTooltip;
 
+  /// No description provided for @repeatQueueTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat queue'**
+  String get repeatQueueTooltip;
+
+  /// No description provided for @repeatTrackTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat track'**
+  String get repeatTrackTooltip;
+
+  /// No description provided for @repeatOffTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn repeat off'**
+  String get repeatOffTooltip;
+
   /// No description provided for @fullscreenInactiveControlsSettingsTooltip.
   ///
   /// In en, this message translates to:
@@ -956,11 +974,11 @@ abstract class AppLocalizations {
   /// **'Authors'**
   String get authorsTitle;
 
-  /// No description provided for @featuredAuthorsTitle.
+  /// No description provided for @popularAuthorsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Featured Authors'**
-  String get featuredAuthorsTitle;
+  /// **'Popular Authors'**
+  String get popularAuthorsTitle;
 
   /// No description provided for @playMyVibeButton.
   ///
@@ -1027,6 +1045,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent searches'**
   String get recentSearchQueriesTitle;
+
+  /// No description provided for @recentSearchResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently searched'**
+  String get recentSearchResultsTitle;
 
   /// No description provided for @searchResultsCount.
   ///

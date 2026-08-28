@@ -31,6 +31,9 @@
   "bottomPlayerUnknownArtist": "Unknown artist",
   "bottomPlayerOpenFullscreenTooltip": "Open fullscreen player",
   "fullscreenPlayerCloseTooltip": "Close fullscreen player",
+  "repeatQueueTooltip": "Repeat queue",
+  "repeatTrackTooltip": "Repeat track",
+  "repeatOffTooltip": "Turn repeat off",
   "fullscreenInactiveControlsSettingsTooltip": "Customize inactive controls",
   "fullscreenInactiveControlsMenuTitle": "Select controls that will be visible in ‘inactive’ mode",
   "fullscreenInactiveControlTrackName": "Track name",
@@ -237,7 +240,7 @@
   "authorAlbumsDisplayModeExpandedOption": "Expanded",
   "authorAlbumsDisplayModeCompactOption": "Compact",
   "authorsTitle": "Authors",
-  "featuredAuthorsTitle": "Featured Authors",
+  "popularAuthorsTitle": "Popular Authors",
   "playMyVibeButton": "Play my vibe",
   "playAuthorButton": "Play author",
   "noPlayableAuthorTracks": "No playable tracks by this artist. Playing My Vibe.",
@@ -249,6 +252,7 @@
   "searchHint": "Search authors, albums, tracks, playlists",
   "clearSearchTooltip": "Clear search",
   "recentSearchQueriesTitle": "Recent searches",
+  "recentSearchResultsTitle": "Recently searched",
   "searchResultsCount": "{count, plural, =0{0 results} =1{1 result} other{{count} results}}",
   "@searchResultsCount": {
     "placeholders": {

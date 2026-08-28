@@ -24,7 +24,7 @@ class CatalogBrowseScreen extends StatefulWidget {
 }
 
 class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
-  static const int _featuredAuthorsLimit = 10;
+  static const int _popularAuthorsLimit = 20;
 
   @override
   void initState() {
@@ -60,17 +60,15 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const LastAddedTracksSection(),
-                const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: Text(
-                        l10n.featuredAuthorsTitle,
+                        l10n.popularAuthorsTitle,
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                     ),
-                    if (state.authors.length > _featuredAuthorsLimit)
+                    if (state.authors.length > _popularAuthorsLimit)
                       TextButton.icon(
                         onPressed: () => _openAuthorsScreen(context),
                         icon: const Icon(Icons.arrow_forward_rounded),
@@ -80,6 +78,8 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                 ),
                 const SizedBox(height: 8),
                 _buildAuthorsSection(context, state),
+                const SizedBox(height: 24),
+                const LastAddedTracksSection(),
               ],
             );
           },
@@ -110,16 +110,16 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
       return Text(l10n.noPublishedAuthorsYet);
     }
 
-    final featuredAuthors = state.authors.take(_featuredAuthorsLimit).toList();
+    final popularAuthors = state.authors.take(_popularAuthorsLimit).toList();
 
     return SizedBox(
       height: 240,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: featuredAuthors.length,
+        itemCount: popularAuthors.length,
         separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) =>
-            _buildAuthorCard(featuredAuthors[index]),
+            _buildAuthorCard(popularAuthors[index]),
       ),
     );
   }

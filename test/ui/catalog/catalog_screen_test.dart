@@ -8,27 +8,35 @@ import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_screen.dart';
 import 'package:esketit_music_app/ui/catalog/recent_search_queries_section.dart';
+import 'package:esketit_music_app/ui/catalog/recent_search_results_section.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/catalog_storage.dart';
 import 'package:esketit_music_app/use_case/catalog/recent_search_queries_storage.dart';
+import 'package:esketit_music_app/use_case/catalog/recent_search_results_storage.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('selects a recent search query and starts searching', (
+  testWidgets('shows recent selected results without changing search query', (
     tester,
   ) async {
     final catalogStorage = _FakeCatalogStorage();
-    final recentSearchQueriesStorage = _FakeRecentSearchQueriesStorage(
-      recentSearchQueries: const ['metro'],
+    final recentSearchResultsStorage = _FakeRecentSearchResultsStorage(
+      recentSearchResults: const [
+        CatalogSearchResultItem.author(
+          Author(id: 52, currentName: 'FRIENDLY THUG 52 NGG', photos: []),
+        ),
+      ],
     );
     final catalogBloc = _createCatalogBloc(
       catalogStorage: catalogStorage,
-      recentSearchQueriesStorage: recentSearchQueriesStorage,
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: recentSearchResultsStorage,
     );
     final playerBloc = PlayerBloc(
       initialState: const PlayerState(selectedTrack: null, isPlaying: false),
@@ -54,18 +62,73 @@ void main() {
       ),
     );
 
-    catalogBloc.add(LoadRecentSearchQueries());
+    catalogBloc.add(LoadRecentSearchResults());
     await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(RecentSearchResultsSection), findsOneWidget);
+    expect(find.text('Recently searched'), findsOneWidget);
+    expect(find.text('FRIENDLY THUG 52 NGG'), findsOneWidget);
+
+    final searchField = tester.widget<TextField>(find.byType(TextField));
+    expect(searchField.controller!.text, isEmpty);
+    expect(catalogStorage.searchQueries, isEmpty);
+  });
+
+  testWidgets('selects a successful recent query and starts searching', (
+    tester,
+  ) async {
+    final catalogStorage = _FakeCatalogStorage();
+    final catalogBloc = _createCatalogBloc(
+      catalogStorage: catalogStorage,
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(
+        recentSearchQueries: const ['metro'],
+      ),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(
+        recentSearchResults: const [
+          CatalogSearchResultItem.author(
+            Author(id: 52, currentName: 'FRIENDLY THUG 52 NGG', photos: []),
+          ),
+        ],
+      ),
+    );
+    final playerBloc = PlayerBloc(
+      initialState: const PlayerState(selectedTrack: null, isPlaying: false),
+      player: _FakeAudioPlayer(),
+      autoplayStorage: _FakeAutoplayStorage(),
+      errorReporter: _FakeErrorReporter(),
+    );
+
+    addTearDown(catalogBloc.close);
+    addTearDown(playerBloc.close);
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<CatalogBloc>.value(value: catalogBloc),
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: CatalogScreen()),
+        ),
+      ),
+    );
+
+    catalogBloc
+      ..add(LoadRecentSearchQueries())
+      ..add(LoadRecentSearchResults());
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(RecentSearchResultsSection), findsOneWidget);
+    expect(find.text('FRIENDLY THUG 52 NGG'), findsOneWidget);
+
     await tester.tap(find.byType(TextField));
     await tester.pump();
 
-    expect(
-      find.ancestor(
-        of: find.byType(RecentSearchQueriesSection),
-        matching: find.byType(TextFieldTapRegion),
-      ),
-      findsOneWidget,
-    );
+    expect(find.byType(RecentSearchQueriesSection), findsOneWidget);
     expect(find.text('metro'), findsOneWidget);
 
     await tester.tap(find.text('metro'));
@@ -82,6 +145,7 @@ void main() {
 CatalogBloc _createCatalogBloc({
   required CatalogStorage catalogStorage,
   required RecentSearchQueriesStorage recentSearchQueriesStorage,
+  required RecentSearchResultsStorage recentSearchResultsStorage,
 }) {
   return CatalogBloc(
     initialState: const CatalogState(
@@ -96,6 +160,7 @@ CatalogBloc _createCatalogBloc({
       albumTracksErrorMessages: {},
       searchQuery: '',
       recentSearchQueries: [],
+      recentSearchResults: [],
       searchPage: 1,
       searchPageSize: CatalogBloc.searchPageSize,
       searchResults: null,
@@ -104,6 +169,7 @@ CatalogBloc _createCatalogBloc({
     ),
     catalogStorage: catalogStorage,
     recentSearchQueriesStorage: recentSearchQueriesStorage,
+    recentSearchResultsStorage: recentSearchResultsStorage,
     errorReporter: _FakeErrorReporter(),
   );
 }
@@ -166,6 +232,26 @@ class _FakeRecentSearchQueriesStorage implements RecentSearchQueriesStorage {
   }
 }
 
+class _FakeRecentSearchResultsStorage implements RecentSearchResultsStorage {
+  _FakeRecentSearchResultsStorage({this.recentSearchResults = const []});
+
+  List<CatalogSearchResultItem> recentSearchResults;
+
+  @override
+  Future<List<CatalogSearchResultItem>> getRecentSearchResults() async {
+    return recentSearchResults;
+  }
+
+  @override
+  Future<List<CatalogSearchResultItem>> saveRecentSearchResult(
+    CatalogSearchResultItem result,
+  ) async {
+    recentSearchResults = [result, ...recentSearchResults];
+
+    return recentSearchResults;
+  }
+}
+
 class _FakeAudioPlayer implements AudioPlayer {
   @override
   Duration get currentPosition => Duration.zero;
@@ -205,6 +291,9 @@ class _FakeAudioPlayer implements AudioPlayer {
 
   @override
   Future<void> seekTo(Duration position) async {}
+
+  @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {}
 
   @override
   Future<void> removeTracks(Set<int> trackIds) async {}

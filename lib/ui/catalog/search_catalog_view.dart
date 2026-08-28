@@ -1,11 +1,7 @@
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/domain/catalog_search_result.dart';
-import 'package:esketit_music_app/ui/catalog/album_search_tile.dart';
-import 'package:esketit_music_app/ui/catalog/author_search_tile.dart';
-import 'package:esketit_music_app/ui/catalog/playlist_search_tile.dart';
-import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
+import 'package:esketit_music_app/ui/catalog/catalog_search_result_tile.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
-import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -60,30 +56,7 @@ class SearchCatalogView extends StatelessWidget {
             SearchResultClicked(result: item, resultRank: index + 1),
           );
 
-          return switch (item.type) {
-            CatalogSearchResultType.author => AuthorSearchTile(
-              author: item.author!,
-              onTap: onTap,
-            ),
-            CatalogSearchResultType.album => AlbumSearchTile(
-              album: item.album!,
-              onTap: onTap,
-            ),
-            CatalogSearchResultType.track => TrackListCard(
-              track: item.track!,
-              queue: [item.track!],
-              showImage: true,
-              onTap: onTap,
-              autoplayContext: AutoplayContext(
-                sourceType: AutoplaySourceType.track,
-                sourceId: item.track!.id,
-              ),
-            ),
-            CatalogSearchResultType.playlist => PlaylistSearchTile(
-              playlist: item.playlist!,
-              onTap: onTap,
-            ),
-          };
+          return CatalogSearchResultTile(result: item, onTap: onTap);
         }),
         if (state.isLoadingSearch)
           const Padding(

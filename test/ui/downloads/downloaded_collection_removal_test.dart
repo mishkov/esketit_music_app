@@ -13,6 +13,7 @@ import 'package:esketit_music_app/use_case/downloads/download_models.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
 import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -284,6 +285,9 @@ class _FakeAudioPlayer implements AudioPlayer {
 
   @override
   Future<void> seekTo(Duration position) async {}
+
+  @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {}
 
   @override
   Future<void> skipToNextTrack() async {}

@@ -5,6 +5,7 @@ import 'dart:js_interop_unsafe';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:web/web.dart';
 
 extension type _MediaSessionActionDetails(JSObject _) implements JSObject {
@@ -36,6 +37,7 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
 
   List<Track> _queue = const [];
   int? _currentIndex;
+  PlaybackRepeatMode _repeatMode = PlaybackRepeatMode.off;
   Timer? _positionTimer;
   int _loadGeneration = 0;
 
@@ -173,6 +175,16 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {
+    if (_repeatMode == repeatMode) {
+      return;
+    }
+
+    _repeatMode = repeatMode;
+    _emitNavigationState();
+  }
+
+  @override
   Future<void> stop() async {
     _audioElement.pause();
     _stopPositionTimer();
@@ -184,7 +196,14 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   @override
   Future<void> skipToNextTrack() async {
     final index = _currentIndex;
-    if (index == null || index >= _queue.length - 1) {
+    if (index == null || _queue.isEmpty) {
+      return;
+    }
+    if (index >= _queue.length - 1) {
+      if (_repeatMode == PlaybackRepeatMode.queue) {
+        await _skipTo(0, shouldPlay: !_audioElement.paused);
+      }
+
       return;
     }
 
@@ -194,7 +213,14 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   @override
   Future<void> skipToPreviousTrack() async {
     final index = _currentIndex;
-    if (index == null || index <= 0) {
+    if (index == null || _queue.isEmpty) {
+      return;
+    }
+    if (index <= 0) {
+      if (_repeatMode == PlaybackRepeatMode.queue) {
+        await _skipTo(_queue.length - 1, shouldPlay: !_audioElement.paused);
+      }
+
       return;
     }
 
@@ -260,7 +286,22 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
 
   Future<void> _playNextAfterCurrentEnds() async {
     final index = _currentIndex;
-    if (index == null || index >= _queue.length - 1) {
+    if (index == null) {
+      return;
+    }
+    if (_repeatMode == PlaybackRepeatMode.track) {
+      await _skipTo(index, shouldPlay: true);
+
+      return;
+    }
+    if (index >= _queue.length - 1 &&
+        _repeatMode == PlaybackRepeatMode.queue &&
+        _queue.isNotEmpty) {
+      await _skipTo(0, shouldPlay: true);
+
+      return;
+    }
+    if (index >= _queue.length - 1) {
       _audioElement.pause();
       _emitPlayingState();
       _emitPosition();
@@ -448,13 +489,18 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   bool get _hasPreviousTrack {
     final index = _currentIndex;
 
-    return index != null && index > 0;
+    return index != null &&
+        (index > 0 ||
+            (_repeatMode == PlaybackRepeatMode.queue && _queue.isNotEmpty));
   }
 
   bool get _hasNextTrack {
     final index = _currentIndex;
 
-    return index != null && index >= 0 && index < _queue.length - 1;
+    return index != null &&
+        index >= 0 &&
+        (index < _queue.length - 1 ||
+            (_repeatMode == PlaybackRepeatMode.queue && _queue.isNotEmpty));
   }
 
   Track? get _currentTrack {

@@ -2,6 +2,7 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/domain/file/local_file.dart';
 import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
+import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:just_audio/just_audio.dart' as just_audio;
 import 'package:just_audio_background/just_audio_background.dart';
 
@@ -9,6 +10,7 @@ class JustAudioAudioPlayer implements AudioPlayer {
   final just_audio.AudioPlayer _audioPlayer;
   final Uri? _baseUri;
   List<Track> _queue = const [];
+  PlaybackRepeatMode _repeatMode = PlaybackRepeatMode.off;
 
   JustAudioAudioPlayer({just_audio.AudioPlayer? audioPlayer, Uri? baseUri})
     : _audioPlayer = audioPlayer ?? just_audio.AudioPlayer(),
@@ -31,13 +33,21 @@ class JustAudioAudioPlayer implements AudioPlayer {
       _audioPlayer.sequenceStateStream.map((state) {
         final index = state.currentIndex;
 
-        return index != null && index >= 0 && index < state.sequence.length - 1;
+        return index != null &&
+            index >= 0 &&
+            (index < state.sequence.length - 1 ||
+                state.loopMode == just_audio.LoopMode.all);
       }).distinct();
 
   @override
-  Stream<bool> get hasPreviousTrackStream => _audioPlayer.currentIndexStream
-      .map((index) => index != null && index > 0)
-      .distinct();
+  Stream<bool> get hasPreviousTrackStream =>
+      _audioPlayer.sequenceStateStream.map((state) {
+        final index = state.currentIndex;
+
+        return index != null &&
+            index >= 0 &&
+            (index > 0 || state.loopMode == just_audio.LoopMode.all);
+      }).distinct();
 
   @override
   Stream<Track?> get currentTrackStream =>
@@ -145,18 +155,50 @@ class JustAudioAudioPlayer implements AudioPlayer {
   }
 
   @override
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {
+    await _audioPlayer.setLoopMode(switch (repeatMode) {
+      PlaybackRepeatMode.off => just_audio.LoopMode.off,
+      PlaybackRepeatMode.queue => just_audio.LoopMode.all,
+      PlaybackRepeatMode.track => just_audio.LoopMode.one,
+    });
+    _repeatMode = repeatMode;
+  }
+
+  @override
   Future<void> stop() async {
     await _audioPlayer.stop();
   }
 
   @override
   Future<void> skipToNextTrack() async {
-    await _audioPlayer.seekToNext();
+    final index = currentIndex;
+    if (index == null || _queue.isEmpty) {
+      return;
+    }
+    if (index < _queue.length - 1) {
+      await _audioPlayer.seek(Duration.zero, index: index + 1);
+
+      return;
+    }
+    if (_repeatMode == PlaybackRepeatMode.queue) {
+      await _audioPlayer.seek(Duration.zero, index: 0);
+    }
   }
 
   @override
   Future<void> skipToPreviousTrack() async {
-    await _audioPlayer.seekToPrevious();
+    final index = currentIndex;
+    if (index == null || _queue.isEmpty) {
+      return;
+    }
+    if (index > 0) {
+      await _audioPlayer.seek(Duration.zero, index: index - 1);
+
+      return;
+    }
+    if (_repeatMode == PlaybackRepeatMode.queue) {
+      await _audioPlayer.seek(Duration.zero, index: _queue.length - 1);
+    }
   }
 
   Uri _extractTrackUri(Track track) {

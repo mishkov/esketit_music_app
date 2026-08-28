@@ -103,6 +103,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get fullscreenPlayerCloseTooltip => 'Закрыть полноэкранный плеер';
 
   @override
+  String get repeatQueueTooltip => 'Повторять очередь';
+
+  @override
+  String get repeatTrackTooltip => 'Повторять трек';
+
+  @override
+  String get repeatOffTooltip => 'Выключить повтор';
+
+  @override
   String get fullscreenInactiveControlsSettingsTooltip =>
       'Настроить элементы неактивного режима';
 
@@ -545,7 +554,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authorsTitle => 'Авторы';
 
   @override
-  String get featuredAuthorsTitle => 'Избранные авторы';
+  String get popularAuthorsTitle => 'Популярные авторы';
 
   @override
   String get playMyVibeButton => 'Включить мой вайб';
@@ -580,6 +589,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get recentSearchQueriesTitle => 'Недавние поисковые запросы';
+
+  @override
+  String get recentSearchResultsTitle => 'Недавно искали';
 
   @override
   String searchResultsCount(int count) {

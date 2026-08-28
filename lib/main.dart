@@ -25,6 +25,7 @@ import 'package:esketit_music_app/unassigned_layer/downloads/downloads_runtime_f
 import 'package:esketit_music_app/unassigned_layer/downloads/http_download_source_resolver.dart';
 import 'package:esketit_music_app/unassigned_layer/http_package_http_client.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_queries_storage.dart';
+import 'package:esketit_music_app/unassigned_layer/key_value_recent_search_results_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/key_value_settings_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/shared_preferences_key_value_storage.dart';
 import 'package:esketit_music_app/unassigned_layer/url_strategy.dart';
@@ -83,6 +84,9 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     keyValueStorage: keyValueStorage,
   );
   final recentSearchQueriesStorage = KeyValueRecentSearchQueriesStorage(
+    keyValueStorage: keyValueStorage,
+  );
+  final recentSearchResultsStorage = KeyValueRecentSearchResultsStorage(
     keyValueStorage: keyValueStorage,
   );
   final selectedLocale = await settingsStorage.getLocale();
@@ -199,30 +203,35 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
             )..add(const AuthSessionRestoreRequested()),
           ),
           BlocProvider(
-            create: (context) => CatalogBloc(
-              initialState: const CatalogState(
-                authors: [],
-                isLoadingAuthors: false,
-                authorsErrorMessage: null,
-                albumsByAuthorId: {},
-                loadingAuthorIds: {},
-                authorAlbumsErrorMessages: {},
-                tracksByAlbumId: {},
-                loadingAlbumIds: {},
-                albumTracksErrorMessages: {},
-                searchQuery: '',
-                recentSearchQueries: [],
-                searchPage: 1,
-                searchPageSize: CatalogBloc.searchPageSize,
-                searchResults: null,
-                isLoadingSearch: false,
-                searchErrorMessage: null,
-              ),
-              errorReporter: errorReporter,
-              catalogStorage: catalogStorage,
-              recentSearchQueriesStorage: recentSearchQueriesStorage,
-              analytics: analyticsCollector,
-            )..add(LoadRecentSearchQueries()),
+            create: (context) =>
+                CatalogBloc(
+                    initialState: const CatalogState(
+                      authors: [],
+                      isLoadingAuthors: false,
+                      authorsErrorMessage: null,
+                      albumsByAuthorId: {},
+                      loadingAuthorIds: {},
+                      authorAlbumsErrorMessages: {},
+                      tracksByAlbumId: {},
+                      loadingAlbumIds: {},
+                      albumTracksErrorMessages: {},
+                      searchQuery: '',
+                      recentSearchQueries: [],
+                      recentSearchResults: [],
+                      searchPage: 1,
+                      searchPageSize: CatalogBloc.searchPageSize,
+                      searchResults: null,
+                      isLoadingSearch: false,
+                      searchErrorMessage: null,
+                    ),
+                    errorReporter: errorReporter,
+                    catalogStorage: catalogStorage,
+                    recentSearchQueriesStorage: recentSearchQueriesStorage,
+                    recentSearchResultsStorage: recentSearchResultsStorage,
+                    analytics: analyticsCollector,
+                  )
+                  ..add(LoadRecentSearchQueries())
+                  ..add(LoadRecentSearchResults()),
           ),
           BlocProvider(
             create: (context) => LyricsBloc(lyricsStorage: lyricsStorage),
