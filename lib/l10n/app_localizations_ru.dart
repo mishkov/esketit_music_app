@@ -545,7 +545,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authorsTitle => 'Авторы';
 
   @override
-  String get featuredAuthorsTitle => 'Избранные авторы';
+  String get popularAuthorsTitle => 'Популярные авторы';
 
   @override
   String get playMyVibeButton => 'Включить мой вайб';

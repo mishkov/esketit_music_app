@@ -529,7 +529,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authorsTitle => 'Authors';
 
   @override
-  String get featuredAuthorsTitle => 'Featured Authors';
+  String get popularAuthorsTitle => 'Popular Authors';
 
   @override
   String get playMyVibeButton => 'Play my vibe';

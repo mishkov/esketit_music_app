@@ -956,11 +956,11 @@ abstract class AppLocalizations {
   /// **'Authors'**
   String get authorsTitle;
 
-  /// No description provided for @featuredAuthorsTitle.
+  /// No description provided for @popularAuthorsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Featured Authors'**
-  String get featuredAuthorsTitle;
+  /// **'Popular Authors'**
+  String get popularAuthorsTitle;
 
   /// No description provided for @playMyVibeButton.
   ///

@@ -237,7 +237,7 @@
   "authorAlbumsDisplayModeExpandedOption": "Expanded",
   "authorAlbumsDisplayModeCompactOption": "Compact",
   "authorsTitle": "Authors",
-  "featuredAuthorsTitle": "Featured Authors",
+  "popularAuthorsTitle": "Popular Authors",
   "playMyVibeButton": "Play my vibe",
   "playAuthorButton": "Play author",
   "noPlayableAuthorTracks": "No playable tracks by this artist. Playing My Vibe.",

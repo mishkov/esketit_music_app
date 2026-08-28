@@ -237,7 +237,7 @@
   "authorAlbumsDisplayModeExpandedOption": "Развернуто",
   "authorAlbumsDisplayModeCompactOption": "Компактно",
   "authorsTitle": "Авторы",
-  "featuredAuthorsTitle": "Избранные авторы",
+  "popularAuthorsTitle": "Популярные авторы",
   "playMyVibeButton": "Включить мой вайб",
   "playAuthorButton": "Включить автора",
   "noPlayableAuthorTracks": "У этого исполнителя нет доступных треков. Включаем «Мой вайб».",
