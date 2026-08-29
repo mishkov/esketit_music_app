@@ -84,7 +84,10 @@ class _TrackLyricsScreenState extends State<TrackLyricsScreen> {
     }
 
     if (lyrics.type == TrackLyricsType.synced && lyrics.lines.isNotEmpty) {
-      return SyncedTrackLyricsView(lyrics: lyrics);
+      return SyncedTrackLyricsView(
+        lyrics: lyrics,
+        showLeadingBeatIndicator: true,
+      );
     }
 
     return SingleChildScrollView(
