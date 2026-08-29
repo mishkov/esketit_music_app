@@ -16,5 +16,11 @@ int? trackIdFromRouteName(String routeName) {
 }
 
 Uri shareableTrackUri(int trackId, {Uri? baseUri}) {
-  return (baseUri ?? Uri.base).resolve(trackRoutePath(trackId));
+  final currentBaseUri = baseUri ?? Uri.base;
+  final webBaseUri =
+      currentBaseUri.scheme == 'http' || currentBaseUri.scheme == 'https'
+      ? currentBaseUri
+      : Uri.parse('https://esketitmusic.online/');
+
+  return webBaseUri.resolve(trackRoutePath(trackId));
 }

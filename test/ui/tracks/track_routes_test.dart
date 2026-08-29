@@ -32,4 +32,10 @@ void main() {
 
     expect(uri.toString(), 'http://localhost:8081/tracks/42');
   });
+
+  test('shareable track URI uses the web app origin for a file base', () {
+    final uri = shareableTrackUri(721, baseUri: Uri.parse('file:///app/'));
+
+    expect(uri.toString(), 'https://esketitmusic.online/tracks/721');
+  });
 }
