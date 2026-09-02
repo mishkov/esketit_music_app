@@ -2,7 +2,8 @@ import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/shared/remote_image.dart';
-import 'package:esketit_music_app/ui/tracks/show_add_to_playlists_sheet.dart';
+import 'package:esketit_music_app/ui/tracks/track_actions_menu.dart';
+import 'package:esketit_music_app/ui/tracks/track_download_policy.dart';
 import 'package:esketit_music_app/ui/tracks/track_download_status.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/player/autoplay_storage.dart';
@@ -18,6 +19,7 @@ class TrackListCard extends StatelessWidget {
     this.autoplayContext,
     this.playlistIdForRemoval,
     this.showAddToPlaylistsAction = true,
+    this.showSaveToDownloadsAction,
     this.showImage = false,
     this.onTap,
     super.key,
@@ -28,6 +30,7 @@ class TrackListCard extends StatelessWidget {
   final AutoplayContext? autoplayContext;
   final int? playlistIdForRemoval;
   final bool showAddToPlaylistsAction;
+  final bool? showSaveToDownloadsAction;
   final bool showImage;
   final VoidCallback? onTap;
 
@@ -107,25 +110,9 @@ class TrackListCard extends StatelessWidget {
                     ].where((part) => part.isNotEmpty).join(' • '),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  trailing: Wrap(
-                    spacing: 4,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        tooltip: effectiveIsDisliked
-                            ? l10n.removeFromDislikesTooltip
-                            : l10n.addToDislikesTooltip,
-                        onPressed: preferencePending
-                            ? null
-                            : () => _toggleDislike(
-                                context,
-                                shouldBeDisliked: !effectiveIsDisliked,
-                              ),
-                        icon: Icon(
-                          effectiveIsDisliked
-                              ? Icons.thumb_down_rounded
-                              : Icons.thumb_down_outlined,
-                        ),
-                      ),
                       IconButton(
                         tooltip: effectiveIsFavorite
                             ? l10n.removeFromFavoritesTooltip
@@ -143,30 +130,21 @@ class TrackListCard extends StatelessWidget {
                               : Icons.favorite_border_rounded,
                         ),
                       ),
-                      if (showAddToPlaylistsAction)
-                        IconButton(
-                          tooltip: l10n.addToPlaylistsTooltip,
-                          onPressed: playlistsPending
-                              ? null
-                              : () => showAddToPlaylistsSheet(
-                                  context: context,
-                                  track: track,
-                                ),
-                          icon: const Icon(Icons.playlist_add_rounded),
+                      TrackActionsMenu(
+                        track: track,
+                        effectiveIsDisliked: effectiveIsDisliked,
+                        preferencePending: preferencePending,
+                        playlistsPending: playlistsPending,
+                        playlistIdForRemoval: playlistIdForRemoval,
+                        showAddToPlaylistsAction: showAddToPlaylistsAction,
+                        showSaveToDownloadsAction:
+                            showSaveToDownloadsAction ??
+                            showTrackSaveToDownloadsActionByDefault,
+                        onToggleDislike: () => _toggleDislike(
+                          context,
+                          shouldBeDisliked: !effectiveIsDisliked,
                         ),
-                      if (playlistIdForRemoval != null)
-                        IconButton(
-                          tooltip: l10n.removeFromPlaylistTooltip,
-                          onPressed: playlistsPending
-                              ? null
-                              : () => context.read<PlaylistsBloc>().add(
-                                  RemoveTrackFromPlaylistRequested(
-                                    trackId: track.id,
-                                    playlistId: playlistIdForRemoval!,
-                                  ),
-                                ),
-                          icon: const Icon(Icons.remove_circle_outline_rounded),
-                        ),
+                      ),
                     ],
                   ),
                   onTap: track.isAvailable
