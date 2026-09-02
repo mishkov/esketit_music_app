@@ -13,6 +13,7 @@ import 'package:esketit_music_app/l10n/app_localizations.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/ui/player/track_preference_synchronizer.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
+import 'package:esketit_music_app/unassigned_layer/http_file.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/downloads/bloc/downloads_bloc.dart';
 import 'package:esketit_music_app/use_case/player/audio_player.dart';
@@ -21,6 +22,7 @@ import 'package:esketit_music_app/use_case/player/bloc/player_bloc.dart';
 import 'package:esketit_music_app/use_case/player/playback_repeat_mode.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
 import 'package:esketit_music_app/use_case/playlists/playlists_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +31,9 @@ void main() {
   testWidgets('loads playlists before showing add-to-playlists choices', (
     tester,
   ) async {
-    final track = _track(1);
+    final track = _track(1).copyWith(
+      file: HttpFile(uri: Uri.parse('https://example.test/track.mp3')),
+    );
     final playlist = _playlist(7, name: 'Road');
     final playlistsStorage = _FakePlaylistsStorage(
       deferEmptyPlaylistsResponse: true,
@@ -75,7 +79,22 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.playlist_add_rounded));
+    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.thumb_down_outlined), findsNothing);
+    expect(find.byIcon(Icons.playlist_add_rounded), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add to dislikes'), findsOneWidget);
+    expect(find.text('Add to playlists'), findsOneWidget);
+    expect(
+      find.text('Save to downloads'),
+      kIsWeb ? findsOneWidget : findsNothing,
+    );
+
+    await tester.tap(find.text('Add to playlists'));
     await tester.pump();
 
     expect(playlistsStorage.getPlaylistsCallCount, 1);
@@ -142,7 +161,9 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.playlist_add_rounded));
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add to playlists'));
     await tester.pumpAndSettle();
 
     final checkbox = tester.widget<CheckboxListTile>(
@@ -209,14 +230,20 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.thumb_down_outlined));
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add to dislikes'));
     await tester.pump();
     await tester.pump();
 
     expect(playlistsStorage.addDislikeCallCount, 1);
     expect(find.text(track.name), findsOneWidget);
     expect(find.textContaining('Disliked'), findsOneWidget);
-    expect(find.byIcon(Icons.thumb_down_rounded), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from dislikes'), findsOneWidget);
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
     expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
 
     dislikeCompleter.completeError(StateError('dislike failed'));
@@ -224,12 +251,18 @@ void main() {
 
     expect(find.text(track.name), findsOneWidget);
     expect(find.textContaining('Disliked'), findsNothing);
-    expect(find.byIcon(Icons.thumb_down_outlined), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Add to dislikes'), findsOneWidget);
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
     expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     expect(audioPlayer.removeUpcomingTracksCallCount, 0);
 
     playlistsStorage.addDislikeCompleter = null;
-    await tester.tap(find.byIcon(Icons.thumb_down_outlined));
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add to dislikes'));
     await tester.pumpAndSettle();
 
     expect(audioPlayer.removeUpcomingTracksCallCount, 1);
