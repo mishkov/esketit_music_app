@@ -590,12 +590,10 @@ class HtmlAudioElementAudioPlayer implements AudioPlayer {
   }
 
   void _configureMediaSessionActions() {
-    _setMediaSessionActionHandler('play', () {
-      unawaited(_play());
-    });
-    _setMediaSessionActionHandler('pause', () {
-      _audioElement.pause();
-    });
+    // Let the browser control the HTML audio element for play and pause. Its
+    // native handling keeps system media keys working while this window is in
+    // the background. The element events above still synchronize player and
+    // Media Session state after either action.
     _setMediaSessionActionHandler('previoustrack', () {
       unawaited(skipToPreviousTrack());
     });
