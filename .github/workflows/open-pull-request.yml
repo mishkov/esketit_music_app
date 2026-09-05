@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: open-pull-request-${{ github.ref }}
@@ -19,9 +18,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate pull request automation token
+        env:
+          PULL_REQUEST_AUTOMATION_TOKEN: ${{ secrets.PULL_REQUEST_AUTOMATION_TOKEN }}
+        run: |
+          if [[ -z "$PULL_REQUEST_AUTOMATION_TOKEN" ]]; then
+            echo "::error::Add the PULL_REQUEST_AUTOMATION_TOKEN repository secret."
+            exit 1
+          fi
+
       - name: Open pull request into main
+        id: open-pull-request
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PULL_REQUEST_AUTOMATION_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -46,6 +56,7 @@ jobs:
               core.info(
                 `Pull request #${existingPullRequest.number} already targets ${base}.`,
               );
+              core.setOutput('number', existingPullRequest.number);
               return;
             }
 
@@ -72,14 +83,46 @@ jobs:
               });
 
               core.info(`Created pull request #${pullRequest.number}.`);
+              core.setOutput('number', pullRequest.number);
             } catch (error) {
               const concurrentlyCreatedPullRequest = await findOpenPullRequest();
               if (concurrentlyCreatedPullRequest) {
                 core.info(
                   `Pull request #${concurrentlyCreatedPullRequest.number} was created concurrently.`,
                 );
+                core.setOutput('number', concurrentlyCreatedPullRequest.number);
                 return;
               }
 
               throw error;
             }
+
+      - name: Enable auto-merge
+        if: ${{ steps.open-pull-request.outputs.number != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.PULL_REQUEST_AUTOMATION_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ steps.open-pull-request.outputs.number }}
+        run: |
+          set -euo pipefail
+
+          auto_merge_status="$(
+            gh pr view "$PULL_REQUEST_NUMBER" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json autoMergeRequest,state \
+              --jq 'if .state != "OPEN" then "closed" elif .autoMergeRequest != null then "enabled" else "disabled" end'
+          )"
+
+          if [[ "$auto_merge_status" == "closed" ]]; then
+            echo "Pull request #${PULL_REQUEST_NUMBER} is no longer open."
+            exit 0
+          fi
+
+          if [[ "$auto_merge_status" == "enabled" ]]; then
+            echo "Auto-merge is already enabled for pull request #${PULL_REQUEST_NUMBER}."
+            exit 0
+          fi
+
+          gh pr merge "$PULL_REQUEST_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --auto \
+            --merge
