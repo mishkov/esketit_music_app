@@ -1,13 +1,7 @@
-import 'dart:async';
-
 import 'package:esketit_music_app/domain/author.dart';
-import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
-import 'package:esketit_music_app/errors/error_reporter/category.dart';
-import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/login_required_prompt_scope.dart';
 import 'package:esketit_music_app/ui/catalog/author_card.dart';
-import 'package:esketit_music_app/ui/catalog/authors_screen.dart';
 import 'package:esketit_music_app/ui/tracks/last_added_tracks_section.dart';
 import 'package:esketit_music_app/use_case/auth/bloc/auth_bloc.dart';
 import 'package:esketit_music_app/use_case/catalog/bloc/catalog_bloc.dart';
@@ -60,21 +54,9 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.popularAuthorsTitle,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                    ),
-                    if (state.authors.length > _popularAuthorsLimit)
-                      TextButton.icon(
-                        onPressed: () => _openAuthorsScreen(context),
-                        icon: const Icon(Icons.arrow_forward_rounded),
-                        label: Text(l10n.viewMoreButton),
-                      ),
-                  ],
+                Text(
+                  l10n.popularAuthorsTitle,
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 _buildAuthorsSection(context, state),
@@ -133,21 +115,6 @@ class _CatalogBrowseScreenState extends State<CatalogBrowseScreen> {
 
     context.read<PlayerBloc>().add(
       const StartAutoplayPlaybackRequested(AutoplayContext.myVibe()),
-    );
-  }
-
-  void _openAuthorsScreen(BuildContext context) {
-    unawaited(
-      context.read<ErrorReporter>().addBreadcrumb(
-        Breadcrumb(
-          message: 'Open all authors screen',
-          category: Category.uiClick,
-          data: {'sourceScreen': 'home'},
-        ),
-      ),
-    );
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (context) => const AuthorsScreen()),
     );
   }
 }

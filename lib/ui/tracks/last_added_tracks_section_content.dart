@@ -1,5 +1,4 @@
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
-import 'package:esketit_music_app/ui/tracks/last_added_tracks_screen.dart';
 import 'package:esketit_music_app/ui/tracks/track_list_card.dart';
 import 'package:esketit_music_app/use_case/tracks/tracks_list/bloc/tracks_list_bloc.dart';
 import 'package:flutter/material.dart';
@@ -17,20 +16,9 @@ class LastAddedTracksSectionContent extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.lastAddedTracksTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () => _openLastAddedTracksScreen(context),
-                  icon: const Icon(Icons.arrow_forward_rounded),
-                  label: Text(l10n.viewMoreButton),
-                ),
-              ],
+            Text(
+              l10n.lastAddedTracksTitle,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
             if (state.isLoading && state.tracks.isEmpty)
@@ -55,14 +43,6 @@ class LastAddedTracksSectionContent extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  void _openLastAddedTracksScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => const LastAddedTracksScreen(),
-      ),
     );
   }
 }
