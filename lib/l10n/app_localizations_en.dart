@@ -508,9 +508,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lastAddedTracksTitle => 'Last added';
 
   @override
-  String get viewMoreButton => 'View more';
-
-  @override
   String get noTracksYet => 'No tracks yet.';
 
   @override
