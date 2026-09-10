@@ -35,12 +35,12 @@ class AppError implements Exception {
   /// Checks wether [causeChain] contains any element of [T] type.
   ///
   /// If you didn't pass [T] then it will always return true in production.
-  bool causedBy<T>() {
+  bool causedBy<T extends Object?>() {
     assert(
-      T != dynamic,
-      'Tried to call AppError.causedBy<dynamic>(). This is likely a mistake '
+      T.toString() != 'Object?',
+      'Tried to call AppError.causedBy<Object?>(). This is likely a mistake '
       'and is therefore unsupported. If you want to check error that can '
-      'be anything, consider changing `dynamic` to `Object` instead.',
+      'be anything, consider changing `Object?` to `Object` instead.',
     );
 
     return causeChain.any((element) => element is T);
