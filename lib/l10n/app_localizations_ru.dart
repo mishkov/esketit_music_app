@@ -523,6 +523,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get lastAddedTracksTitle => 'Последние добавленные';
 
   @override
+  String get viewMoreButton => 'Показать ещё';
+
+  @override
   String get noTracksYet => 'Треков пока нет.';
 
   @override

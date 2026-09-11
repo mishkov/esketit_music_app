@@ -230,6 +230,7 @@
   "downloadLowStorageNotificationBody": "Not enough storage. Free some space before downloading again.",
   "tracksTitle": "Tracks",
   "lastAddedTracksTitle": "Last added",
+  "viewMoreButton": "View more",
   "noTracksYet": "No tracks yet.",
   "lastAddedTracksLoadFailed": "Failed to load last added tracks.",
   "noTracksInAlbumYet": "No tracks in this album yet.",

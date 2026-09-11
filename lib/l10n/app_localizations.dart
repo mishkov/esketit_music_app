@@ -914,6 +914,12 @@ abstract class AppLocalizations {
   /// **'Last added'**
   String get lastAddedTracksTitle;
 
+  /// No description provided for @viewMoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View more'**
+  String get viewMoreButton;
+
   /// No description provided for @noTracksYet.
   ///
   /// In en, this message translates to:
