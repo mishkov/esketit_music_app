@@ -230,6 +230,7 @@
   "downloadLowStorageNotificationBody": "Недостаточно места. Освободите память перед новой попыткой.",
   "tracksTitle": "Треки",
   "lastAddedTracksTitle": "Последние добавленные",
+  "viewMoreButton": "Показать ещё",
   "noTracksYet": "Треков пока нет.",
   "lastAddedTracksLoadFailed": "Не удалось загрузить последние добавленные треки.",
   "noTracksInAlbumYet": "В этом альбоме пока нет треков.",
