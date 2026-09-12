@@ -216,6 +216,298 @@ Examples include:
 
 Use the strongest practical verification method for the current task.
 
+# UI Change Screenshots
+
+When a task materially changes visible application UI, the pull request must include before/after screenshots.
+
+Do not create screenshots for changes that have no meaningful visible effect.
+
+Screenshots are part of verification and should help a reviewer immediately understand what changed.
+
+## Determine Whether Screenshots Are Required
+
+Screenshots are required for changes such as:
+
+* layout changes
+* spacing changes
+* colors or themes
+* typography changes
+* new or removed UI elements
+* changed icons or images
+* navigation changes that affect visible screens
+* loading, empty, error, or success states
+* dialogs, sheets, menus, or overlays
+* responsive/adaptive UI changes
+* fixes to visually observable UI bugs
+
+Screenshots are normally unnecessary for:
+
+* internal refactoring
+* networking changes with no visible effect
+* repository/storage changes
+* analytics changes
+* logging changes
+* tests
+* architecture-only changes
+* performance changes with no visible difference
+
+Use judgment when the distinction is unclear.
+
+## Capture the Before State
+
+The before screenshot must be captured before modifying the affected UI.
+
+Before implementation:
+
+1. Start from the latest default branch.
+2. Build and run the existing application.
+3. Navigate to the exact state affected by the issue.
+4. Prepare representative data when necessary.
+5. Capture the current UI.
+6. Save the screenshot outside the Git repository.
+
+Use:
+
+```text
+/tmp/hermes-ui/<issue-number>/
+```
+
+For example:
+
+```text
+/tmp/hermes-ui/142/before.png
+```
+
+Create the directory when necessary:
+
+```bash
+mkdir -p /tmp/hermes-ui/<issue-number>
+```
+
+For Android, prefer a direct emulator/device screenshot:
+
+```bash
+adb exec-out screencap -p > /tmp/hermes-ui/<issue-number>/before.png
+```
+
+Use Computer Use, `adb`, deep links, test fixtures, or other appropriate tools to navigate the application into the required state.
+
+Do not commit screenshots into the repository.
+
+## Capture the After State
+
+After implementation and before creating the pull request:
+
+1. Build/run the changed application.
+2. Navigate to the same state used for the before screenshot.
+3. Capture the updated UI.
+
+For Android:
+
+```bash
+adb exec-out screencap -p > /tmp/hermes-ui/<issue-number>/after.png
+```
+
+The before and after screenshots should use the same, or as close as practical:
+
+* emulator/device
+* resolution
+* orientation
+* application theme
+* screen
+* navigation state
+* scroll position
+* representative data
+* keyboard visibility
+* system UI state
+
+The primary visible difference between the screenshots should be the implementation being reviewed.
+
+Do not intentionally manipulate unrelated state just to make the after screenshot look better.
+
+## Screenshot Method Priority
+
+For Flutter Android changes, prefer methods in this order:
+
+1. Direct Android screenshot using `adb exec-out screencap`
+2. Application-specific screenshot/test tooling when available
+3. Hermes Computer Use screenshot
+4. Desktop screenshot only when no cleaner application-level capture is practical
+
+Prefer direct application screenshots because they avoid:
+
+* Ubuntu window borders
+* desktop background
+* mouse cursor
+* unrelated applications
+* accessibility/debug overlays
+* accidental private desktop information
+
+Computer Use may still be used to navigate the emulator before capturing the screenshot.
+
+## Screenshot Quality
+
+Before attaching screenshots, inspect them.
+
+Screenshots must:
+
+* clearly show the relevant UI
+* show the final rendered state
+* not be captured during animations unless the animation itself is being reviewed
+* not be captured while content is unintentionally loading
+* use representative data
+* be large enough to understand the change
+* avoid unrelated content
+* not contain credentials, API keys, tokens, passwords, personal messages, or other sensitive information
+
+If sensitive information is visible, do not upload the screenshot.
+
+Create a safe reproducible state instead.
+
+## Multiple Changed Screens
+
+If one issue materially changes several different screens or states, capture additional pairs when they provide useful review information.
+
+Use descriptive filenames, for example:
+
+```text
+/tmp/hermes-ui/142/player-before.png
+/tmp/hermes-ui/142/player-after.png
+
+/tmp/hermes-ui/142/playlist-before.png
+/tmp/hermes-ui/142/playlist-after.png
+```
+
+Do not generate excessive screenshots.
+
+Each screenshot should provide useful review information.
+
+## Impossible Before State
+
+Do not fabricate a before screenshot.
+
+If a meaningful before screenshot cannot reasonably be reproduced, attach only the after screenshot and explain briefly in the PR why a comparable before screenshot is unavailable.
+
+Examples:
+
+* the old state can no longer run because of an external API change
+* reproduction requires unavailable historical data
+* the issue concerns a UI state that cannot currently be reached reliably
+
+## Pull Request Body
+
+For a UI-changing pull request, add:
+
+```markdown
+## UI comparison
+
+| Before | After |
+| --- | --- |
+| ![Before](/tmp/hermes-ui/<issue-number>/before.png) | ![After](/tmp/hermes-ui/<issue-number>/after.png) |
+```
+
+For multiple changed screens, use separate comparison sections or rows with descriptive labels.
+
+Example:
+
+```markdown
+### Player screen
+
+| Before | After |
+| --- | --- |
+| ![Player before](/tmp/hermes-ui/142/player-before.png) | ![Player after](/tmp/hermes-ui/142/player-after.png) |
+
+### Playlist screen
+
+| Before | After |
+| --- | --- |
+| ![Playlist before](/tmp/hermes-ui/142/playlist-before.png) | ![Playlist after](/tmp/hermes-ui/142/playlist-after.png) |
+```
+
+## Upload Screenshots Through GitHub CLI
+
+Do not commit screenshot files to Git merely to make them visible in the pull request.
+
+Use GitHub CLI attachments.
+
+The local file paths referenced in the PR Markdown must correspond to the same files passed through `--attach`.
+
+Example:
+
+```bash
+gh pr create \
+  --title "<pull-request-title>" \
+  --body-file /tmp/hermes-pr-body.md \
+  --attach /tmp/hermes-ui/<issue-number>/before.png \
+  --attach /tmp/hermes-ui/<issue-number>/after.png
+```
+
+GitHub CLI should upload the attachments and replace the local image references in the PR body with GitHub-hosted attachment URLs.
+
+After creating the PR, inspect the resulting PR body and verify that:
+
+* both images successfully uploaded
+* the images render correctly
+* Before and After appear in the intended order
+* no local `/tmp/...` image references remain broken
+* no sensitive information is visible
+
+If an upload fails, fix the attachment rather than leaving a broken screenshot reference in the PR.
+
+## Updating an Existing Pull Request
+
+When adding or replacing screenshots on an existing Hermes PR, regenerate the relevant PR body and use GitHub CLI attachment support.
+
+Example:
+
+```bash
+gh pr edit <pr-number> \
+  --body-file /tmp/hermes-pr-body.md \
+  --attach /tmp/hermes-ui/<issue-number>/before.png \
+  --attach /tmp/hermes-ui/<issue-number>/after.png
+```
+
+After editing the PR, inspect it and confirm that the images render successfully.
+
+## UI Changes Requested During PR Review
+
+If review feedback changes the UI again:
+
+1. Keep the original `before` screenshot representing the state before the issue was implemented.
+2. Update the `after` screenshot to represent the newest implementation.
+3. Replace/update the PR attachment accordingly.
+
+The PR's final comparison should represent:
+
+```text
+original behavior → current proposed behavior
+```
+
+rather than:
+
+```text
+previous Hermes revision → latest Hermes revision
+```
+
+unless a reviewer explicitly asks for a comparison between revisions.
+
+## UI Screenshot Requirement Before PR Creation
+
+Before creating a UI-changing PR, verify all of the following:
+
+* the original behavior was captured when practical
+* the final behavior was captured
+* screenshots represent equivalent application states
+* screenshots were inspected
+* screenshots contain no sensitive information
+* screenshots are referenced in the PR body
+* screenshot files are passed to GitHub CLI using `--attach`
+* screenshot files are not included in `git status`
+* the final GitHub PR renders the screenshots successfully
+
+A UI-changing pull request is not considered fully complete until its screenshot comparison has been verified on GitHub.
+
+
 # Autonomous Repository Maintainer
 
 This repository may be maintained by an autonomous Hermes agent.
