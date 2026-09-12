@@ -1,5 +1,6 @@
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
+import 'package:esketit_music_app/ui/catalog/catalog_screen_helpers.dart';
 import 'package:esketit_music_app/ui/tracks/show_add_to_playlists_sheet.dart';
 import 'package:esketit_music_app/ui/tracks/track_download_launcher.dart';
 import 'package:esketit_music_app/use_case/playlists/bloc/playlists_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum _TrackAction {
   toggleDislike,
+  goToAlbum,
   addToPlaylists,
   removeFromPlaylist,
   saveToDownloads,
@@ -59,6 +61,11 @@ class _TrackActionsMenuState extends State<TrackActionsMenu> {
                 : l10n.addToDislikesTooltip,
           ),
         ),
+        if (widget.track.albumId != null)
+          PopupMenuItem<_TrackAction>(
+            value: _TrackAction.goToAlbum,
+            child: Text(l10n.trackScreenGoToAlbumAction),
+          ),
         if (widget.showAddToPlaylistsAction)
           PopupMenuItem<_TrackAction>(
             value: _TrackAction.addToPlaylists,
@@ -87,6 +94,8 @@ class _TrackActionsMenuState extends State<TrackActionsMenu> {
     switch (action) {
       case _TrackAction.toggleDislike:
         widget.onToggleDislike();
+      case _TrackAction.goToAlbum:
+        openAlbumDetailsById(context, widget.track.albumId!);
       case _TrackAction.addToPlaylists:
         await showAddToPlaylistsSheet(context: context, track: widget.track);
       case _TrackAction.removeFromPlaylist:

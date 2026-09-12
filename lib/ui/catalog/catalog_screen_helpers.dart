@@ -20,6 +20,10 @@ void openAlbumDetails(BuildContext context, Album album) {
   Navigator.of(context).pushNamed(albumRoutePath(album.id), arguments: album);
 }
 
+void openAlbumDetailsById(BuildContext context, int albumId) {
+  Navigator.of(context).pushNamed(albumRoutePath(albumId));
+}
+
 void openPlaylistDetails(BuildContext context, Playlist playlist) {
   final currentUserId = context.read<AuthBloc>().state.session?.user.id;
   if (currentUserId == playlist.userId) {
