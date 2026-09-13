@@ -224,6 +224,16 @@ Do not create screenshots for changes that have no meaningful visible effect.
 
 Screenshots are part of verification and should help a reviewer immediately understand what changed.
 
+## Required Screenshot Source
+
+Before/after screenshots must be direct captures of the running application built from the corresponding source revision. Use the application's normal entry point, screens, routing, theme, fonts, assets, and layout.
+
+Widget/golden-test renders, isolated component harnesses, recreated screens, mockups, and generated or edited illustrations do not satisfy this requirement. They may be attached separately as clearly labeled supplementary test images. Do not substitute a custom `MaterialApp`, generic theme, replacement font, or hand-built screen for the real application.
+
+Representative test data is allowed when supplied through the running application's supported data or test configuration. Keep that data equivalent between captures; do not replace the screen or menu to make capture easier.
+
+Identify the exact affected screens and states before capture. Similar-looking menus in different locations are separate states; for example, a track-card menu does not demonstrate the track-detail menu. Capture each materially changed state needed to review the issue.
+
 ## Determine Whether Screenshots Are Required
 
 Screenshots are required for changes such as:
@@ -255,11 +265,11 @@ Use judgment when the distinction is unclear.
 
 ## Capture the Before State
 
-The before screenshot must be captured before modifying the affected UI.
+Capture the before screenshot before modifying the affected UI. Record the baseline commit SHA. If implementation has already started, build and run that baseline revision in a separate worktree and capture the actual application there; disclose that the baseline was reproduced later.
 
 Before implementation:
 
-1. Start from the latest default branch.
+1. Start from the latest default branch and record its commit SHA.
 2. Build and run the existing application.
 3. Navigate to the exact state affected by the issue.
 4. Prepare representative data when necessary.
@@ -330,9 +340,11 @@ Do not intentionally manipulate unrelated state just to make the after screensho
 For Flutter Android changes, prefer methods in this order:
 
 1. Direct Android screenshot using `adb exec-out screencap`
-2. Application-specific screenshot/test tooling when available
-3. Hermes Computer Use screenshot
-4. Desktop screenshot only when no cleaner application-level capture is practical
+2. Application or integration tooling that captures the actual running application from its normal entry point
+3. Hermes Computer Use capture of the running application or emulator
+4. Desktop capture of the running application when no cleaner application-level capture is practical
+
+For web changes, run the actual web application and use browser automation to navigate and capture its rendered viewport. Do not create an HTML or widget imitation for the screenshot. Use the platform affected by the issue; disclose any platform substitution and its verification limits.
 
 Prefer direct application screenshots because they avoid:
 
@@ -345,6 +357,8 @@ Prefer direct application screenshots because they avoid:
 
 Computer Use may still be used to navigate the emulator before capturing the screenshot.
 
+Try an available runtime capture method before concluding that capture is unavailable. If Computer Use fails, inspect its diagnostic from the same CLI or Telegram gateway environment used for the task; success in another terminal does not establish gateway access. Use another valid runtime capture method when it covers the affected platform and behavior.
+
 ## Screenshot Quality
 
 Before attaching screenshots, inspect them.
@@ -356,6 +370,8 @@ Screenshots must:
 * not be captured during animations unless the animation itself is being reviewed
 * not be captured while content is unintentionally loading
 * use representative data
+* preserve the application's actual typography, colors, layout, and menu contents
+* show the exact affected screen/state, with enough surrounding context to identify it
 * be large enough to understand the change
 * avoid unrelated content
 * not contain credentials, API keys, tokens, passwords, personal messages, or other sensitive information
@@ -366,7 +382,7 @@ Create a safe reproducible state instead.
 
 ## Multiple Changed Screens
 
-If one issue materially changes several different screens or states, capture additional pairs when they provide useful review information.
+If one issue materially changes several different screens or states, capture a comparison for each materially changed state needed to review the issue. Do not use one component's screenshot as evidence for a different screen. Avoid duplicate captures that demonstrate the same state.
 
 Use descriptive filenames, for example:
 
@@ -388,6 +404,8 @@ Do not fabricate a before screenshot.
 
 If a meaningful before screenshot cannot reasonably be reproduced, attach only the after screenshot and explain briefly in the PR why a comparable before screenshot is unavailable.
 
+If a required runtime capture is blocked, report the attempted command/tool, the actual failure, and the access, data, or setup needed to proceed. Do not replace the missing capture with a widget/golden render or describe visual verification as complete. A missing after capture remains an explicit verification blocker; a draft PR, if otherwise appropriate, must disclose it.
+
 Examples:
 
 * the old state can no longer run because of an external API change
@@ -407,6 +425,8 @@ For a UI-changing pull request, add:
 ```
 
 For multiple changed screens, use separate comparison sections or rows with descriptive labels.
+
+For each comparison, record the source revisions, platform/device or browser, viewport, screen/route, reproduction steps, data setup, and capture tool. Label the images as runtime captures and describe any material difference in conditions. Keep supplementary widget/golden images separately labeled.
 
 Example:
 
@@ -497,7 +517,10 @@ Before creating a UI-changing PR, verify all of the following:
 
 * the original behavior was captured when practical
 * the final behavior was captured
+* required images came from the running application, not a widget/golden harness or recreated screen
+* every materially changed screen/state has the necessary runtime evidence
 * screenshots represent equivalent application states
+* capture source revisions, conditions, and reproduction steps are recorded
 * screenshots were inspected
 * screenshots contain no sensitive information
 * screenshots are referenced in the PR body
