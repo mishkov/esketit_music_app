@@ -48,8 +48,9 @@ class TrackScreen extends StatelessWidget {
                     context.read<CatalogBloc>().state,
                     displayedTrack,
                   );
+        final albumId = album?.id ?? displayedTrack?.albumId;
         final hasMenuActions =
-            displayedTrack != null || album != null || authors.isNotEmpty;
+            displayedTrack != null || albumId != null || authors.isNotEmpty;
 
         return ScreenSkeleton(
           enableBottomPlayer: false,
@@ -81,12 +82,14 @@ class TrackScreen extends StatelessWidget {
                       action,
                       displayedTrack,
                       album,
+                      albumId,
                       authors,
                     ),
                     itemBuilder: (context) => _buildTrackScreenMenuItems(
                       context,
                       displayedTrack,
                       album,
+                      albumId,
                       authors,
                       downloadsState.isReady ? downloadStatus : null,
                     ),
@@ -134,6 +137,7 @@ class TrackScreen extends StatelessWidget {
     _TrackScreenMenuAction action,
     Track? track,
     Album? album,
+    int? albumId,
     List<Author> authors,
   ) async {
     switch (action) {
@@ -144,6 +148,8 @@ class TrackScreen extends StatelessWidget {
       case _TrackScreenMenuAction.goToAlbum:
         if (album != null) {
           openAlbumDetails(context, album);
+        } else if (albumId != null) {
+          openAlbumDetailsById(context, albumId);
         }
       case _TrackScreenMenuAction.goToAuthor:
         await openAuthorSelection(context, authors);
@@ -172,6 +178,7 @@ class TrackScreen extends StatelessWidget {
     BuildContext context,
     Track? track,
     Album? album,
+    int? albumId,
     List<Author> authors,
     TrackDownloadState? downloadStatus,
   ) {
@@ -199,7 +206,7 @@ class TrackScreen extends StatelessWidget {
           value: _TrackScreenMenuAction.addToPlaylists,
           child: Text(context.l10n.addToPlaylistsTooltip),
         ),
-      if (album != null)
+      if (albumId != null)
         PopupMenuItem<_TrackScreenMenuAction>(
           value: _TrackScreenMenuAction.goToAlbum,
           child: Text(context.l10n.trackScreenGoToAlbumAction),

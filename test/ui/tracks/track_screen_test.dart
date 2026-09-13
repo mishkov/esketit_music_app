@@ -11,6 +11,7 @@ import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/l10n/app_localizations.dart';
+import 'package:esketit_music_app/ui/albums/album_routes.dart';
 import 'package:esketit_music_app/ui/tracks/track_screen.dart';
 import 'package:esketit_music_app/ui/tracks/track_route_screen.dart';
 import 'package:esketit_music_app/ui/tracks/track_routes.dart';
@@ -378,6 +379,81 @@ void main() {
     expect(playlistsStorage.createdPlaylistNames, ['Road']);
     expect(playlistsStorage.addedTrackIds, [track.id]);
     expect(playlistsStorage.addedTrackPlaylistIds, unorderedEquals([2, 7]));
+  });
+
+  testWidgets('opens album from track screen menu when track has album id', (
+    tester,
+  ) async {
+    final track = _track(1).copyWith(albumId: 77);
+    final pushedRoutes = <String>[];
+    final errorReporter = _FakeErrorReporter();
+    final authBloc = AuthBloc(
+      authRepository: _FakeAuthRepository(),
+      errorReporter: errorReporter,
+    )..add(const AuthSessionRestoreRequested());
+    final playlistsBloc = PlaylistsBloc(
+      playlistsStorage: _FakePlaylistsStorage(playlists: const []),
+      errorReporter: errorReporter,
+    );
+    final playerBloc = PlayerBloc(
+      initialState: PlayerState(selectedTrack: track, isPlaying: false),
+      player: _FakeAudioPlayer(),
+      autoplayStorage: _FakeAutoplayStorage(),
+      errorReporter: errorReporter,
+    );
+    final catalogBloc = CatalogBloc(
+      initialState: _emptyCatalogState(),
+      catalogStorage: _FakeCatalogStorage(),
+      recentSearchQueriesStorage: _FakeRecentSearchQueriesStorage(),
+      recentSearchResultsStorage: _FakeRecentSearchResultsStorage(),
+      errorReporter: errorReporter,
+    );
+    final lyricsBloc = LyricsBloc(lyricsStorage: _FakeLyricsStorage());
+    final downloadsBloc = DownloadsBloc.unsupported();
+
+    addTearDown(authBloc.close);
+    addTearDown(playlistsBloc.close);
+    addTearDown(playerBloc.close);
+    addTearDown(catalogBloc.close);
+    addTearDown(lyricsBloc.close);
+    addTearDown(downloadsBloc.close);
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          BlocProvider<PlaylistsBloc>.value(value: playlistsBloc),
+          BlocProvider<PlayerBloc>.value(value: playerBloc),
+          BlocProvider<CatalogBloc>.value(value: catalogBloc),
+          BlocProvider<LyricsBloc>.value(value: lyricsBloc),
+          BlocProvider<DownloadsBloc>.value(value: downloadsBloc),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          onGenerateRoute: (settings) {
+            pushedRoutes.add(settings.name ?? '');
+
+            return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (context) => const SizedBox.shrink(),
+            );
+          },
+          home: const TrackScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Go to album'), findsOneWidget);
+
+    await tester.tap(find.text('Go to album'));
+    await tester.pumpAndSettle();
+
+    expect(pushedRoutes, contains(albumRoutePath(77)));
   });
 }
 
