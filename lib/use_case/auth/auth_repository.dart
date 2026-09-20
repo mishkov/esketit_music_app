@@ -26,6 +26,8 @@ final class DelegatingAuthSessionRefresher implements AuthSessionRefresher {
 }
 
 abstract class AuthRepository implements AuthSessionRefresher {
+  Stream<AuthSession?> get sessionChanges;
+
   Future<AuthSession?> restoreSession();
 
   Future<AuthSession> signIn({required String email, required String password});

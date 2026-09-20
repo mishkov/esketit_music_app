@@ -1,72 +1,135 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:esketit_music_app/domain/auth/app_user.dart';
 import 'package:esketit_music_app/domain/auth/auth_session.dart';
-import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
+import 'package:esketit_music_app/errors/auth_app_error.dart';
+import 'package:esketit_music_app/errors/auth_diagnostics.dart';
+import 'package:esketit_music_app/errors/error_reporter/error_reporter.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_client.dart';
 import 'package:esketit_music_app/esketit_rest_api/http_response.dart';
 import 'package:esketit_music_app/use_case/auth/auth_repository.dart';
+import 'package:esketit_music_app/use_case/auth/auth_session_persistence.dart';
 import 'package:esketit_music_app/use_case/auth/auth_session_storage.dart';
 
 class EsketitRestApiAuthRepository implements AuthRepository {
-  EsketitRestApiAuthRepository({
+  factory EsketitRestApiAuthRepository({
     required HttpClient unauthenticatedHttpClient,
     required HttpClient authenticatedHttpClient,
     required AuthSessionStorage sessionStorage,
-  }) : _unauthenticatedHttpClient = unauthenticatedHttpClient,
-       _authenticatedHttpClient = authenticatedHttpClient,
-       _sessionStorage = sessionStorage;
+    required ErrorReporter errorReporter,
+  }) {
+    final diagnostics = AuthDiagnostics(errorReporter);
+
+    return EsketitRestApiAuthRepository._(
+      unauthenticatedHttpClient,
+      authenticatedHttpClient,
+      diagnostics,
+      AuthSessionPersistence(storage: sessionStorage, diagnostics: diagnostics),
+    );
+  }
+
+  EsketitRestApiAuthRepository._(
+    this._unauthenticatedHttpClient,
+    this._authenticatedHttpClient,
+    this._diagnostics,
+    this._persistence,
+  );
 
   final HttpClient _unauthenticatedHttpClient;
   final HttpClient _authenticatedHttpClient;
-  final AuthSessionStorage _sessionStorage;
-
-  AuthSession? _cachedSession;
+  final AuthDiagnostics _diagnostics;
+  final AuthSessionPersistence _persistence;
   Future<AuthSession?>? _refreshOperation;
+  Future<AuthSession?>? _restoreOperation;
+  int _generation = 0;
+  int _authenticationRevision = 0;
+
+  @override
+  Stream<AuthSession?> get sessionChanges => _persistence.changes;
 
   @override
   Future<AuthSession?> restoreSession() async {
-    final storedSession = await _sessionStorage.read();
-    if (storedSession == null) {
-      _cachedSession = null;
-
-      return null;
-    }
-
-    _cachedSession = storedSession;
-    final refreshedSession = await refreshSession(
-      forceRefresh: storedSession.isAccessTokenExpired,
-    );
-    if (refreshedSession == null) {
-      return null;
-    }
-
+    final existing = _restoreOperation;
+    if (existing != null) return existing;
+    final operation = _restoreSession();
+    _restoreOperation = operation;
     try {
-      final meResponse = await _authenticatedHttpClient.get('/auth/me');
-      _throwIfUnauthorizedOrForbidden(meResponse, path: '/auth/me');
-      if (meResponse.statusCode < 200 || meResponse.statusCode >= 300) {
-        throw HttpAppError(
-          message: 'Request failed',
-          path: '/auth/me',
-          statusCode: meResponse.statusCode,
-          responseBody: meResponse.response,
+      return await operation;
+    } finally {
+      if (identical(operation, _restoreOperation)) _restoreOperation = null;
+    }
+  }
+
+  Future<AuthSession?> _restoreSession() async {
+    final stored = await _persistence.load();
+    if (stored == null) {
+      await _persistence.flush();
+
+      return null;
+    }
+    final generation = _generation;
+    await _diagnostics.record(
+      'Restoring authentication session',
+      _persistence.diagnosticContext,
+    );
+    try {
+      final refreshed = await refreshSession();
+      if (refreshed == null) return null;
+      final response = await _request(
+        'restore',
+        '/auth/me',
+        () => _authenticatedHttpClient.get('/auth/me'),
+      );
+      _checkResponse(response, '/auth/me');
+      final user = _parseUser(
+        _decodeJsonMap(response.response, path: '/auth/me'),
+      );
+      // /auth/me can refresh through its proxy. Always use the current tokens.
+      final current = _persistence.current;
+      if (current == null || generation != _generation) return current;
+      await _persistence.save(current.copyWith(user: user));
+      await _diagnostics.record(
+        'Authentication session restored',
+        _persistence.diagnosticContext,
+      );
+
+      return _persistence.current;
+    } on UnauthorizedAppError {
+      await _invalidate(
+        'identity_rejected',
+        path: '/auth/me',
+        statusCode: 401,
+        generation: generation,
+      );
+
+      return _persistence.current;
+    } on ForbiddenAppError {
+      await _invalidate(
+        'identity_forbidden',
+        path: '/auth/me',
+        statusCode: 403,
+        generation: generation,
+      );
+
+      return _persistence.current;
+    } catch (error, stackTrace) {
+      if (error is! AuthAppError) {
+        await _diagnostics.failure(
+          operation: 'restore',
+          message: 'Failed to restore authentication session',
+          error: error,
+          stackTrace: stackTrace,
+          data: _persistence.diagnosticContext,
         );
       }
-      final meBody = _decodeJsonMap(meResponse.response, path: '/auth/me');
-      final user = _parseUser(meBody);
-      final restoredSession = refreshedSession.copyWith(user: user);
-      await _persistSession(restoredSession);
+      await _diagnostics.record(
+        'Retaining authentication session after temporary restoration failure',
+        _persistence.diagnosticContext,
+      );
 
-      return restoredSession;
-    } on UnauthorizedAppError {
-      await _clearSession();
-
-      return null;
-    } on ForbiddenAppError {
-      await _clearSession();
-
-      return null;
+      return _persistence.current;
     }
   }
 
@@ -74,121 +137,257 @@ class EsketitRestApiAuthRepository implements AuthRepository {
   Future<AuthSession> signIn({
     required String email,
     required String password,
-  }) async {
-    final response = await _unauthenticatedHttpClient.post(
-      '/auth/login',
-      body: {'email': email, 'password': password},
-    );
-    final session = _parseAuthResponse(response, path: '/auth/login');
-    await _persistSession(session);
-
-    return session;
+  }) {
+    return _authenticate('sign_in', '/auth/login', email, password);
   }
 
   @override
   Future<AuthSession> signUp({
     required String email,
     required String password,
-  }) async {
-    final response = await _unauthenticatedHttpClient.post(
-      '/auth/register',
-      body: {'email': email, 'password': password},
-    );
-    final session = _parseAuthResponse(response, path: '/auth/register');
-    await _persistSession(session);
+  }) {
+    return _authenticate('sign_up', '/auth/register', email, password);
+  }
 
-    return session;
+  Future<AuthSession> _authenticate(
+    String operation,
+    String path,
+    String email,
+    String password,
+  ) async {
+    final authenticationRevision = ++_authenticationRevision;
+    try {
+      final response = await _request(
+        operation,
+        path,
+        () => _unauthenticatedHttpClient.post(
+          path,
+          body: {'email': email, 'password': password},
+        ),
+      );
+      final session = _parseAuthResponse(response, path: path);
+      if (authenticationRevision != _authenticationRevision) {
+        throw AuthAppError(
+          operation: operation,
+          message: 'Authentication operation superseded',
+          details: const {'failureKind': 'superseded'},
+        );
+      }
+      ++_generation;
+      _refreshOperation = null;
+      await _diagnostics.setUserId(session.user.id.toString());
+      await _persistence.save(session);
+      await _diagnostics.record('Authentication succeeded', {
+        'operation': operation,
+        ..._persistence.diagnosticContext,
+      });
+
+      return session;
+    } catch (error, stackTrace) {
+      if (error is AuthAppError) rethrow;
+      throw await _diagnostics.failure(
+        operation: operation,
+        message: 'Authentication failed',
+        error: error,
+        stackTrace: stackTrace,
+        data: {'path': path, ..._persistence.diagnosticContext},
+      );
+    }
   }
 
   @override
   Future<void> signOut() async {
-    final currentSession = _cachedSession ?? await _sessionStorage.read();
-    if (currentSession != null) {
-      try {
-        await _unauthenticatedHttpClient.post(
+    ++_authenticationRevision;
+    ++_generation;
+    _refreshOperation = null;
+    final current = _persistence.current;
+    await _diagnostics.record(
+      'User requested sign out',
+      _persistence.diagnosticContext,
+    );
+    await _persistence.clear();
+    try {
+      if (current != null) {
+        final response = await _request(
+          'sign_out',
           '/auth/logout',
-          body: {'refreshToken': currentSession.refreshToken},
+          () => _unauthenticatedHttpClient.post(
+            '/auth/logout',
+            body: {'refreshToken': current.refreshToken},
+          ),
         );
-      } catch (_) {
-        // Remote logout failure should not keep local session alive.
+        _checkResponse(response, '/auth/logout');
+      }
+    } catch (error, stackTrace) {
+      if (error is! AuthAppError) {
+        await _diagnostics.failure(
+          operation: 'sign_out',
+          message: 'Remote sign out failed',
+          error: error,
+          stackTrace: stackTrace,
+          data: const {},
+        );
       }
     }
-
-    _cachedSession = null;
-    await _sessionStorage.clear();
+    await _diagnostics.setUserId(null);
   }
 
   @override
   Future<AuthSession?> refreshSession({bool forceRefresh = false}) async {
-    final existingOperation = _refreshOperation;
-    if (existingOperation != null) {
-      return existingOperation;
-    }
-
-    final currentSession = _cachedSession ?? await _sessionStorage.read();
-    if (currentSession == null) {
-      _cachedSession = null;
-
-      return null;
-    }
-
-    if (!forceRefresh && !currentSession.isAccessTokenExpired) {
-      _cachedSession = currentSession;
-
-      return currentSession;
-    }
-
-    final operationAfterStorageRead = _refreshOperation;
-    if (operationAfterStorageRead != null) {
-      return operationAfterStorageRead;
-    }
-
-    _cachedSession = currentSession;
-    final operation = _refreshSession(currentSession);
+    final existing = _refreshOperation;
+    if (existing != null) return existing;
+    await _persistence.load();
+    await _persistence.flush();
+    final operationAfterStorage = _refreshOperation;
+    if (operationAfterStorage != null) return operationAfterStorage;
+    final current = _persistence.current;
+    if (current == null) return null;
+    if (!forceRefresh && !current.isAccessTokenExpired) return current;
+    final operation = _refreshSession(current, _generation, forceRefresh);
     _refreshOperation = operation;
     try {
       return await operation;
     } finally {
-      if (identical(_refreshOperation, operation)) {
-        _refreshOperation = null;
+      if (identical(_refreshOperation, operation)) _refreshOperation = null;
+    }
+  }
+
+  Future<AuthSession?> _refreshSession(
+    AuthSession current,
+    int generation,
+    bool forced,
+  ) async {
+    if (current.isRefreshTokenExpired) {
+      await _invalidate('refresh_expired', generation: generation);
+
+      return _persistence.current;
+    }
+    try {
+      final response = await _request(
+        'refresh',
+        '/auth/refresh',
+        () => _unauthenticatedHttpClient.post(
+          '/auth/refresh',
+          body: {'refreshToken': current.refreshToken},
+        ),
+        extra: {'forced': forced},
+      );
+      if (generation != _generation) return _persistence.current;
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        await _invalidate(
+          'refresh_rejected',
+          path: '/auth/refresh',
+          statusCode: response.statusCode,
+          generation: generation,
+        );
+
+        return _persistence.current;
       }
+      final refreshed = _parseAuthResponse(response, path: '/auth/refresh');
+      await _persistence.save(refreshed);
+      await _diagnostics.record(
+        'Authentication tokens refreshed',
+        _persistence.diagnosticContext,
+      );
+
+      return _persistence.current;
+    } catch (error, stackTrace) {
+      if (error is AuthAppError) rethrow;
+      throw await _diagnostics.failure(
+        operation: 'refresh',
+        message: 'Failed to refresh authentication session',
+        error: error,
+        stackTrace: stackTrace,
+        data: _persistence.diagnosticContext,
+      );
     }
   }
 
-  Future<AuthSession?> _refreshSession(AuthSession currentSession) async {
-    if (currentSession.isRefreshTokenExpired) {
-      await _clearSession();
-
-      return null;
-    }
-
-    final response = await _unauthenticatedHttpClient.post(
-      '/auth/refresh',
-      body: {'refreshToken': currentSession.refreshToken},
+  Future<void> _invalidate(
+    String clearReason, {
+    required int generation,
+    String? path,
+    int? statusCode,
+  }) async {
+    if (generation != _generation || _persistence.current == null) return;
+    final context = {
+      ..._persistence.diagnosticContext,
+      'clearReason': clearReason,
+      'path': ?path,
+      'statusCode': ?statusCode,
+    };
+    await _diagnostics.record('Invalidating authentication session', context);
+    await _diagnostics.failure(
+      operation: 'invalidate',
+      message: 'Authentication session invalidated',
+      error: AuthAppError(
+        operation: 'invalidate',
+        message: 'Session rejected or expired',
+        details: context,
+      ),
+      stackTrace: StackTrace.current,
+      data: context,
     );
-    if (response.statusCode == 401 || response.statusCode == 403) {
-      await _clearSession();
+    if (generation != _generation) return;
+    ++_generation;
+    await _persistence.clear();
+    await _diagnostics.setUserId(null);
+  }
 
-      return null;
+  Future<HttpResponse> _request(
+    String operation,
+    String path,
+    Future<HttpResponse> Function() send, {
+    Map<String, Object?> extra = const {},
+  }) async {
+    final context = {
+      ..._persistence.diagnosticContext,
+      ...extra,
+      'operation': operation,
+      'operationId': _diagnostics.nextOperationId(),
+      'path': path,
+    };
+    await _diagnostics.record('Authentication request started', context);
+    final stopwatch = Stopwatch()..start();
+    try {
+      final response = await send();
+      await _diagnostics.record('Authentication request completed', {
+        ...context,
+        'statusCode': response.statusCode,
+        'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
+      });
+
+      return response;
+    } catch (error, stackTrace) {
+      // Preserve the status classification used by restoration after /auth/me.
+      if (error is UnauthorizedAppError || error is ForbiddenAppError) rethrow;
+      if (error is AuthAppError) rethrow;
+      throw await _diagnostics.failure(
+        operation: operation,
+        message: 'Authentication request failed',
+        error: error,
+        stackTrace: stackTrace,
+        data: {
+          ...context,
+          'elapsedMilliseconds': stopwatch.elapsedMilliseconds,
+          'sessionRetained': _persistence.current != null,
+        },
+      );
     }
-    final refreshedSession = _parseAuthResponse(
-      response,
-      path: '/auth/refresh',
-    );
-    await _persistSession(refreshedSession);
-
-    return refreshedSession;
   }
 
-  Future<void> _persistSession(AuthSession session) async {
-    _cachedSession = session;
-    await _sessionStorage.write(session);
+  void _checkResponse(HttpResponse response, String path) {
+    _throwIfUnauthorizedOrForbidden(response, path: path);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw HttpAppError(
+        message: 'Authentication request failed',
+        path: path,
+        statusCode: response.statusCode,
+      );
+    }
   }
 
-  Future<void> _clearSession() async {
-    _cachedSession = null;
-    await _sessionStorage.clear();
-  }
+  Future<void> close() => _persistence.close();
 
   AuthSession _parseAuthResponse(
     HttpResponse response, {
@@ -200,7 +399,6 @@ class EsketitRestApiAuthRepository implements AuthRepository {
         message: 'Request failed',
         path: path,
         statusCode: response.statusCode,
-        responseBody: response.response,
       );
     }
 
@@ -234,7 +432,7 @@ class EsketitRestApiAuthRepository implements AuthRepository {
   Map<String, dynamic> _decodeJsonMap(Object? body, {required String path}) {
     final decoded = body is String ? jsonDecode(body) : body;
     if (decoded is! Map<String, dynamic>) {
-      throw AppError('Expected JSON object response for $path', cause: decoded);
+      throw FormatException('Expected JSON object response for $path');
     }
 
     return decoded;
@@ -246,9 +444,8 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     required String fieldName,
   }) {
     if (value is! Map<String, dynamic>) {
-      throw AppError(
-        'Expected "$fieldName" to be a JSON object for $path',
-        cause: value,
+      throw FormatException(
+        'Expected $fieldName to be a JSON object for $path',
       );
     }
 
@@ -260,10 +457,10 @@ class EsketitRestApiAuthRepository implements AuthRepository {
     required String path,
   }) {
     if (response.statusCode == 401) {
-      throw UnauthorizedAppError(path: path, responseBody: response.response);
+      throw UnauthorizedAppError(path: path);
     }
     if (response.statusCode == 403) {
-      throw ForbiddenAppError(path: path, responseBody: response.response);
+      throw ForbiddenAppError(path: path);
     }
   }
 }

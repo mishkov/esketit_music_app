@@ -79,6 +79,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownErrorMessage => 'Something went wrong. Please try again.';
 
   @override
+  String get sessionRestoreRetryMessage =>
+      'We couldn’t restore your saved sign-in. Please try again.';
+
+  @override
+  String get retrySessionRestoreButton => 'Try again';
+
+  @override
+  String get continueSignedOutButton => 'Continue signed out';
+
+  @override
   String get loginRequiredTitle => 'Login required';
 
   @override
