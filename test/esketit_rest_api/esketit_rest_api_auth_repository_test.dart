@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import '../support/auth_test_support.dart';
+
 import 'package:esketit_music_app/domain/auth/app_user.dart';
 import 'package:esketit_music_app/domain/auth/auth_session.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
@@ -25,6 +27,7 @@ void main() {
         unauthenticatedHttpClient: httpClient,
         authenticatedHttpClient: httpClient,
         sessionStorage: sessionStorage,
+        errorReporter: RecordingAuthErrorReporter(),
       );
 
       expect(await repository.refreshSession(forceRefresh: true), isNull);
@@ -47,6 +50,7 @@ void main() {
       unauthenticatedHttpClient: httpClient,
       authenticatedHttpClient: httpClient,
       sessionStorage: sessionStorage,
+      errorReporter: RecordingAuthErrorReporter(),
     );
 
     final operations = [
@@ -76,6 +80,7 @@ void main() {
         unauthenticatedHttpClient: httpClient,
         authenticatedHttpClient: httpClient,
         sessionStorage: sessionStorage,
+        errorReporter: RecordingAuthErrorReporter(),
       );
 
       expect(await repository.restoreSession(), isNull);
@@ -98,6 +103,7 @@ void main() {
         unauthenticatedHttpClient: httpClient,
         authenticatedHttpClient: httpClient,
         sessionStorage: sessionStorage,
+        errorReporter: RecordingAuthErrorReporter(),
       );
       final optionalClient = OptionallyAuthenticatedHttpClientProxy(
         httpClient: httpClient,
@@ -127,6 +133,7 @@ void main() {
         unauthenticatedHttpClient: httpClient,
         authenticatedHttpClient: httpClient,
         sessionStorage: sessionStorage,
+        errorReporter: RecordingAuthErrorReporter(),
       );
       final optionalClient = OptionallyAuthenticatedHttpClientProxy(
         httpClient: httpClient,

@@ -1,6 +1,7 @@
 import 'package:esketit_music_app/domain/auth/auth_credentials_validator.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/http_app_error.dart';
+import 'package:esketit_music_app/errors/auth_app_error.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/auth/sign_up_screen.dart';
 import 'package:esketit_music_app/ui/shared/screen_skeleton.dart';
@@ -136,10 +137,12 @@ class _SignInScreenState extends State<SignInScreen> {
     if (error == null) {
       return null;
     }
-    if (error is ForbiddenAppError) {
+    if (error is ForbiddenAppError ||
+        error is AuthAppError && error.details['statusCode'] == 403) {
       return l10n.forbiddenActionMessage;
     }
-    if (error is UnauthorizedAppError) {
+    if (error is UnauthorizedAppError ||
+        error is AuthAppError && error.details['statusCode'] == 401) {
       return l10n.sessionExpiredMessage;
     }
     if (error is HttpAppError) {

@@ -458,6 +458,9 @@ void main() {
 }
 
 class _FakeAuthRepository implements AuthRepository {
+  @override
+  Stream<AuthSession?> get sessionChanges => const Stream.empty();
+
   final AuthSession _session = AuthSession(
     user: AppUser(
       id: 1,

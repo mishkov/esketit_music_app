@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:esketit_music_app/errors/auth_app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
 import 'package:esketit_music_app/errors/error_reporter/breadcrumb.dart';
 import 'package:esketit_music_app/errors/error_reporter/category.dart';
@@ -20,6 +21,7 @@ class SentryErrorReporter implements ErrorReporter {
       // This way of mutating parameter is used by official documentaiton
       // https://pub.dev/packages/sentry_flutter.
       options.dsn = dsn;
+      options.maxBreadcrumbs = 200;
     }, appRunner: appRunner);
   }
 
@@ -53,7 +55,16 @@ class SentryErrorReporter implements ErrorReporter {
 
   @override
   Future<void> reportError(AppError error) async {
-    await sentry.Sentry.captureException(error, stackTrace: error.stackTrace);
+    await sentry.Sentry.captureException(
+      error,
+      stackTrace: error.stackTrace,
+      withScope: (scope) async {
+        if (error is AuthAppError) {
+          await scope.setTag('auth.operation', error.operation);
+          await scope.setContexts('authentication', error.details);
+        }
+      },
+    );
   }
 
   @override

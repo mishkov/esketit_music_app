@@ -236,6 +236,24 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get unknownErrorMessage;
 
+  /// No description provided for @sessionRestoreRetryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t restore your saved sign-in. Please try again.'**
+  String get sessionRestoreRetryMessage;
+
+  /// No description provided for @retrySessionRestoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retrySessionRestoreButton;
+
+  /// No description provided for @continueSignedOutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue signed out'**
+  String get continueSignedOutButton;
+
   /// No description provided for @loginRequiredTitle.
   ///
   /// In en, this message translates to:

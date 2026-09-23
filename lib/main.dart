@@ -125,6 +125,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       sessionRefresher: sessionRefresher,
     ),
     sessionStorage: FlutterSecureAuthSessionStorage(),
+    errorReporter: errorReporter,
   );
   sessionRefresher.setDelegate(authRepository);
   final authenticatedHttpClient = AuthenticatedHttpClientProxy(
@@ -183,6 +184,11 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   runApp(
     MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<AuthRepository>(
+          create: (context) => authRepository,
+          dispose: (_) => unawaited(authRepository.close()),
+          lazy: false,
+        ),
         RepositoryProvider<ErrorReporter>.value(value: errorReporter),
         RepositoryProvider<CatalogStorage>.value(value: catalogStorage),
         RepositoryProvider<TracksStorage>.value(value: tracksStorage),

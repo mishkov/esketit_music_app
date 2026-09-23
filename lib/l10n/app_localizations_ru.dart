@@ -79,6 +79,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get unknownErrorMessage => 'Что-то пошло не так. Попробуйте еще раз.';
 
   @override
+  String get sessionRestoreRetryMessage =>
+      'Не удалось восстановить сохранённый вход. Попробуйте ещё раз.';
+
+  @override
+  String get retrySessionRestoreButton => 'Повторить';
+
+  @override
+  String get continueSignedOutButton => 'Продолжить без входа';
+
+  @override
   String get loginRequiredTitle => 'Требуется вход';
 
   @override
