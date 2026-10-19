@@ -28,6 +28,7 @@ void main() {
             {
               'id': 10,
               'name': 'Disliked album track',
+              'trackNumber': 10,
               'audioFilePath': 'track.mp3',
               'authorIds': [],
               'isFavorite': false,
@@ -50,6 +51,7 @@ void main() {
     expect(album.authorIds, [7]);
     expect(album.trackIds, [10, 11]);
     expect(tracks.single.isDisliked, isTrue);
+    expect(tracks.single.trackNumber, 10);
     expect(
       (album.coverImage as HttpFile).uri,
       Uri.parse('http://localhost:8080/album-covers/night-drive.jpg'),
@@ -118,6 +120,7 @@ void main() {
                   'track': {
                     'id': 123,
                     'name': 'Track name',
+                    'trackNumber': 10,
                     'audioFilePath': 'track.mp3',
                     'authorIds': [1],
                     'authors': [
@@ -155,6 +158,7 @@ void main() {
       final track = results.items.single.track!;
 
       expect(track.authors.single.currentName, 'Artist Name');
+      expect(track.trackNumber, 10);
       expect(
         track.authors.single.primaryPhotoUrl,
         'http://localhost:8080/api/author-photos/artist.jpg',

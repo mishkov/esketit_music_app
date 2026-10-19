@@ -87,6 +87,7 @@ class EsketitRestApiAutoplayStorage implements AutoplayStorage {
         .toList(growable: false);
 
     return Track(
+      trackNumber: _asInt(item['trackNumber']),
       id: _asInt(item['id']) ?? 0,
       albumId:
           _asInt(item['albumId']) ??

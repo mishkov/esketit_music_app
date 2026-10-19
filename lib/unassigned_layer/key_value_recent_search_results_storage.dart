@@ -188,6 +188,7 @@ class KeyValueRecentSearchResultsStorage implements RecentSearchResultsStorage {
     return {
       'id': track.id,
       'albumId': track.albumId,
+      'trackNumber': track.trackNumber,
       'name': track.name,
       'authors': track.authors.map(_authorToJson).toList(growable: false),
       'additionalInfo': track.addionalInfo
@@ -219,6 +220,7 @@ class KeyValueRecentSearchResultsStorage implements RecentSearchResultsStorage {
     return Track(
       id: id,
       albumId: _intFrom(json['albumId']),
+      trackNumber: _intFrom(json['trackNumber']),
       name: name,
       authors: _mapListFrom(
         json['authors'],

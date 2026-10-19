@@ -224,6 +224,7 @@ class EsketitRestApiTracksStorage implements TracksStorage {
 
       tracks.add(
         Track(
+          trackNumber: _asInt(item['trackNumber']),
           id: _asInt(item['id']) ?? 0,
           albumId:
               _asInt(item['albumId']) ??

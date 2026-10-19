@@ -1,4 +1,5 @@
 import 'package:esketit_music_app/domain/album.dart';
+import 'package:esketit_music_app/unassigned_layer/downloads/downloads_database.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/file/local_file.dart';
 import 'package:esketit_music_app/domain/playlist.dart';
@@ -28,6 +29,91 @@ void main() {
   });
 
   tearDown(() => getStorage().close());
+
+  test(
+    'keeps gapped album numbers and independent playlist order offline',
+    () async {
+      final storage = getStorage();
+      final album = _album(trackIds: const [2, 1]);
+      final tenth = _snapshot(
+        track: _track(id: 1, albumId: 10, trackNumber: 10),
+        album: album,
+      );
+      final third = _snapshot(
+        track: _track(id: 2, albumId: 10, trackNumber: 3),
+        album: album,
+      );
+      await storage.enqueueAlbum(
+        DownloadAlbumSnapshot(album: album, tracks: [tenth, third]),
+      );
+      await storage.enqueuePlaylist(
+        DownloadPlaylistSnapshot(
+          playlist: _playlist(trackCount: 2),
+          tracks: [tenth, third],
+        ),
+      );
+      for (var index = 0; index < 2; index++) {
+        final job = await storage.claimNextJob(now: now);
+        await storage.completeJob(
+          jobId: job!.id,
+          audioRelativePath: 'audio/${job.trackId}.mp3',
+          audioByteCount: 100,
+          cachedArtworkRelativePaths: const {},
+        );
+      }
+      expect((await storage.getDownloadedAlbums()).single.trackIds, [2, 1]);
+      expect((await storage.getDownloadedTrack(trackId: 1))?.trackNumber, 10);
+      expect((await storage.getDownloadedTrack(trackId: 2))?.trackNumber, 3);
+      final playlist = await storage.getDownloadedPlaylistDetails(
+        playlistId: 20,
+      );
+      expect(playlist?.tracks.map((track) => track.id), [1, 2]);
+    },
+  );
+
+  test(
+    'upgrades legacy album positions and removes the redundant position column',
+    () async {
+      final database = await databaseFactoryFfi.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(singleInstance: false),
+      );
+      try {
+        await DownloadsDatabase.createSchema(database, 1);
+        await database.execute(
+          'ALTER TABLE download_tracks DROP COLUMN track_number',
+        );
+        await database.execute(
+          'ALTER TABLE download_album_tracks ADD COLUMN position INTEGER NOT NULL DEFAULT 0',
+        );
+        await database.execute(
+          "INSERT INTO download_albums(id,title,release_date_ms,is_published,snapshotted_at_ms) VALUES(10,'Legacy',NULL,1,0)",
+        );
+        await database.execute(
+          "INSERT INTO download_tracks(id,album_id,name,audio_remote_uri,is_favorite,is_disliked,is_available,snapshotted_at_ms) VALUES(1,10,'Third','https://music.test/1.mp3',0,0,1,0),(2,NULL,'Unknown','https://music.test/2.mp3',0,0,1,0)",
+        );
+        await database.execute(
+          'INSERT INTO download_album_tracks(album_id,track_id,position) VALUES(10,1,2)',
+        );
+        await DownloadsDatabase.upgradeSchema(database, 1, 2);
+        final numbers = await database.rawQuery(
+          'SELECT id,track_number FROM download_tracks ORDER BY id',
+        );
+        expect(numbers, [
+          {'id': 1, 'track_number': 3},
+          {'id': 2, 'track_number': null},
+        ]);
+        expect(
+          (await database.rawQuery(
+            'PRAGMA table_info(download_album_tracks)',
+          )).map((row) => row['name']),
+          isNot(contains('position')),
+        );
+      } finally {
+        await database.close();
+      }
+    },
+  );
 
   test('round-trips completed track graph, artwork, and lyrics', () async {
     final storage = getStorage();
@@ -313,10 +399,11 @@ DownloadTrackSnapshot _snapshot({
   );
 }
 
-Track _track({required int id, int? albumId}) {
+Track _track({required int id, int? albumId, int? trackNumber}) {
   return Track(
     id: id,
     albumId: albumId,
+    trackNumber: trackNumber,
     name: 'Track $id',
     authors: const [
       Author(

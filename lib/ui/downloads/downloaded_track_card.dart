@@ -8,12 +8,14 @@ class DownloadedTrackCard extends StatelessWidget {
     required this.track,
     required this.queue,
     this.showImage = true,
+    this.showTrackNumber = false,
     super.key,
   });
 
   final Track track;
   final List<Track> queue;
   final bool showImage;
+  final bool showTrackNumber;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class DownloadedTrackCard extends StatelessWidget {
       queue: queue,
       showAddToPlaylistsAction: false,
       showImage: showImage,
+      showTrackNumber: showTrackNumber,
     );
   }
 }
