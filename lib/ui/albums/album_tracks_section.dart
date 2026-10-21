@@ -35,6 +35,7 @@ class AlbumTracksSection extends StatelessWidget {
             ...tracks.map((track) {
               return TrackListCard(
                 track: track,
+                showTrackNumber: true,
                 queue: tracksQueue,
                 autoplayContext: autoplayContext,
               );

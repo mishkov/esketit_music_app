@@ -86,6 +86,7 @@ class DownloadedAlbumDetailsScreen extends StatelessWidget {
     final tracksSection = DownloadedTracksSection(
       tracks: tracks,
       emptyMessage: context.l10n.noDownloadedTracksInAlbum,
+      showTrackNumbers: true,
     );
 
     return LayoutBuilder(

@@ -7,11 +7,13 @@ class DownloadedTracksSection extends StatelessWidget {
   const DownloadedTracksSection({
     required this.tracks,
     required this.emptyMessage,
+    this.showTrackNumbers = false,
     super.key,
   });
 
   final List<Track> tracks;
   final String emptyMessage;
+  final bool showTrackNumbers;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,7 @@ class DownloadedTracksSection extends StatelessWidget {
               (track) => DownloadedTrackCard(
                 key: ValueKey(track.id),
                 track: track,
+                showTrackNumber: showTrackNumbers,
                 queue: queue,
               ),
             ),

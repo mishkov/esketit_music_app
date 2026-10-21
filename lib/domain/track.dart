@@ -6,6 +6,7 @@ import 'package:esketit_music_app/domain/track_info/track_info.dart';
 class Track extends Equatable {
   final int id;
   final int? albumId;
+  final int? trackNumber;
   final String name;
   final List<Author> authors;
   final AbstractFile file;
@@ -30,12 +31,14 @@ class Track extends Equatable {
     required this.isDisliked,
     required this.isAvailable,
     this.albumId,
+    this.trackNumber,
     this.createdAt,
   });
 
   Track copyWith({
     int? id,
     int? albumId,
+    int? trackNumber,
     String? name,
     List<Author>? authors,
     AbstractFile? file,
@@ -49,6 +52,7 @@ class Track extends Equatable {
     return Track(
       id: id ?? this.id,
       albumId: albumId ?? this.albumId,
+      trackNumber: trackNumber ?? this.trackNumber,
       name: name ?? this.name,
       authors: authors ?? this.authors,
       addionalInfo: addionalInfo ?? this.addionalInfo,
@@ -65,6 +69,7 @@ class Track extends Equatable {
   List<Object?> get props => [
     id,
     albumId,
+    trackNumber,
     name,
     authors,
     file,

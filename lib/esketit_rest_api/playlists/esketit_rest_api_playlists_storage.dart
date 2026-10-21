@@ -270,6 +270,7 @@ class EsketitRestApiPlaylistsStorage
         .whereType<int>();
 
     return Track(
+      trackNumber: _asInt(item['trackNumber']),
       id: _asInt(item['id']) ?? 0,
       albumId:
           _asInt(item['albumId']) ??

@@ -20,6 +20,7 @@ void main() {
           response: {
             'id': 123,
             'name': 'Shared track',
+            'trackNumber': 10,
             'audioFilePath': 'track.mp3',
             'coverImagePath': 'cover.jpg',
             'authorIds': [7],
@@ -40,6 +41,7 @@ void main() {
     expect(httpClient.requestedPaths, ['/tracks/123', '/authors']);
     expect(track?.id, 123);
     expect(track?.name, 'Shared track');
+    expect(track?.trackNumber, 10);
     expect(track?.authors.single.currentName, 'Artist Name');
     expect(track?.isDisliked, isTrue);
   });

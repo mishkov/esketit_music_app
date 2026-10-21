@@ -21,6 +21,7 @@ class TrackListCard extends StatelessWidget {
     this.showAddToPlaylistsAction = true,
     this.showSaveToDownloadsAction,
     this.showImage = false,
+    this.showTrackNumber = false,
     this.onTap,
     super.key,
   });
@@ -32,6 +33,7 @@ class TrackListCard extends StatelessWidget {
   final bool showAddToPlaylistsAction;
   final bool? showSaveToDownloadsAction;
   final bool showImage;
+  final bool showTrackNumber;
   final VoidCallback? onTap;
 
   @override
@@ -77,7 +79,16 @@ class TrackListCard extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   contentPadding: showImage ? const EdgeInsets.all(12) : null,
-                  leading: showImage
+                  leading: showTrackNumber
+                      ? SizedBox(
+                          width: 36,
+                          child: Text(
+                            track.trackNumber?.toString() ?? '?',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        )
+                      : showImage
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: SizedBox.square(

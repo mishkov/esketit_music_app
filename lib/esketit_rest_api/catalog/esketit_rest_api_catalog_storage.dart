@@ -236,6 +236,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
           return Track(
             id: _asInt(item['id']) ?? 0,
             albumId: album.id,
+            trackNumber: _asInt(item["trackNumber"]),
             name: (item['name'] as String?) ?? '',
             authors: authors,
             addionalInfo: _parseAdditionalInfo(item['additionalInfo']),
@@ -360,6 +361,7 @@ class EsketitRestApiCatalogStorage implements CatalogStorage {
 
     return Track(
       id: _asInt(item['id']) ?? 0,
+      trackNumber: _asInt(item['trackNumber']),
       albumId:
           _asInt(item['albumId']) ??
           (item['album'] is Map<String, dynamic>

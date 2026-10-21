@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 class DownloadsDatabase {
-  static const int schemaVersion = 1;
+  static const int schemaVersion = 2;
 
   static Future<Database> open({
     required String path,
@@ -17,8 +17,37 @@ class DownloadsDatabase {
           await database.execute('PRAGMA foreign_keys = ON');
         },
         onCreate: createSchema,
+        onUpgrade: upgradeSchema,
       ),
     );
+  }
+
+  static Future<void> upgradeSchema(
+    Database database,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2) {
+      await database.execute(
+        'ALTER TABLE download_tracks ADD COLUMN track_number INTEGER CHECK(track_number IS NULL OR track_number > 0)',
+      );
+      await database.execute(
+        'UPDATE download_tracks SET track_number=(SELECT position+1 FROM download_album_tracks WHERE track_id=download_tracks.id AND album_id=download_tracks.album_id)',
+      );
+      await database.execute(
+        'CREATE TABLE numbered_album_tracks(album_id INTEGER NOT NULL REFERENCES download_albums(id) ON DELETE CASCADE,track_id INTEGER NOT NULL,PRIMARY KEY(album_id,track_id))',
+      );
+      await database.execute(
+        'INSERT INTO numbered_album_tracks SELECT album_id,track_id FROM download_album_tracks',
+      );
+      await database.execute('DROP TABLE download_album_tracks');
+      await database.execute(
+        'ALTER TABLE numbered_album_tracks RENAME TO download_album_tracks',
+      );
+      await database.execute(
+        'CREATE INDEX download_album_tracks_track_id ON download_album_tracks(track_id)',
+      );
+    }
   }
 
   static Future<void> createSchema(Database database, int version) async {
@@ -81,10 +110,8 @@ CREATE TABLE download_album_authors (
     await database.execute('''
 CREATE TABLE download_album_tracks (
   album_id INTEGER NOT NULL REFERENCES download_albums(id) ON DELETE CASCADE,
-  position INTEGER NOT NULL CHECK (position >= 0),
   track_id INTEGER NOT NULL,
-  PRIMARY KEY (album_id, position),
-  UNIQUE (album_id, track_id)
+  PRIMARY KEY (album_id, track_id)
 )
 ''');
     await database.execute(
@@ -104,6 +131,7 @@ CREATE TABLE download_album_additional_info (
     await database.execute('''
 CREATE TABLE download_tracks (
   id INTEGER PRIMARY KEY,
+  track_number INTEGER CHECK(track_number IS NULL OR track_number > 0),
   album_id INTEGER REFERENCES download_albums(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   audio_remote_uri TEXT NOT NULL,

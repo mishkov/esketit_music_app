@@ -248,11 +248,12 @@ ON CONFLICT(id) DO NOTHING
     await executor.rawInsert(
       '''
 INSERT INTO download_tracks (
-  id, album_id, name, audio_remote_uri, image_asset_id,
+  id, album_id, track_number, name, audio_remote_uri, image_asset_id,
   is_favorite, is_disliked, is_available, created_at_ms, snapshotted_at_ms
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
   album_id = excluded.album_id,
+  track_number = excluded.track_number,
   name = excluded.name,
   audio_remote_uri = CASE
     WHEN excluded.audio_remote_uri = '' THEN download_tracks.audio_remote_uri
@@ -267,6 +268,7 @@ ON CONFLICT(id) DO UPDATE SET
       [
         track.id,
         track.albumId ?? album?.id,
+        track.trackNumber,
         track.name,
         remoteAudioUri,
         imageAssetId,
@@ -357,7 +359,6 @@ ON CONFLICT(id) DO UPDATE SET
     for (var index = 0; index < album.trackIds.length; index += 1) {
       await executor.insert('download_album_tracks', {
         'album_id': album.id,
-        'position': index,
         'track_id': album.trackIds[index],
       });
     }
@@ -1561,7 +1562,7 @@ LEFT JOIN download_album_tracks AS album_tracks
   ON album_tracks.album_id = tracks.album_id
   AND album_tracks.track_id = tracks.id
 WHERE tracks.album_id = ?
-ORDER BY album_tracks.position IS NULL, album_tracks.position, files.downloaded_at_ms
+ORDER BY tracks.track_number IS NULL, tracks.track_number, files.downloaded_at_ms
 ''',
       [albumId],
     );
@@ -1816,6 +1817,7 @@ LIMIT 1
     return Track(
       id: row['id']! as int,
       albumId: row['album_id'] as int?,
+      trackNumber: row['track_number'] as int?,
       name: row['name']! as String,
       authors: authors,
       addionalInfo: info,
@@ -1912,18 +1914,15 @@ LEFT JOIN download_album_tracks AS album_tracks
   ON album_tracks.album_id = tracks.album_id
   AND album_tracks.track_id = tracks.id
 WHERE tracks.album_id = ?
-ORDER BY album_tracks.position IS NULL, album_tracks.position,
+ORDER BY tracks.track_number IS NULL, tracks.track_number,
   files.downloaded_at_ms, tracks.id
 ''',
         [albumId],
       );
     } else {
-      trackRows = await executor.query(
-        'download_album_tracks',
-        columns: const ['track_id'],
-        where: 'album_id = ?',
-        whereArgs: [albumId],
-        orderBy: 'position',
+      trackRows = await executor.rawQuery(
+        'SELECT membership.track_id FROM download_album_tracks membership LEFT JOIN download_tracks tracks ON tracks.id=membership.track_id WHERE membership.album_id=? ORDER BY tracks.track_number IS NULL,tracks.track_number,membership.track_id',
+        [albumId],
       );
     }
     final additionalInfo = await _loadAdditionalInfo(
