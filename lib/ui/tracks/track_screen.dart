@@ -1,3 +1,5 @@
+import 'package:esketit_music_app/domain/agent/agent_conversation.dart';
+import 'package:esketit_music_app/ui/agent/ask_agent_action.dart';
 import 'dart:async';
 
 import 'package:esketit_music_app/domain/album.dart';
@@ -58,6 +60,14 @@ class TrackScreen extends StatelessWidget {
             title: Text(track?.name ?? context.l10n.trackScreenNowPlayingLabel),
             centerTitle: true,
             actions: [
+              if (displayedTrack != null)
+                AskAgentAction(
+                  attachment: AgentAttachment(
+                    type: AgentItemType.track,
+                    id: displayedTrack.id,
+                    label: displayedTrack.name,
+                  ),
+                ),
               if (displayedTrack != null)
                 IconButton(
                   tooltip: context.l10n.copyTrackLinkTooltip,

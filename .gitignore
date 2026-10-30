@@ -47,3 +47,7 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Per-deployment Firebase app configuration
+/web/firebase-config.js
+/firebase-config*.json

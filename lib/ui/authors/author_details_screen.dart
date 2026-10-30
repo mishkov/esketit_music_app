@@ -1,3 +1,5 @@
+import 'package:esketit_music_app/domain/agent/agent_conversation.dart';
+import 'package:esketit_music_app/ui/agent/ask_agent_action.dart';
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
@@ -40,7 +42,16 @@ class _AuthorDetailsScreenState extends State<AuthorDetailsScreen> {
         return ScreenSkeleton(
           appBar: AppBar(
             title: Text(widget.author.currentName),
-            actions: const [AuthorDetailsMenu()],
+            actions: [
+              AskAgentAction(
+                attachment: AgentAttachment(
+                  type: AgentItemType.author,
+                  id: widget.author.id,
+                  label: widget.author.currentName,
+                ),
+              ),
+              const AuthorDetailsMenu(),
+            ],
           ),
           body: BlocBuilder<CatalogBloc, CatalogState>(
             builder: (context, state) {

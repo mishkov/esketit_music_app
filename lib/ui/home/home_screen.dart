@@ -1,3 +1,5 @@
+import 'package:esketit_music_app/ui/agent/agent_access_scope.dart';
+import 'package:esketit_music_app/ui/agent/agent_inbox_screen.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:esketit_music_app/ui/bottom_navigation_bar/esketit_bottom_navigation_bar.dart';
 import 'package:esketit_music_app/ui/catalog/catalog_browse_screen.dart';
@@ -25,10 +27,23 @@ class _HomeScreenState extends State<HomeScreen> {
   static const int _searchTabIndex = 1;
   static const int _libraryTabIndex = 2;
 
+  static const int _agentTabIndex = 3;
+
   int _currentTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final agentAllowed = AgentAccessScope.of(context);
+    final tabOrder = [
+      _browseTabIndex,
+      _searchTabIndex,
+      if (agentAllowed) _agentTabIndex,
+      _libraryTabIndex,
+    ];
+    final selectedTabIndex = tabOrder.contains(_currentTabIndex)
+        ? _currentTabIndex
+        : _browseTabIndex;
+
     return MultiBlocListener(
       listeners: [
         BlocListener<AuthBloc, AuthState>(
@@ -44,11 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
       child: ScreenSkeleton(
-        appBar: AppBar(title: Text(_titleForIndex(_currentTabIndex))),
+        appBar: AppBar(title: Text(_titleForIndex(selectedTabIndex))),
         drawer: const EsketitDrawer(),
         bottomNavigationBar: EsketitBottomNavigationBar(
-          currentIndex: _currentTabIndex,
-          onTap: _onTabSelected,
+          currentIndex: tabOrder.indexOf(selectedTabIndex),
+          showAgent: agentAllowed,
+          onTap: (index) => _onTabSelected(tabOrder[index]),
         ),
         body: Column(
           children: [
@@ -76,7 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const CatalogBrowseScreen(),
                 const CatalogScreen(),
                 const MyLibraryPage(),
-              ][_currentTabIndex],
+                const AgentInboxScreen(),
+              ][selectedTabIndex],
             ),
           ],
         ),
@@ -136,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _browseTabIndex => l10n.catalogTitle,
       _searchTabIndex => l10n.searchTitle,
       _libraryTabIndex => l10n.myLibraryTitle,
+      _agentTabIndex => l10n.agentTitle,
       _ => l10n.catalogTitle,
     };
   }

@@ -1,3 +1,7 @@
+import 'package:esketit_music_app/domain/agent/agent_conversation.dart';
+import 'package:esketit_music_app/ui/agent/agent_conversation_screen.dart';
+import 'package:esketit_music_app/ui/agent/agent_routes.dart';
+import 'package:esketit_music_app/use_case/agent/bloc/agent_conversation_bloc.dart';
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/author.dart';
 import 'package:esketit_music_app/domain/track.dart';
@@ -104,6 +108,24 @@ class EsketitApp extends StatelessWidget {
 
     final uri = Uri.tryParse(name);
     final segments = uri?.pathSegments ?? const <String>[];
+
+    if (name == agentNewChatRoute ||
+        (segments.length == 3 &&
+            segments.first == 'agent' &&
+            segments[1] == 'chats')) {
+      final attachment = settings.arguments;
+
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) => BlocProvider(
+          create: (context) => context.read<AgentConversationBlocFactory>()(
+            identifier: name == agentNewChatRoute ? null : segments[2],
+            attachment: attachment is AgentAttachment ? attachment : null,
+          ),
+          child: const AgentConversationScreen(),
+        ),
+      );
+    }
 
     if (name == downloadManagerRoutePath) {
       return MaterialPageRoute<void>(

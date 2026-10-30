@@ -803,4 +803,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveTrackToDownloadsFailed => 'Could not download this track.';
+
+  @override
+  String get agentTitle => 'Agent';
+
+  @override
+  String get askAgent => 'Ask Agent';
+
+  @override
+  String get agentNewChat => 'New chat';
+
+  @override
+  String get agentEmptyTitle => 'What would you like to add?';
+
+  @override
+  String get agentEmptyBody =>
+      'Ask the agent to find music, add tracks, or update catalog items.';
+
+  @override
+  String get agentDraftHint => 'Your request starts when you send a message.';
+
+  @override
+  String get agentMessageHint => 'Message the agent…';
+
+  @override
+  String get agentAnswerHint => 'Choose an option or type your answer…';
+
+  @override
+  String get agentSend => 'Send';
+
+  @override
+  String get agentStop => 'Stop';
+
+  @override
+  String get agentResume => 'Resume';
+
+  @override
+  String get agentCancelRequest => 'Cancel request';
+
+  @override
+  String get agentCancelTitle => 'Cancel this request?';
+
+  @override
+  String get agentCancelBody =>
+      'Remaining work will be abandoned. Submitted changes stay in review until resolved.';
+
+  @override
+  String get agentEnableNotifications => 'Enable notifications';
+
+  @override
+  String get agentQueued => 'Queued';
+
+  @override
+  String get agentWorking => 'Working';
+
+  @override
+  String get agentWaitingForItem => 'Waiting for earlier changes';
+
+  @override
+  String get agentWaitingForAnswer => 'Needs your answer';
+
+  @override
+  String get agentWaitingForReview => 'Waiting for review';
+
+  @override
+  String get agentStopping => 'Stopping…';
+
+  @override
+  String get agentPaused => 'Paused';
+
+  @override
+  String get agentCompleted => 'Finished';
+
+  @override
+  String get agentCancelled => 'Cancelled';
+
+  @override
+  String get agentFailed => 'Needs attention';
+
+  @override
+  String get agentPausedHint =>
+      'Your progress is saved. Tap Resume or send “resume” to continue.';
+
+  @override
+  String get agentQueueHint =>
+      'This request will reassess the item after earlier work is resolved.';
+
+  @override
+  String get agentEarlierChat => 'Open earlier chat';
+
+  @override
+  String get agentReviewUpdated => 'Submission review updated.';
+
+  @override
+  String get agentOperationFailed =>
+      'Work paused after an error. Your progress is saved; you can resume.';
+
+  @override
+  String get agentRetry => 'Retry';
+
+  @override
+  String get agentTrackLabel => 'Track';
+
+  @override
+  String get agentAlbumLabel => 'Album';
+
+  @override
+  String get agentAuthorLabel => 'Author';
+
+  @override
+  String get agentReviewPending => 'Pending review';
+
+  @override
+  String get agentReviewChanges => 'Changes requested';
+
+  @override
+  String get agentReviewApproved => 'Approved';
+
+  @override
+  String get agentReviewRejected => 'Rejected';
+
+  @override
+  String get agentReviewCancelled => 'Cancelled';
 }
