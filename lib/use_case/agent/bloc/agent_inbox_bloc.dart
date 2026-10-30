@@ -72,7 +72,12 @@ class AgentInboxBloc extends Bloc<AgentInboxEvent, AgentInboxState> {
         add(const AgentInboxRefreshRequested());
       }
     });
-    _tokens = notifications.refreshedTokens.listen(_registerToken);
+    _tokens = notifications.refreshedTokens.listen(
+      _registerToken,
+      onError: (Object error, StackTrace stackTrace) {
+        unawaited(_report(error, stackTrace));
+      },
+    );
   }
 
   final AgentRepository _repository;

@@ -6,6 +6,20 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 class FirebaseAgentNotifications implements AgentNotifications {
+  FirebaseAgentNotifications({FirebaseOptions? options})
+    : _options =
+          options ??
+          const FirebaseOptions(
+            apiKey: String.fromEnvironment('FIREBASE_API_KEY'),
+            appId: String.fromEnvironment('FIREBASE_APP_ID'),
+            messagingSenderId: String.fromEnvironment(
+              'FIREBASE_MESSAGING_SENDER_ID',
+            ),
+            projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
+            iosBundleId: String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID'),
+          );
+
+  final FirebaseOptions _options;
   final _opened = StreamController<String>.broadcast();
   final _tokens = StreamController<String>.broadcast();
   StreamSubscription<RemoteMessage>? _openedSubscription;
@@ -15,7 +29,7 @@ class FirebaseAgentNotifications implements AgentNotifications {
 
   @override
   bool get isConfigured =>
-      const String.fromEnvironment('FIREBASE_PROJECT_ID').isNotEmpty &&
+      _options.projectId.isNotEmpty &&
       (kIsWeb ||
           defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android);
@@ -29,30 +43,36 @@ class FirebaseAgentNotifications implements AgentNotifications {
   @override
   Future<void> initialize() {
     if (!isConfigured) return Future.value();
-    final initialization = _initialization ??= _initialize();
+    final initialization = _initialization ??= _initializeWithRecovery();
 
     return initialization;
   }
 
+  Future<void> _initializeWithRecovery() async {
+    try {
+      await _initialize();
+    } catch (_) {
+      await _openedSubscription?.cancel();
+      await _tokenSubscription?.cancel();
+      _openedSubscription = null;
+      _tokenSubscription = null;
+      _initialization = null;
+      rethrow;
+    }
+  }
+
   Future<void> _initialize() async {
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: String.fromEnvironment('FIREBASE_API_KEY'),
-          appId: String.fromEnvironment('FIREBASE_APP_ID'),
-          messagingSenderId: String.fromEnvironment(
-            'FIREBASE_MESSAGING_SENDER_ID',
-          ),
-          projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
-          iosBundleId: String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID'),
-        ),
-      );
+      await Firebase.initializeApp(options: _options);
     }
     _openedSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
       _onOpened,
     );
     _tokenSubscription = FirebaseMessaging.instance.onRegistered.listen(
       _onRegistered,
+      onError: (Object error, StackTrace stackTrace) {
+        _tokens.addError(error, stackTrace);
+      },
     );
     final initial = await FirebaseMessaging.instance.getInitialMessage();
     if (initial != null) _onOpened(initial);
@@ -73,11 +93,32 @@ class FirebaseAgentNotifications implements AgentNotifications {
     _tokens.add(token);
   }
 
-  Future<void> _register() => FirebaseMessaging.instance.register(
-    vapidKey: kIsWeb
-        ? const String.fromEnvironment('FIREBASE_WEB_VAPID_KEY')
-        : null,
-  );
+  Future<void> _register() async {
+    final messaging = FirebaseMessaging.instance;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      var ready = false;
+      for (var attempt = 0; attempt < 20; attempt++) {
+        if (await messaging.getAPNSToken() != null) {
+          ready = true;
+          break;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+      if (!ready) {
+        throw TimeoutException('Apple push registration is not ready yet');
+      }
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+    await messaging.register(
+      vapidKey: kIsWeb
+          ? const String.fromEnvironment('FIREBASE_WEB_VAPID_KEY')
+          : null,
+    );
+  }
 
   @override
   Future<String?> enable() async {
@@ -89,12 +130,6 @@ class FirebaseAgentNotifications implements AgentNotifications {
       return null;
     }
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
     await _register();
 
     return _latestToken;

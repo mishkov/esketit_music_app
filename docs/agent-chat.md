@@ -20,6 +20,9 @@ Create a Firebase project and register the intended iOS bundle identifiers:
 IDs, configure the APNs authentication key in Firebase, and regenerate signing
 profiles that include the push entitlement. Debug builds use development APNs;
 Profile/Release builds use production APNs. Never commit private keys.
+The APNs environment follows the signed build, including for the `.dev` bundle.
+The installation-ID opt-in is enabled in both native manifests. iOS registration
+waits for its APNs token; transient registration failures can be retried.
 
 Pass public Firebase application configuration through a local, untracked
 `--dart-define-from-file` file containing:
@@ -33,6 +36,24 @@ Pass public Firebase application configuration through a local, untracked
   "FIREBASE_IOS_BUNDLE_ID": "com.mishkov.esketitMusicApp"
 }
 ```
+
+Use separate files named `firebase-config.ios-dev.json` and
+`firebase-config.ios-production.json`, with each app's own Firebase app ID and
+bundle ID. These files are ignored by Git. The existing programmatic Firebase
+initialization consumes these values; the service-account JSON is server-only.
+
+For local iOS testing, run `scripts/generate_vscode_current_device_base_url.sh
+current-device`, then launch with:
+
+```bash
+fvm flutter run --flavor dev \
+  --dart-define-from-file=.vscode/launch_defines.json \
+  --dart-define-from-file=firebase-config.ios-dev.json
+```
+
+The **iOS Agent (local Mac API; Firebase)** VS Code launch configuration runs
+these steps together. Select an iOS device first. The API listens on port 8080;
+the phone and Mac must be able to reach each other on the local network.
 
 For web, use the web application's app ID, set `FIREBASE_WEB_VAPID_KEY`, and
 deploy `firebase-config.js` using `web/firebase-config.example.js`. It contains

@@ -2,6 +2,12 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Generate local agent launch defines",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/generate_vscode_current_device_base_url.sh current-device",
+      "problemMatcher": []
+    },
+    {
       "label": "Generate launch defines",
       "type": "shell",
       "command": "${workspaceFolder}/scripts/generate_vscode_current_device_base_url.sh ${input:serverTarget}",

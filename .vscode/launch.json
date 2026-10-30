@@ -18,6 +18,18 @@
       ]
     },
     {
+      "name": "iOS Agent (local Mac API; Firebase)",
+      "request": "launch",
+      "type": "dart",
+      "preLaunchTask": "Generate local agent launch defines",
+      "flutterMode": "debug",
+      "toolArgs": [
+        "--flavor", "dev",
+        "--dart-define-from-file=.vscode/launch_defines.json",
+        "--dart-define-from-file=firebase-config.ios-dev.json"
+      ]
+    },
+    {
       "name": "Web (debug; Chrome)",
       "request": "launch",
       "type": "dart",
