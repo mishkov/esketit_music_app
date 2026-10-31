@@ -64,6 +64,7 @@ class _AgentConversationScreenState extends State<AgentConversationScreen> {
             final messages = conversation?.messages ?? const <AgentMessage>[];
 
             return ScreenSkeleton(
+              extendBodyBehindBottomPlayer: false,
               appBar: AppBar(
                 title: Text(context.l10n.agentTitle),
                 actions: [
