@@ -1,8 +1,9 @@
 # Agent chat
 
 Agent is visible after Search only when the server grants access. It requires
-`agent.use`, a configured agent service, and an account matching the MCP acting
-user. The permission is enforced server-side for every request. Follow the
+`agent.use`, a configured agent service, and an enabled MCP acting account.
+Chats belong to the signed-in user; catalog submissions belong to the separate
+MCP acting account. The permission is enforced server-side for every request. Follow the
 server repository's `AGENT.md` to configure Go, Python, PostgreSQL, OpenAI and MCP.
 The agent defaults to `gpt-5.4-mini`, with no automatic model upgrade or fallback.
 
