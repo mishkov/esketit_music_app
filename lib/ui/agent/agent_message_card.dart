@@ -2,6 +2,8 @@ import 'package:esketit_music_app/domain/agent/agent_conversation.dart';
 import 'package:esketit_music_app/l10n/app_localizations_build_context_extension.dart';
 import 'package:flutter/material.dart';
 
+import 'agent_rich_text.dart';
+
 class AgentMessageCard extends StatelessWidget {
   const AgentMessageCard({required this.message, super.key});
 
@@ -26,7 +28,7 @@ class AgentMessageCard extends StatelessWidget {
               : null,
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: SelectableText(text),
+            child: fromUser ? SelectableText(text) : AgentRichText(text: text),
           ),
         ),
       ),

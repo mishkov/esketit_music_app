@@ -3,6 +3,8 @@ import 'package:esketit_music_app/use_case/agent/bloc/agent_conversation_bloc.da
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'agent_rich_text.dart';
+
 class AgentQuestionCard extends StatelessWidget {
   const AgentQuestionCard({
     required this.question,
@@ -22,8 +24,8 @@ class AgentQuestionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SelectableText(
-              question.text,
+            AgentRichText(
+              text: question.text,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),

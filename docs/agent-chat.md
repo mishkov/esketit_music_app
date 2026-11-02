@@ -13,6 +13,24 @@ reassess the current item before acting. Stop preserves resumable state; Resume
 or the message `resume` continues it. Cancel abandons remaining agent work, while
 submitted changes remain in review. Questions and answers live on the server.
 
+## Internet research
+
+The agent can search the public web using OpenAI's hosted search with the same
+server-side key and inexpensive configured model (`gpt-5.4-mini` by default).
+No extra search MCP server is required. Each search adds a remote search/model
+request and its associated API charges; the agent does not upgrade models.
+
+For example: “Search the internet for this track's original release date. Prefer
+the artist or label website, cite your sources, and do not change the catalog.”
+Answers and clarification questions support selectable text and tappable inline
+source links. Sources open outside the app. User messages remain literal text;
+research images are not loaded automatically. Search results survive worker
+restarts through durable tool receipts. Failed research is reported as unverified.
+
+Web search finds public information and source pages. Downloading track audio
+still requires a configured downloader such as `ytm-mcp` and the shared media
+upload workflow. Catalog changes retain the existing human review process.
+
 ## Push setup
 
 Create a Firebase project and register the intended iOS bundle identifiers:
