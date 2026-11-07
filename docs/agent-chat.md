@@ -61,6 +61,14 @@ Use separate files named `firebase-config.ios-dev.json` and
 bundle ID. These files are ignored by Git. The existing programmatic Firebase
 initialization consumes these values; the service-account JSON is server-only.
 
+For TestFlight, set the GitHub Actions repository variable
+`FIREBASE_IOS_CONFIG_JSON` to the contents of `firebase-config.ios-production.json`
+before merging the app PR. The release workflow checks its bundle identifier
+against `IOS_APP_IDENTIFIER` and passes the values to Flutter before Fastlane
+archives the app. Update the CI provisioning profile to one with the production
+push entitlement. When the variable is empty, the workflow builds with push
+disabled. Keep the Firebase service-account JSON and APNs keys out of this variable.
+
 For local iOS testing, run `scripts/generate_vscode_current_device_base_url.sh
 current-device`, then launch with:
 
