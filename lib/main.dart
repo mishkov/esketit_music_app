@@ -1,4 +1,9 @@
 import 'dart:async';
+import 'package:esketit_music_app/esketit_rest_api/agent/esketit_rest_api_agent_repository.dart';
+import 'package:esketit_music_app/unassigned_layer/agent/firebase_agent_notifications.dart';
+import 'package:esketit_music_app/use_case/agent/bloc/agent_inbox_bloc.dart';
+import 'package:esketit_music_app/use_case/agent/bloc/agent_conversation_bloc.dart';
+import 'package:esketit_music_app/ui/agent/agent_session_host.dart';
 
 import 'package:esketit_music_app/errors/error_reporter/app_errors_bloc_observer.dart';
 import 'package:esketit_music_app/errors/error_reporter/app_error.dart';
@@ -132,6 +137,10 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
     httpClient: unauthenticatedHttpClient,
     sessionRefresher: authRepository,
   );
+  final agentRepository = EsketitRestApiAgentRepository(
+    httpClient: authenticatedHttpClient,
+  );
+  final agentNotifications = FirebaseAgentNotifications();
   final optionallyAuthenticatedHttpClient =
       OptionallyAuthenticatedHttpClientProxy(
         httpClient: unauthenticatedHttpClient,
@@ -184,6 +193,14 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
   runApp(
     MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<AgentConversationBlocFactory>.value(
+          value: ({identifier, attachment}) => AgentConversationBloc(
+            repository: agentRepository,
+            errorReporter: errorReporter,
+            identifier: identifier,
+            attachment: attachment,
+          ),
+        ),
         RepositoryProvider<AuthRepository>(
           create: (context) => authRepository,
           dispose: (_) => unawaited(authRepository.close()),
@@ -202,6 +219,13 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider(
+            create: (context) => AgentInboxBloc(
+              repository: agentRepository,
+              notifications: agentNotifications,
+              errorReporter: errorReporter,
+            ),
+          ),
           BlocProvider(
             create: (context) => AuthBloc(
               authRepository: authRepository,
@@ -319,7 +343,7 @@ Future<void> _runEsketitApp(ErrorReporter errorReporter) async {
             ),
           ),
         ],
-        child: const EsketitApp(),
+        child: const AgentSessionHost(child: EsketitApp()),
       ),
     ),
   );

@@ -1,3 +1,5 @@
+import 'package:esketit_music_app/domain/agent/agent_conversation.dart';
+import 'package:esketit_music_app/ui/agent/ask_agent_action.dart';
 import 'package:esketit_music_app/domain/album.dart';
 import 'package:esketit_music_app/domain/track.dart';
 import 'package:esketit_music_app/ui/albums/album_details_content.dart';
@@ -32,7 +34,18 @@ class _AlbumDetailsScreenState extends State<AlbumDetailsScreen> {
         final selectedTrackExists = playerState.selectedTrack != null;
 
         return ScreenSkeleton(
-          appBar: AppBar(title: Text(widget.album.title)),
+          appBar: AppBar(
+            title: Text(widget.album.title),
+            actions: [
+              AskAgentAction(
+                attachment: AgentAttachment(
+                  type: AgentItemType.album,
+                  id: widget.album.id,
+                  label: widget.album.title,
+                ),
+              ),
+            ],
+          ),
           body: BlocBuilder<CatalogBloc, CatalogState>(
             builder: (context, state) {
               final tracks = state.tracksByAlbumId[widget.album.id];

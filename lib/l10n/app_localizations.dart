@@ -1447,6 +1447,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not download this track.'**
   String get saveTrackToDownloadsFailed;
+
+  /// No description provided for @agentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Agent'**
+  String get agentTitle;
+
+  /// No description provided for @askAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Agent'**
+  String get askAgent;
+
+  /// No description provided for @agentNewChat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get agentNewChat;
+
+  /// No description provided for @agentEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to add?'**
+  String get agentEmptyTitle;
+
+  /// No description provided for @agentEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the agent to find music, add tracks, or update catalog items.'**
+  String get agentEmptyBody;
+
+  /// No description provided for @agentDraftHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request starts when you send a message.'**
+  String get agentDraftHint;
+
+  /// No description provided for @agentMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the agent…'**
+  String get agentMessageHint;
+
+  /// No description provided for @agentAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an option or type your answer…'**
+  String get agentAnswerHint;
+
+  /// No description provided for @agentSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get agentSend;
+
+  /// No description provided for @agentStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get agentStop;
+
+  /// No description provided for @agentResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get agentResume;
+
+  /// No description provided for @agentCancelRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get agentCancelRequest;
+
+  /// No description provided for @agentCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this request?'**
+  String get agentCancelTitle;
+
+  /// No description provided for @agentCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining work will be abandoned. Submitted changes stay in review until resolved.'**
+  String get agentCancelBody;
+
+  /// No description provided for @agentEnableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get agentEnableNotifications;
+
+  /// No description provided for @agentQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get agentQueued;
+
+  /// No description provided for @agentWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working'**
+  String get agentWorking;
+
+  /// No description provided for @agentWaitingForItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for earlier changes'**
+  String get agentWaitingForItem;
+
+  /// No description provided for @agentWaitingForAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs your answer'**
+  String get agentWaitingForAnswer;
+
+  /// No description provided for @agentWaitingForReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for review'**
+  String get agentWaitingForReview;
+
+  /// No description provided for @agentStopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopping…'**
+  String get agentStopping;
+
+  /// No description provided for @agentPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get agentPaused;
+
+  /// No description provided for @agentCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get agentCompleted;
+
+  /// No description provided for @agentCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get agentCancelled;
+
+  /// No description provided for @agentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get agentFailed;
+
+  /// No description provided for @agentPausedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress is saved. Tap Resume or send “resume” to continue.'**
+  String get agentPausedHint;
+
+  /// No description provided for @agentQueueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This request will reassess the item after earlier work is resolved.'**
+  String get agentQueueHint;
+
+  /// No description provided for @agentEarlierChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Open earlier chat'**
+  String get agentEarlierChat;
+
+  /// No description provided for @agentReviewUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Submission review updated.'**
+  String get agentReviewUpdated;
+
+  /// No description provided for @agentOperationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Work paused after an error. Your progress is saved; you can resume.'**
+  String get agentOperationFailed;
+
+  /// No description provided for @agentRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get agentRetry;
+
+  /// No description provided for @agentTrackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Track'**
+  String get agentTrackLabel;
+
+  /// No description provided for @agentAlbumLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get agentAlbumLabel;
+
+  /// No description provided for @agentAuthorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get agentAuthorLabel;
+
+  /// No description provided for @agentReviewPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get agentReviewPending;
+
+  /// No description provided for @agentReviewChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes requested'**
+  String get agentReviewChanges;
+
+  /// No description provided for @agentReviewApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get agentReviewApproved;
+
+  /// No description provided for @agentReviewRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get agentReviewRejected;
+
+  /// No description provided for @agentReviewCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get agentReviewCancelled;
 }
 
 class _AppLocalizationsDelegate

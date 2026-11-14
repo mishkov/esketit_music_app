@@ -65,7 +65,32 @@ jobs:
           '
 
       - name: Prepare iOS Flutter project
-        run: flutter build ios --release --no-codesign --config-only --no-pub
+        env:
+          FIREBASE_IOS_CONFIG_JSON: ${{ vars.FIREBASE_IOS_CONFIG_JSON }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_args=(--release --no-codesign --config-only --no-pub)
+          if [[ -n "$FIREBASE_IOS_CONFIG_JSON" ]]; then
+            config_file="$RUNNER_TEMP/firebase-config.ios-production.json"
+            ruby -rjson -e '
+              begin
+                config = JSON.parse(ENV.fetch("FIREBASE_IOS_CONFIG_JSON"))
+              rescue JSON::ParserError
+                abort("FIREBASE_IOS_CONFIG_JSON must be valid JSON")
+              end
+              keys = %w[FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_PROJECT_ID FIREBASE_MESSAGING_SENDER_ID FIREBASE_IOS_BUNDLE_ID]
+              unless config.is_a?(Hash) && keys.all? { |key| config[key].is_a?(String) && !config[key].strip.empty? }
+                abort("FIREBASE_IOS_CONFIG_JSON is missing required Firebase app settings")
+              end
+              unless config["FIREBASE_IOS_BUNDLE_ID"] == ENV.fetch("IOS_APP_IDENTIFIER")
+                abort("Firebase bundle identifier must match IOS_APP_IDENTIFIER")
+              end
+              File.write(ARGV.fetch(0), JSON.generate(config.slice(*keys)))
+            ' "$config_file"
+            build_args+=("--dart-define-from-file=$config_file")
+          fi
+          flutter build ios "${build_args[@]}"
 
       - name: Install CocoaPods dependencies
         working-directory: ios

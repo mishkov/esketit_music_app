@@ -5,9 +5,11 @@ class EsketitBottomNavigationBar extends StatelessWidget {
   const EsketitBottomNavigationBar({
     required this.currentIndex,
     required this.onTap,
+    this.showAgent = false,
     super.key,
   });
 
+  final bool showAgent;
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -16,6 +18,7 @@ class EsketitBottomNavigationBar extends StatelessWidget {
     final l10n = context.l10n;
 
     return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,
       onTap: onTap,
       items: [
@@ -27,6 +30,11 @@ class EsketitBottomNavigationBar extends StatelessWidget {
           label: l10n.searchNavigationLabel,
           icon: const Icon(Icons.search_rounded),
         ),
+        if (showAgent)
+          BottomNavigationBarItem(
+            label: l10n.agentTitle,
+            icon: const Icon(Icons.auto_awesome_outlined),
+          ),
         BottomNavigationBarItem(
           label: l10n.myLibraryNavigationLabel,
           icon: const Icon(Icons.library_music_rounded),

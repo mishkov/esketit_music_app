@@ -825,4 +825,126 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get saveTrackToDownloadsFailed => 'Не удалось скачать этот трек.';
+
+  @override
+  String get agentTitle => 'Агент';
+
+  @override
+  String get askAgent => 'Спросить агента';
+
+  @override
+  String get agentNewChat => 'Новый чат';
+
+  @override
+  String get agentEmptyTitle => 'Что вы хотите добавить?';
+
+  @override
+  String get agentEmptyBody =>
+      'Попросите агента найти музыку, добавить треки или обновить каталог.';
+
+  @override
+  String get agentDraftHint => 'Работа начнётся после отправки сообщения.';
+
+  @override
+  String get agentMessageHint => 'Напишите агенту…';
+
+  @override
+  String get agentAnswerHint => 'Выберите вариант или напишите ответ…';
+
+  @override
+  String get agentSend => 'Отправить';
+
+  @override
+  String get agentStop => 'Остановить';
+
+  @override
+  String get agentResume => 'Продолжить';
+
+  @override
+  String get agentCancelRequest => 'Отменить запрос';
+
+  @override
+  String get agentCancelTitle => 'Отменить этот запрос?';
+
+  @override
+  String get agentCancelBody =>
+      'Оставшаяся работа будет отменена. Отправленные изменения останутся на проверке до её завершения.';
+
+  @override
+  String get agentEnableNotifications => 'Включить уведомления';
+
+  @override
+  String get agentQueued => 'В очереди';
+
+  @override
+  String get agentWorking => 'В работе';
+
+  @override
+  String get agentWaitingForItem => 'Ожидание предыдущих изменений';
+
+  @override
+  String get agentWaitingForAnswer => 'Нужен ваш ответ';
+
+  @override
+  String get agentWaitingForReview => 'На проверке';
+
+  @override
+  String get agentStopping => 'Остановка…';
+
+  @override
+  String get agentPaused => 'Приостановлено';
+
+  @override
+  String get agentCompleted => 'Завершено';
+
+  @override
+  String get agentCancelled => 'Отменено';
+
+  @override
+  String get agentFailed => 'Требуется внимание';
+
+  @override
+  String get agentPausedHint =>
+      'Прогресс сохранён. Нажмите «Продолжить» или отправьте «продолжить».';
+
+  @override
+  String get agentQueueHint =>
+      'Запрос будет повторно оценён после завершения предыдущей работы.';
+
+  @override
+  String get agentEarlierChat => 'Открыть предыдущий чат';
+
+  @override
+  String get agentReviewUpdated => 'Статус проверки обновлён.';
+
+  @override
+  String get agentOperationFailed =>
+      'Работа приостановлена после ошибки. Прогресс сохранён, можно продолжить.';
+
+  @override
+  String get agentRetry => 'Повторить';
+
+  @override
+  String get agentTrackLabel => 'Трек';
+
+  @override
+  String get agentAlbumLabel => 'Альбом';
+
+  @override
+  String get agentAuthorLabel => 'Автор';
+
+  @override
+  String get agentReviewPending => 'Ожидает проверки';
+
+  @override
+  String get agentReviewChanges => 'Нужны исправления';
+
+  @override
+  String get agentReviewApproved => 'Одобрено';
+
+  @override
+  String get agentReviewRejected => 'Отклонено';
+
+  @override
+  String get agentReviewCancelled => 'Отменено';
 }

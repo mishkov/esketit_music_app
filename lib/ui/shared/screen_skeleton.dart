@@ -15,6 +15,7 @@ class ScreenSkeleton extends StatelessWidget {
     this.backgroundColor,
     this.resizeToAvoidBottomInset,
     this.enableBottomPlayer = true,
+    this.extendBodyBehindBottomPlayer = true,
   });
 
   final PreferredSizeWidget? appBar;
@@ -25,6 +26,7 @@ class ScreenSkeleton extends StatelessWidget {
   final Color? backgroundColor;
   final bool? resizeToAvoidBottomInset;
   final bool enableBottomPlayer;
+  final bool extendBodyBehindBottomPlayer;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,21 @@ class ScreenSkeleton extends StatelessWidget {
         buildWhen: (previous, current) =>
             previous.selectedTrack != current.selectedTrack,
         builder: (context, state) {
+          if (!extendBodyBehindBottomPlayer) {
+            return Column(
+              children: [
+                Expanded(
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeBottom: state.selectedTrack != null,
+                    child: body,
+                  ),
+                ),
+                if (state.selectedTrack != null) const BottomPlayer(),
+              ],
+            );
+          }
+
           return Stack(
             children: [
               Positioned.fill(child: body),
